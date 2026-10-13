@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 
@@ -14,6 +15,8 @@ const SIZE_LABELS: Record<string, string> = {
 }
 
 export async function POST(req: NextRequest) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   try {
     const body = await req.json() as {
       // Campaign config
@@ -86,8 +89,8 @@ export async function POST(req: NextRequest) {
             currency: 'usd',
             unit_amount: Math.round(body.monthlyRate * 100),
             product_data: {
-              name: `River Region Parents — ${sizeLabel} Campaign`,
-              description: `${body.commitmentMonths}-month advertising campaign in River Region Parents. Your ad runs in print, social media, and email every month.`,
+              name: `${brandName} — ${sizeLabel} Campaign`,
+              description: `${body.commitmentMonths}-month advertising campaign in ${brandName}. Your ad runs in print, social media, and email every month.`,
             },
           },
           quantity: body.commitmentMonths,

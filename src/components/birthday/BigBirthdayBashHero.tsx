@@ -13,6 +13,7 @@
 // visible every month regardless.
 
 import Image from 'next/image'
+import { loadBrandContext } from '@/lib/brand-context'
 import { HeroSponsorCard, type HeroSponsor } from '@/components/verticals/HeroSponsorCard'
 
 const DEFAULT_HERO_IMAGE = '/images/heroes/birthday-party-hero.jpg'
@@ -26,7 +27,9 @@ interface Props {
   sponsor?:      HeroSponsor | null
 }
 
-export function BigBirthdayBashHero({ heroImageUrl, title, subtitle, sponsor }: Props) {
+export async function BigBirthdayBashHero({ heroImageUrl, title, subtitle, sponsor }: Props) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const displayTitle    = title    ?? 'The Big Birthday Bash'
   const displaySubtitle = subtitle ?? 'Plan Your Child\'s Next Birthday Celebration'
   // Split the last word out so we can highlight it (e.g. "Bash")
@@ -66,7 +69,7 @@ export function BigBirthdayBashHero({ heroImageUrl, title, subtitle, sponsor }: 
             sponsorLabel="This Birthday Bash Is Sponsored By"
             verticalSlug="birthday-bash"
             placeholderName="Your Business Here"
-            placeholderTagline="Own the Birthday Bash — your business anchors every River Region birthday plan for the whole month."
+            placeholderTagline={`Own the Birthday Bash — your business anchors every ${region} birthday plan for the whole month.`}
           />
         </div>
       </div>

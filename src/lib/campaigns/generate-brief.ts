@@ -13,6 +13,7 @@
 // regenerating doesn't wipe edits unless explicitly requested.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { loadBrandContext } from '@/lib/brand-context'
 import { runAI } from '@/lib/ai/client'
 import { loadBrandPromptContext, renderBrandContextForPrompt } from '@/lib/seo/brand-profile'
 import type { ThemedCampaign, AIBrief } from '@/lib/campaigns'

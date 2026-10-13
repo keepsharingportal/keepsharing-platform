@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { MarketDef } from '@/lib/markets'
 import { loadBrandContext } from '@/lib/brand-context'
 import { brandifyFields } from '@/lib/brandify'
 import { Navigation } from '@/components/Navigation'
@@ -9,64 +10,69 @@ import type { Metadata } from 'next'
 // generateMetadata, not a static object: buildPageMetadata resolves the brand
 // and runs the copy through brandifyCopy. Identity transform on RRP.
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       'Nominate Someone',
-    description: 'Nominate a teacher, student athlete, grandparent, or community member for monthly recognition in River Region Parents.',
+    description: `Nominate a teacher, student athlete, grandparent, or community member for monthly recognition in ${brandName}.`,
     path:        '/nominate',
     type:        'website',
   })
 }
 
-const CATEGORIES = [
-  {
-    href:        '/submit/teacher-of-the-month',
-    icon:        GraduationCap,
-    color:       'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15 hover:border-primary/40',
-    iconBg:      'bg-primary/15',
-    label:       'Teacher of the Month',
-    description: 'Recognize an outstanding River Region educator who has made a real difference in your child\'s life.',
-    cta:         'Nominate a Teacher',
-    detail:      'Published monthly · All K-12 River Region schools',
-  },
-  {
-    href:        '/submit/play-ball',
-    icon:        Trophy,
-    color:       'bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/15 hover:border-secondary/40',
-    iconBg:      'bg-secondary/15',
-    label:       'Play Ball Spotlight',
-    description: 'Nominate an athlete, coach, or team volunteer (team mom, booster club, concessions) who shows heart in local youth sports.',
-    cta:         'Nominate an Athlete, Coach, or Volunteer',
-    detail:      'Published monthly · Players, coaches, and team volunteers',
-  },
-  {
-    href:        '/submit/grands-are-the-greatest',
-    icon:        Heart,
-    color:       'bg-accent/10 text-accent-foreground border-accent/20 hover:bg-accent/15 hover:border-accent/30',
-    iconBg:      'bg-accent/15',
-    label:       'Grands are the Greatest',
-    description: 'Honor a grandparent whose love and presence have shaped your family in unforgettable ways.',
-    cta:         'Nominate a Grandparent',
-    detail:      'Published monthly · Open to all River Region families',
-  },
-  {
-    href:        '/submit/mom-to-mom',
-    icon:        Users,
-    color:       'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:border-rose-300',
-    iconBg:      'bg-rose-100',
-    label:       'Mom Spotlight',
-    description: 'Share the story of a mom in your life who is showing up, making it work, and inspiring her community.',
-    cta:         'Nominate a Mom',
-    detail:      'Published monthly · River Region families',
-  },
-]
+const CATEGORIES = (market: MarketDef) => {
+  const region       = market.regionLabel
+  return [
+    {
+      href:        '/submit/teacher-of-the-month',
+      icon:        GraduationCap,
+      color:       'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15 hover:border-primary/40',
+      iconBg:      'bg-primary/15',
+      label:       'Teacher of the Month',
+      description: `Recognize an outstanding ${region} educator who has made a real difference in your child's life.`,
+      cta:         'Nominate a Teacher',
+      detail:      `Published monthly · All K-12 ${region} schools`,
+    },
+    {
+      href:        '/submit/play-ball',
+      icon:        Trophy,
+      color:       'bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/15 hover:border-secondary/40',
+      iconBg:      'bg-secondary/15',
+      label:       'Play Ball Spotlight',
+      description: 'Nominate an athlete, coach, or team volunteer (team mom, booster club, concessions) who shows heart in local youth sports.',
+      cta:         'Nominate an Athlete, Coach, or Volunteer',
+      detail:      'Published monthly · Players, coaches, and team volunteers',
+    },
+    {
+      href:        '/submit/grands-are-the-greatest',
+      icon:        Heart,
+      color:       'bg-accent/10 text-accent-foreground border-accent/20 hover:bg-accent/15 hover:border-accent/30',
+      iconBg:      'bg-accent/15',
+      label:       'Grands are the Greatest',
+      description: 'Honor a grandparent whose love and presence have shaped your family in unforgettable ways.',
+      cta:         'Nominate a Grandparent',
+      detail:      `Published monthly · Open to all ${region} families`,
+    },
+    {
+      href:        '/submit/mom-to-mom',
+      icon:        Users,
+      color:       'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:border-rose-300',
+      iconBg:      'bg-rose-100',
+      label:       'Mom Spotlight',
+      description: 'Share the story of a mom in your life who is showing up, making it work, and inspiring her community.',
+      cta:         'Nominate a Mom',
+      detail:      `Published monthly · ${region} families`,
+    },
+  ]
+}
 
 export default async function NominatePage() {
-  // The CATEGORIES config above is module-level and written in River Region's
+  // The CATEGORIES(market) config above is module-level and written in River Region's
   // words. Rewrite the reader-facing fields for whichever brand is serving.
   const { market } = await loadBrandContext()
   const region     = market.regionLabel
-  const categories = CATEGORIES.map(c => brandifyFields(c, market, ['description', 'detail']))
+  const categories = CATEGORIES(market).map(c => brandifyFields(c, market, ['description', 'detail']))
   return (
     <div className="min-h-screen bg-background">
       <Navigation />

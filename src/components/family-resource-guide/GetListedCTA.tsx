@@ -3,6 +3,7 @@
 // (compact, sticky-friendly).
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { Store, ArrowRight } from 'lucide-react'
 import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 
@@ -14,7 +15,9 @@ function StoreIcon({ className }: { className?: string }) {
   return <Store className={className} />
 }
 
-export function GetListedCTA({ variant = 'banner' }: Props) {
+export async function GetListedCTA({ variant = 'banner' }: Props) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   if (variant === 'sidebar') {
     return (
       <div className="rounded-2xl bg-gradient-to-br from-primary/15 via-primary/8 to-secondary/8 border border-primary/25 p-5">
@@ -24,7 +27,7 @@ export function GetListedCTA({ variant = 'banner' }: Props) {
           Get listed in the Family Resource Guide
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-          Reach River Region families who are actively looking. Free, enhanced, and featured listings available.
+          Reach {region} families who are actively looking. Free, enhanced, and featured listings available.
         </p>
         <ClaimSpotButton
           as="a"
@@ -51,7 +54,7 @@ export function GetListedCTA({ variant = 'banner' }: Props) {
             Be on the list moms reach for first.
           </h2>
           <p className="text-base text-muted-foreground leading-relaxed max-w-xl">
-            River Region families come to the Family Resource Guide when they need a pediatrician, a preschool, a counselor — and a hundred other things. Free, enhanced, and featured listings available.
+            {region} families come to the Family Resource Guide when they need a pediatrician, a preschool, a counselor — and a hundred other things. Free, enhanced, and featured listings available.
           </p>
         </div>
         <div className="flex flex-col gap-2">

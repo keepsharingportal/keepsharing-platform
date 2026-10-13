@@ -12,6 +12,7 @@
 // subscriber row is saved either way.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { upsertContact, triggerWorkflow } from '@/lib/ghl'
@@ -60,8 +61,8 @@ function renderTemplate(tpl: string, vars: Record<string, string>): string {
     .replaceAll('{{party_date}}', vars.party_date || '')
 }
 
-function fromAddress(fromName: string | null | undefined): string {
-  const name = (fromName?.trim()) || 'River Region Parents'
+function fromAddress(fromName: string | null | undefined, brandName: string): string {
+  const name = (fromName?.trim()) || brandName
   const env  = process.env.BIRTHDAY_FROM_EMAIL
   if (env) return env
   return `${name} <hello@riverregionparents.com>`
@@ -102,7 +103,7 @@ async function sendMagnetEmail(args: {
   })
   try {
     await new Resend(apiKey).emails.send({
-      from:    fromAddress(magnet.from_name),
+      from:    fromAddress(magnet.from_name, (await loadBrandContext()).market.displayName),
       to:      args.email,
       subject: magnet.email_subject,
       html,

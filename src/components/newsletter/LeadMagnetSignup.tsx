@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { ArrowRight, RefreshCw, Check, Download } from 'lucide-react'
 
 export interface LeadMagnetProps {
@@ -14,47 +15,50 @@ export interface LeadMagnetProps {
   redirect_after_submit?: string
 }
 
-const LEAD_MAGNETS: Record<string, LeadMagnetProps> = {
-  'newcomer-guide': {
-    id: 'newcomer-guide',
-    headline: 'New to the River Region?',
-    subheadline: 'Get our 12-Page Family Welcome Guide — free. Everything you need to know to get settled fast.',
-    benefits: [
-      'The schools local families actually recommend',
-      'The pediatricians with the shortest wait times',
-      'The Saturday morning spots that become traditions',
-    ],
-    cta_label: 'Send Me the Welcome Guide',
-    image_emoji: '📋',
-    ghl_tag: 'lead-magnet-newcomer-guide',
-    redirect_after_submit: '/newcomer-guide',
-  },
-  'saturday-checklist': {
-    id: 'saturday-checklist',
-    headline: 'The Family Saturday Mornings Checklist',
-    subheadline: 'Free one-page guide to the best family-friendly Saturday spots in the River Region.',
-    benefits: [
-      'Parks, trails, and playgrounds families love',
-      'Breakfast spots kids and parents both enjoy',
-      'Activities organized by age group',
-    ],
-    cta_label: 'Get the Free Checklist',
-    image_emoji: '☀️',
-    ghl_tag: 'lead-magnet-saturday-checklist',
-  },
-  'school-workbook': {
-    id: 'school-workbook',
-    headline: 'The River Region School Comparison Workbook',
-    subheadline: 'Free workbook to help you choose the right school for your family. Real criteria, honest comparisons.',
-    benefits: [
-      'Comparison matrix for public and private options',
-      'Questions to ask on every campus tour',
-      'What local families wish they\'d known earlier',
-    ],
-    cta_label: 'Get the Free Workbook',
-    image_emoji: '🏫',
-    ghl_tag: 'lead-magnet-school-workbook',
-  },
+const LEAD_MAGNETS = (c: BrandCopy): Record<string, LeadMagnetProps> => {
+  const { regionPhrase } = c
+  return {
+    'newcomer-guide': {
+      id: 'newcomer-guide',
+      headline: `New to ${regionPhrase}?`,
+      subheadline: 'Get our 12-Page Family Welcome Guide — free. Everything you need to know to get settled fast.',
+      benefits: [
+        'The schools local families actually recommend',
+        'The pediatricians with the shortest wait times',
+        'The Saturday morning spots that become traditions',
+      ],
+      cta_label: 'Send Me the Welcome Guide',
+      image_emoji: '📋',
+      ghl_tag: 'lead-magnet-newcomer-guide',
+      redirect_after_submit: '/newcomer-guide',
+    },
+    'saturday-checklist': {
+      id: 'saturday-checklist',
+      headline: 'The Family Saturday Mornings Checklist',
+      subheadline: `Free one-page guide to the best family-friendly Saturday spots in ${regionPhrase}.`,
+      benefits: [
+        'Parks, trails, and playgrounds families love',
+        'Breakfast spots kids and parents both enjoy',
+        'Activities organized by age group',
+      ],
+      cta_label: 'Get the Free Checklist',
+      image_emoji: '☀️',
+      ghl_tag: 'lead-magnet-saturday-checklist',
+    },
+    'school-workbook': {
+      id: 'school-workbook',
+      headline: `${regionPhrase.replace(/^the /, 'The ')} School Comparison Workbook`,
+      subheadline: 'Free workbook to help you choose the right school for your family. Real criteria, honest comparisons.',
+      benefits: [
+        'Comparison matrix for public and private options',
+        'Questions to ask on every campus tour',
+        'What local families wish they\'d known earlier',
+      ],
+      cta_label: 'Get the Free Workbook',
+      image_emoji: '🏫',
+      ghl_tag: 'lead-magnet-school-workbook',
+    },
+  }
 }
 
 interface Props {
@@ -62,7 +66,8 @@ interface Props {
 }
 
 export function LeadMagnetSignup({ magnet_id }: Props) {
-  const magnet = LEAD_MAGNETS[magnet_id]
+  const copy = useBrandCopy()
+  const magnet = LEAD_MAGNETS(copy)[magnet_id]
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)

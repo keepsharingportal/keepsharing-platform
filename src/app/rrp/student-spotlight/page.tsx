@@ -1,3 +1,9 @@
 import { StudentSpotlightForm } from '@/components/rrp/StudentSpotlightForm'
-export const metadata = { title: 'Student Spotlight — River Region Parents' }
+import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return { title: `Student Spotlight — ${brandName}` }
+}
 export default function StudentSpotlightPage() { return <StudentSpotlightForm /> }

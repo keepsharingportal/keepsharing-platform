@@ -3,6 +3,8 @@
 // age cards, featured pick gallery, then sponsor + email capture.
 
 import type { Metadata } from 'next'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
@@ -10,12 +12,19 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { Gift, ArrowRight, Star, MapPin, Mail } from 'lucide-react'
 import { AGE_BUCKETS, featuredPick } from '@/lib/birthday/gift-guides'
 
-export const metadata: Metadata = {
-  title:       'Birthday Gift Guides by Age | River Region Parents',
-  description: '75 editor-curated birthday gifts — toddler through tween. Real toys kids use, not just unwrap.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return {
+    title:       `Birthday Gift Guides by Age | ${brandName}`,
+    description: '75 editor-curated birthday gifts — toddler through tween. Real toys kids use, not just unwrap.',
+  }
 }
 
-export default function GiftsHubPage() {
+export default async function GiftsHubPage() {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   const total = AGE_BUCKETS.reduce((s, b) => s + b.ideas.length, 0)
 
   return (
@@ -40,7 +49,7 @@ export default function GiftsHubPage() {
               <Gift size={12} /> Birthday Gift Guides
             </p>
             <h1 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.05] mb-4">
-              {total} gifts River Region parents stand behind.
+              {total} gifts {region} parents stand behind.
             </h1>
             <p className="text-lg md:text-xl text-slate-600 leading-relaxed">
               Five age buckets, fifteen picks each. Editor-curated — no sponsored placement, no algorithm. Toys kids re-open six months later, books they ask for at bedtime, experiences that beat a wrapped box.
@@ -143,7 +152,7 @@ export default function GiftsHubPage() {
           <div className="relative max-w-2xl">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 mb-2">Throwing the party?</p>
             <h2 className="text-3xl md:text-4xl font-black leading-tight mb-3">
-              Find a venue, cake, or entertainer in the River Region.
+              Find a venue, cake, or entertainer in {regionPhrase}.
             </h2>
             <p className="text-base text-white/85 leading-relaxed mb-5">
               The full birthday vendor guide — categorized, filterable, and updated annually. Featured partners + free directory listings, all in one place.

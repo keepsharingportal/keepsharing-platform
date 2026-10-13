@@ -1,10 +1,19 @@
 import type { Metadata } from 'next'
+import { chromeForBrand } from '@/lib/brands'
+import type { MarketDef } from '@/lib/markets'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, X } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'The Visibility Engine — River Region Parents',
-  description: 'How businesses become the trusted, remembered, and recommended choice for River Region families through layered ecosystem visibility.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
+  return {
+    title: `The Visibility Engine — ${brandName}`,
+    description: `How businesses become the trusted, remembered, and recommended choice for ${region} families through layered ecosystem visibility.`,
+  }
 }
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -18,56 +27,60 @@ const serif = 'var(--font-fraunces, serif)'
 const sans  = 'var(--font-dm-sans, sans-serif)'
 
 // ── Ecosystem touchpoints ─────────────────────────────────────────────────────
-const TOUCHPOINTS = [
-  {
-    icon: '📖', label: 'Print Magazine', freq: '12 issues / year',
-    reach: '14,000+ households',
-    desc: 'In living rooms, waiting rooms, and hair salons across the River Region. Picked up, saved, and passed along.',
-    accent: '#2d5a2d', bg: 'rgba(45,90,45,0.07)',
-  },
-  {
-    icon: '🏠', label: 'Homepage Feature', freq: 'Rolling placement',
-    reach: '8,000+ monthly visitors',
-    desc: 'Seen by every family who visits RiverRegionParents.com — the region\'s most trusted family starting point.',
-    accent: N, bg: 'rgba(26,39,68,0.07)',
-  },
-  {
-    icon: '🗺️', label: 'Family Resource Guide', freq: 'Always active',
-    reach: '9 specialized guides',
-    desc: 'The most-searched local family directory in the region. Families open it when they\'re ready to decide.',
-    accent: T, bg: 'rgba(196,98,45,0.07)',
-  },
-  {
-    icon: '✍️', label: 'Editorial Articles', freq: 'Seasonal',
-    reach: 'Organic + social reach',
-    desc: 'Cited in articles families bookmark and share. Editorial mention reads as a recommendation — because it is.',
-    accent: GOLD, bg: 'rgba(184,134,11,0.07)',
-  },
-  {
-    icon: '📧', label: 'Email Newsletter', freq: 'Weekly',
-    reach: '4,800+ subscribers',
-    desc: 'Landing in inboxes every Tuesday morning. A subscriber base that opens every issue.',
-    accent: '#6d2d9a', bg: 'rgba(109,45,154,0.07)',
-  },
-  {
-    icon: '📱', label: 'Social Campaigns', freq: 'Monthly',
-    reach: '10,000+ River Region moms',
-    desc: 'Paid reach across Facebook and Instagram — to the exact audience that already follows and trusts RRP.',
-    accent: '#0d7a5a', bg: 'rgba(13,122,90,0.07)',
-  },
-  {
-    icon: '🎪', label: 'Events & Seasonal Content', freq: 'Quarterly',
-    reach: 'High-intent seasonal traffic',
-    desc: 'Featured in Things To Do, seasonal roundups, and local event coverage families use to plan their year.',
-    accent: '#9a4a0d', bg: 'rgba(154,74,13,0.07)',
-  },
-  {
-    icon: '👑', label: 'Category Sponsorship', freq: 'Exclusive · Always-on',
-    reach: 'Every family who opens your section',
-    desc: '"Presented By" in your category header. One position. One business. No competitor above you.',
-    accent: GOLD, bg: 'rgba(184,134,11,0.1)',
-  },
-] as const
+const TOUCHPOINTS = (market: MarketDef) => {
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
+  return [
+    {
+      icon: '📖', label: 'Print Magazine', freq: '12 issues / year',
+      reach: '14,000+ households',
+      desc: `In living rooms, waiting rooms, and hair salons across ${regionPhrase}. Picked up, saved, and passed along.`,
+      accent: '#2d5a2d', bg: 'rgba(45,90,45,0.07)',
+    },
+    {
+      icon: '🏠', label: 'Homepage Feature', freq: 'Rolling placement',
+      reach: '8,000+ monthly visitors',
+      desc: 'Seen by every family who visits RiverRegionParents.com — the region\'s most trusted family starting point.',
+      accent: N, bg: 'rgba(26,39,68,0.07)',
+    },
+    {
+      icon: '🗺️', label: 'Family Resource Guide', freq: 'Always active',
+      reach: '9 specialized guides',
+      desc: 'The most-searched local family directory in the region. Families open it when they\'re ready to decide.',
+      accent: T, bg: 'rgba(196,98,45,0.07)',
+    },
+    {
+      icon: '✍️', label: 'Editorial Articles', freq: 'Seasonal',
+      reach: 'Organic + social reach',
+      desc: 'Cited in articles families bookmark and share. Editorial mention reads as a recommendation — because it is.',
+      accent: GOLD, bg: 'rgba(184,134,11,0.07)',
+    },
+    {
+      icon: '📧', label: 'Email Newsletter', freq: 'Weekly',
+      reach: '4,800+ subscribers',
+      desc: 'Landing in inboxes every Tuesday morning. A subscriber base that opens every issue.',
+      accent: '#6d2d9a', bg: 'rgba(109,45,154,0.07)',
+    },
+    {
+      icon: '📱', label: 'Social Campaigns', freq: 'Monthly',
+      reach: `10,000+ ${region} moms`,
+      desc: 'Paid reach across Facebook and Instagram — to the exact audience that already follows and trusts RRP.',
+      accent: '#0d7a5a', bg: 'rgba(13,122,90,0.07)',
+    },
+    {
+      icon: '🎪', label: 'Events & Seasonal Content', freq: 'Quarterly',
+      reach: 'High-intent seasonal traffic',
+      desc: 'Featured in Things To Do, seasonal roundups, and local event coverage families use to plan their year.',
+      accent: '#9a4a0d', bg: 'rgba(154,74,13,0.07)',
+    },
+    {
+      icon: '👑', label: 'Category Sponsorship', freq: 'Exclusive · Always-on',
+      reach: 'Every family who opens your section',
+      desc: '"Presented By" in your category header. One position. One business. No competitor above you.',
+      accent: GOLD, bg: 'rgba(184,134,11,0.1)',
+    },
+  ] as const
+}
 
 // ── Family decision stages ────────────────────────────────────────────────────
 const STAGES = [
@@ -81,76 +94,83 @@ const STAGES = [
 ] as const
 
 // ── Penetration levels ────────────────────────────────────────────────────────
-const LEVELS = [
-  {
-    n: 1, name: 'Discoverable',
-    tagline: 'Families can find you — if they look.',
-    desc: 'You exist in the ecosystem. Families who search your category and scroll far enough can find your name. A starting point, not a destination.',
-    active: ['Guide Directory Listing'],
-    inactive: ['Newsletter', 'Print', 'Social', 'Featured Position', 'Editorial', 'Sponsor'],
-    color: '#999', border: 'rgba(0,0,0,0.1)', bg: '#f8f8f8',
-  },
-  {
-    n: 2, name: 'Recognized',
-    tagline: 'Families see your name more than once.',
-    desc: 'Your name appears across more than one trusted surface. Recognition builds. You are no longer a stranger — you\'re a name they\'ve seen before.',
-    active: ['Guide (Enhanced)', 'Email Newsletter', 'Print Magazine'],
-    inactive: ['Social', 'Featured Position', 'Editorial', 'Sponsor'],
-    color: N, border: 'rgba(26,39,68,0.18)', bg: 'rgba(26,39,68,0.04)',
-  },
-  {
-    n: 3, name: 'Remembered',
-    tagline: 'Families think of you without being prompted.',
-    desc: 'You appear across enough trusted surfaces that families begin associating your name with your category — before they ever open the guide.',
-    active: ['Guide (Featured)', 'Email Newsletter', 'Print Magazine', 'Social Campaigns', 'Editorial Articles'],
-    inactive: ['Category Sponsor'],
-    color: T, border: 'rgba(196,98,45,0.22)', bg: 'rgba(196,98,45,0.04)',
-  },
-  {
-    n: 4, name: 'Category Leader',
-    tagline: 'Families recommend you before they need you.',
-    desc: 'Your name is the category for River Region families. They don\'t search — they already know. And they tell everyone else.',
-    active: ['Guide (Category Sponsor)', 'Email Newsletter', 'Print Magazine', 'Social Campaigns', 'Editorial Articles', 'Events & Seasonal', '"Presented By" Header'],
-    inactive: [],
-    color: GOLD, border: 'rgba(184,134,11,0.3)', bg: 'rgba(184,134,11,0.05)',
-  },
-] as const
+const LEVELS = (market: MarketDef) => {
+  const region       = market.regionLabel
+  return [
+    {
+      n: 1, name: 'Discoverable',
+      tagline: 'Families can find you — if they look.',
+      desc: 'You exist in the ecosystem. Families who search your category and scroll far enough can find your name. A starting point, not a destination.',
+      active: ['Guide Directory Listing'],
+      inactive: ['Newsletter', 'Print', 'Social', 'Featured Position', 'Editorial', 'Sponsor'],
+      color: '#999', border: 'rgba(0,0,0,0.1)', bg: '#f8f8f8',
+    },
+    {
+      n: 2, name: 'Recognized',
+      tagline: 'Families see your name more than once.',
+      desc: 'Your name appears across more than one trusted surface. Recognition builds. You are no longer a stranger — you\'re a name they\'ve seen before.',
+      active: ['Guide (Enhanced)', 'Email Newsletter', 'Print Magazine'],
+      inactive: ['Social', 'Featured Position', 'Editorial', 'Sponsor'],
+      color: N, border: 'rgba(26,39,68,0.18)', bg: 'rgba(26,39,68,0.04)',
+    },
+    {
+      n: 3, name: 'Remembered',
+      tagline: 'Families think of you without being prompted.',
+      desc: 'You appear across enough trusted surfaces that families begin associating your name with your category — before they ever open the guide.',
+      active: ['Guide (Featured)', 'Email Newsletter', 'Print Magazine', 'Social Campaigns', 'Editorial Articles'],
+      inactive: ['Category Sponsor'],
+      color: T, border: 'rgba(196,98,45,0.22)', bg: 'rgba(196,98,45,0.04)',
+    },
+    {
+      n: 4, name: 'Category Leader',
+      tagline: 'Families recommend you before they need you.',
+      desc: `Your name is the category for ${region} families. They don't search — they already know. And they tell everyone else.`,
+      active: ['Guide (Category Sponsor)', 'Email Newsletter', 'Print Magazine', 'Social Campaigns', 'Editorial Articles', 'Events & Seasonal', '"Presented By" Header'],
+      inactive: [],
+      color: GOLD, border: 'rgba(184,134,11,0.3)', bg: 'rgba(184,134,11,0.05)',
+    },
+  ] as const
+}
 
 // ── Category ownership examples ───────────────────────────────────────────────
-const OWNERSHIP_EXAMPLES = [
-  {
-    category: 'Pediatric Healthcare',
-    duration: '12 months',
-    surfaces: 'Featured guide + 12 print issues + 52 newsletter mentions + 12 social posts',
-    outcome: '"What pediatrician do you use?" → Their name comes up in every moms group conversation.',
-    metric: 'Every new family in the River Region hears their name before their first search.',
-    color: T,
-  },
-  {
-    category: 'Childcare & Preschool',
-    duration: 'Spring enrollment cycle',
-    surfaces: 'Guide category sponsor + newsletter spring features + social campaign + editorial roundup',
-    outcome: 'Parents on the waiting list before they tour any other facilities.',
-    metric: 'Their inquiry volume peaks weeks before competitors even start advertising.',
-    color: N,
-  },
-  {
-    category: 'Summer Camps',
-    duration: 'Annual camp guide cycle',
-    surfaces: 'Camp guide featured + summer editorial + social countdown + print summer issue',
-    outcome: 'The first camp on every registration shortlist — without running a single new ad.',
-    metric: 'Families that registered last year refer friends before camp registration opens.',
-    color: '#2d5a2d',
-  },
-  {
-    category: 'Sports & Recreation',
-    duration: 'Year-round presence',
-    surfaces: 'Guide featured + newsletter sports column + fall/spring social campaigns + seasonal print',
-    outcome: 'The name River Region parents say when their kids ask to try a sport.',
-    metric: 'Word-of-mouth referrals become the primary acquisition channel by month 9.',
-    color: GOLD,
-  },
-] as const
+const OWNERSHIP_EXAMPLES = (market: MarketDef) => {
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
+  return [
+    {
+      category: 'Pediatric Healthcare',
+      duration: '12 months',
+      surfaces: 'Featured guide + 12 print issues + 52 newsletter mentions + 12 social posts',
+      outcome: '"What pediatrician do you use?" → Their name comes up in every moms group conversation.',
+      metric: `Every new family in ${regionPhrase} hears their name before their first search.`,
+      color: T,
+    },
+    {
+      category: 'Childcare & Preschool',
+      duration: 'Spring enrollment cycle',
+      surfaces: 'Guide category sponsor + newsletter spring features + social campaign + editorial roundup',
+      outcome: 'Parents on the waiting list before they tour any other facilities.',
+      metric: 'Their inquiry volume peaks weeks before competitors even start advertising.',
+      color: N,
+    },
+    {
+      category: 'Summer Camps',
+      duration: 'Annual camp guide cycle',
+      surfaces: 'Camp guide featured + summer editorial + social countdown + print summer issue',
+      outcome: 'The first camp on every registration shortlist — without running a single new ad.',
+      metric: 'Families that registered last year refer friends before camp registration opens.',
+      color: '#2d5a2d',
+    },
+    {
+      category: 'Sports & Recreation',
+      duration: 'Year-round presence',
+      surfaces: 'Guide featured + newsletter sports column + fall/spring social campaigns + seasonal print',
+      outcome: `The name ${region} parents say when their kids ask to try a sport.`,
+      metric: 'Word-of-mouth referrals become the primary acquisition channel by month 9.',
+      color: GOLD,
+    },
+  ] as const
+}
 
 // ── Compound effect snapshots ─────────────────────────────────────────────────
 const COMPOUND_SNAPSHOTS = [
@@ -194,7 +214,14 @@ const COMPOUND_SNAPSHOTS = [
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function VisibilityEnginePage() {
+export default async function VisibilityEnginePage() {
+  const veChrome = chromeForBrand((await loadBrandContext()).brand)
+  const vePhone  = veChrome.contactPhone
+  const veEmail  = veChrome.contactEmail
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   return (
     <div style={{ backgroundColor: C, color: '#3a2c1e', fontFamily: sans }}>
 
@@ -211,7 +238,7 @@ export default function VisibilityEnginePage() {
           </div>
 
           <div style={{ display: 'inline-block', backgroundColor: 'rgba(196,98,45,0.18)', border: '1px solid rgba(196,98,45,0.35)', borderRadius: 100, padding: '5px 18px', fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#f5c4a4', marginBottom: 32 }}>
-            The Visibility Engine · River Region Parents
+            The Visibility Engine · {brandName}
           </div>
 
           <h1 style={{ fontFamily: serif, fontSize: 'clamp(34px, 6vw, 62px)', fontWeight: 900, color: W, lineHeight: 1.06, letterSpacing: '-0.02em', marginBottom: 26 }}>
@@ -220,7 +247,7 @@ export default function VisibilityEnginePage() {
           </h1>
 
           <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.68)', lineHeight: 1.8, maxWidth: 580, margin: '0 auto 40px' }}>
-            Trust is not built in a single ad. It is built through repeated, familiar presence across the places River Region families already go — every week, every season, every year.
+            Trust is not built in a single ad. It is built through repeated, familiar presence across the places {region} families already go — every week, every season, every year.
           </p>
 
           {/* Touchpoint pills */}
@@ -247,13 +274,13 @@ export default function VisibilityEnginePage() {
               One Business. Every Place Families Are Looking.
             </h2>
             <p style={{ fontSize: 16, color: '#666', lineHeight: 1.8, maxWidth: 560, margin: '0 auto' }}>
-              The River Region Parents ecosystem is not a directory. It is a layered visibility system where your business appears — repeatedly, in context — across every surface River Region families trust.
+              The {brandName} ecosystem is not a directory. It is a layered visibility system where your business appears — repeatedly, in context — across every surface {region} families trust.
             </p>
           </div>
 
           {/* Touchpoint grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16, marginBottom: 56 }}>
-            {TOUCHPOINTS.map(tp => (
+            {TOUCHPOINTS(market).map(tp => (
               <div key={tp.label} style={{ backgroundColor: tp.bg, border: `1px solid ${tp.accent}22`, borderRadius: 18, padding: '22px 22px', borderLeft: `4px solid ${tp.accent}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -272,13 +299,13 @@ export default function VisibilityEnginePage() {
 
           {/* "A Tuesday morning" vignette */}
           <div style={{ backgroundColor: C, border: `1.5px solid rgba(196,98,45,0.18)`, borderRadius: 22, padding: '36px 40px', maxWidth: 780, margin: '0 auto' }}>
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: T, marginBottom: 22 }}>What This Actually Looks Like — One Week in the River Region</p>
+            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: T, marginBottom: 22 }}>What This Actually Looks Like — One Week in {regionPhrase}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {[
                 { time: 'Monday, 9am', surface: 'Family Resource Guide', moment: 'She\'s searching for summer camp options. Your business appears featured at the top of the section. She reads the editorial description.' },
                 { time: 'Tuesday, 8am', surface: 'Email Newsletter', moment: 'Inbox. Summer activity spotlight. Your business is mentioned. She clicks through. She bookmarks the listing.' },
                 { time: 'Thursday, 12pm', surface: 'Social Media', moment: 'She scrolls Facebook during lunch. An RRP post about local camps. A friend comments: "My kids go here — they love it." She screenshots it.' },
-                { time: 'Saturday, 2pm', surface: 'Print Magazine', moment: 'She\'s at her daughter\'s hair appointment. She picks up River Region Parents. She turns to the Summer Camps section. Your ad is there.' },
+                { time: 'Saturday, 2pm', surface: 'Print Magazine', moment: `She's at her daughter's hair appointment. She picks up ${brandName}. She turns to the Summer Camps section. Your ad is there.` },
               ].map(m => (
                 <div key={m.time} style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <div style={{ flexShrink: 0, textAlign: 'right', minWidth: 130 }}>
@@ -345,7 +372,7 @@ export default function VisibilityEnginePage() {
         </div>
       </section>
 
-      {/* ─────────────────── 4. ECOSYSTEM PENETRATION LEVELS ─────────────── */}
+      {/* ─────────────────── 4. ECOSYSTEM PENETRATION LEVELS(market) ─────────────── */}
       <section style={{ backgroundColor: W, padding: '96px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
@@ -354,12 +381,12 @@ export default function VisibilityEnginePage() {
               Four Levels of Visibility Depth
             </h2>
             <p style={{ fontSize: 16, color: '#666', lineHeight: 1.8, maxWidth: 560, margin: '0 auto' }}>
-              These are not listing tiers. They are ecosystem penetration levels — each one describing how deeply your business is woven into the fabric of how River Region families discover, evaluate, and choose.
+              These are not listing tiers. They are ecosystem penetration levels — each one describing how deeply your business is woven into the fabric of how {region} families discover, evaluate, and choose.
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 18 }}>
-            {LEVELS.map(level => (
+            {LEVELS(market).map(level => (
               <div key={level.n} style={{ backgroundColor: level.bg, border: `1.5px solid ${level.border}`, borderRadius: 20, padding: '26px 24px', position: 'relative', overflow: 'hidden' }}>
                 {/* Level number watermark */}
                 <div style={{ position: 'absolute', top: 16, right: 18, fontFamily: serif, fontSize: 64, fontWeight: 900, color: level.n === 4 ? `${GOLD}12` : `${N}08`, lineHeight: 1, userSelect: 'none' }}>
@@ -469,7 +496,7 @@ export default function VisibilityEnginePage() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 18 }}>
-            {OWNERSHIP_EXAMPLES.map(ex => (
+            {OWNERSHIP_EXAMPLES(market).map(ex => (
               <div key={ex.category} style={{ backgroundColor: W, border: `1.5px solid ${ex.color}20`, borderRadius: 20, padding: '28px 24px', borderTop: `4px solid ${ex.color}` }}>
                 <p style={{ fontSize: 11, fontWeight: 800, color: ex.color, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Category</p>
                 <h3 style={{ fontFamily: serif, fontSize: 18, fontWeight: 900, color: N, marginBottom: 16, lineHeight: 1.25 }}>{ex.category}</h3>
@@ -621,12 +648,12 @@ export default function VisibilityEnginePage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', justifyContent: 'center' }}>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 700, color: N, margin: 0 }}>Jason Watson</p>
-                <p style={{ fontSize: 11, color: '#aaa', margin: '2px 0 0' }}>Owner &amp; Publisher · River Region Parents</p>
+                <p style={{ fontSize: 11, color: '#aaa', margin: '2px 0 0' }}>Owner &amp; Publisher · {brandName}</p>
               </div>
               <div style={{ width: 1, height: 34, backgroundColor: '#e8e8e8' }} />
               <div>
-                <p style={{ fontSize: 13, color: '#666', margin: 0 }}>(334) 328-5189</p>
-                <p style={{ fontSize: 12, color: '#aaa', margin: '3px 0 0' }}>jason@riverregionparents.com</p>
+                <p style={{ fontSize: 13, color: '#666', margin: 0 }}>{vePhone}</p>
+                <p style={{ fontSize: 12, color: '#aaa', margin: '3px 0 0' }}>{veEmail}</p>
               </div>
               <div style={{ width: 1, height: 34, backgroundColor: '#e8e8e8' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

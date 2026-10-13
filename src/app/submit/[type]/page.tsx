@@ -49,13 +49,14 @@ export async function generateMetadata(
   const { type } = await params
   const rawConfig = getSubmissionType(type)
   const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   // submissions.ts is a static config module written in River Region's words.
   // Rewrite the reader-facing strings for whichever brand is serving — an
   // identity transform on RRP.
   const config = rawConfig ? brandifyFields(rawConfig, market, [
     'label', 'description', 'headline', 'whoShouldUse', 'whatHappensNext', 'photoHint',
   ]) : rawConfig
-  if (!config) return { title: 'Submit — River Region Parents' }
+  if (!config) return { title: `Submit — ${brandName}` }
   return {
     title:       `${config.label} — ${market.displayName}`,
     description: config.description,

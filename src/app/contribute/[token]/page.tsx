@@ -4,11 +4,16 @@
 // background; the editor reviews the draft in admin.
 
 import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { ContributorForm } from './ContributorForm'
 
-export const metadata: Metadata = { title: 'Contribute to River Region Parents' }
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return { title: `Contribute to ${brandName}` }
+}
 export const dynamic = 'force-dynamic'
 
 interface Props { params: Promise<{ token: string }> }
@@ -23,6 +28,8 @@ function supabaseAdmin() {
 interface Question { key: string; label: string; placeholder?: string; required?: boolean }
 
 export default async function ContributePage({ params }: Props) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { token } = await params
   const sb = supabaseAdmin()
 
@@ -70,7 +77,7 @@ export default async function ContributePage({ params }: Props) {
   return (
     <Shell>
       <header className="mb-8">
-        <p className="text-[11px] uppercase tracking-widest text-portal-blue font-bold mb-2">River Region Parents · Contributor Q&amp;A</p>
+        <p className="text-[11px] uppercase tracking-widest text-portal-blue font-bold mb-2">{brandName} · Contributor Q&amp;A</p>
         <h1 className="text-3xl sm:text-4xl font-bold text-portal-text leading-tight">Hi {contributor?.name?.split(' ')[0] ?? 'there'}, thanks for sharing your story.</h1>
         {invite.ask && (
           <div className="mt-5 bg-portal-blue-lt border-l-4 border-portal-blue rounded-r-md p-4">

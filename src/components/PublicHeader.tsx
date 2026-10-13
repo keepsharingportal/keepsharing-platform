@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Menu, X, MapPin } from 'lucide-react'
@@ -12,6 +13,7 @@ const NAV_LINKS = [
 ]
 
 export function PublicHeader() {
+  const { regionLabel: region } = useBrandCopy()
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const isGuide = pathname.startsWith('/newcomer-guide')
@@ -38,7 +40,7 @@ export function PublicHeader() {
             letterSpacing: '-0.02em',
             lineHeight: 1,
           }}>
-            River Region <span style={{ color: 'var(--fg-sky, #4a90d9)' }}>Parents</span>
+            {region} <span style={{ color: 'var(--fg-sky, #4a90d9)' }}>Parents</span>
           </span>
           <span style={{
             display: 'flex', alignItems: 'center', gap: 3,

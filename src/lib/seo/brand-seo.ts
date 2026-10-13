@@ -89,7 +89,7 @@ interface BrandOverride {
 
 const BRAND_OVERRIDES: Record<string, BrandOverride> = {
   rrp: {
-    foundingYear: 2005,
+    foundingYear: 1996,
     socialUrls: [
       'https://www.facebook.com/riverregionparents',
       'https://www.instagram.com/riverregionparents',
@@ -192,7 +192,7 @@ const BRAND_OVERRIDES: Record<string, BrandOverride> = {
     competitorDomains: ['al.com', 'fox10tv.com'],
   },
   gpp: {
-    foundingYear: 2014,
+    foundingYear: 2015,
     socialUrls: [
       'https://www.facebook.com/greaterpensacolaparents',
     ],

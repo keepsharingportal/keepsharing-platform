@@ -76,6 +76,8 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 }
 
 export default async function ArticleFallbackPage({ params }: PageParams) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { slug } = await params
   const supabase = getSupabase()
   const brandCtx = await loadBrandContext()
@@ -209,7 +211,10 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   }))
 
   const heroImageUrl  = article.hero_image_url || getFallbackByContext(guideSlug ?? columnSlug ?? 'parenting', article.id)
-  const shareUrl      = `${SITE_URL}/articles/${slug}`
+  // The reader's own brand host, not the deployment-wide SITE_URL — a
+  // Greater Pensacola reader copying a share link was handing out a
+  // riverregionparents.com URL that 404s for them.
+  const shareUrl      = `${brandCtx.publicOrigin || SITE_URL}/articles/${slug}`
   const isSchoolBits   = columnSlug === 'school-bits'
   const isRoundup      = isSchoolBits && article.title.includes('Student Spotlights')
   const isTeacher      = columnSlug === 'teacher-of-month'
@@ -391,6 +396,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                     pullQuotes={pullQuotes}
                     inlineAd={adNode}
                     articleId={article.id}
+                    region={brandCtx.market.regionLabel}
                   />
                 )
               }
@@ -407,6 +413,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                     pullQuotes={pullQuotes}
                     inlineAd={adNode}
                     articleId={article.id}
+                    region={brandCtx.market.regionLabel}
                   />
                 )
               }
@@ -455,7 +462,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">Nominate a Teacher</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">Recognize a River Region educator</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">Recognize a {region} educator</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-primary shrink-0 ml-auto group-hover:translate-x-0.5 transition-transform" />
                 </Link>
@@ -484,7 +491,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-foreground group-hover:text-accent transition-colors">Family Resource Guide</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">Local services for River Region families</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">Local services for {region} families</p>
                 </div>
                 <ArrowRight className="h-4 w-4 text-accent shrink-0 ml-auto group-hover:translate-x-0.5 transition-transform" />
               </Link>
@@ -576,7 +583,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
             sponsoredAd={isRoundup ? {
               id:              'school-bits-sponsor',
               headline:        'Become an Education Partner',
-              description:     'Support student achievement and reach River Region families who care about education.',
+              description:     `Support student achievement and reach ${region} families who care about education.`,
               cta_label:       'Advertise With Us',
               cta_url:         '/advertise',
               advertiser_name: 'Education Partner',

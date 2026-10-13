@@ -5,11 +5,17 @@
 // "check your email" message here.
 
 import type { Metadata } from 'next'
-import { CheckCircle2, Mail, ArrowRight } from 'lucide-react'
+import { BrandContactLink } from '@/components/BrandContactLink'
+import { loadBrandContext } from '@/lib/brand-context'
+import { CheckCircle2, Mail } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title:  'Welcome aboard | River Region Parents',
-  robots: { index: false, follow: false },
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return {
+    title:  `Welcome aboard | ${brandName}`,
+    robots: { index: false, follow: false },
+  }
 }
 
 interface Props {
@@ -17,6 +23,8 @@ interface Props {
 }
 
 export default async function FeaturedSuccessPage({ searchParams }: Props) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { fake } = await searchParams
 
   if (fake) {
@@ -30,7 +38,7 @@ export default async function FeaturedSuccessPage({ searchParams }: Props) {
         <CheckCircle2 className="h-16 w-16 text-emerald-600 mx-auto" />
         <h1 className="text-3xl md:text-4xl font-black text-slate-900">You&apos;re in.</h1>
         <p className="text-base text-slate-600 leading-relaxed">
-          Payment confirmed — welcome to River Region Parents. We&apos;re setting up your featured listing right now.
+          Payment confirmed — welcome to {brandName}. We&apos;re setting up your featured listing right now.
         </p>
         <div className="bg-white border border-black/5 rounded-xl p-5 shadow-sm text-left">
           <div className="inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-[#ff7a59] mb-2">
@@ -43,9 +51,7 @@ export default async function FeaturedSuccessPage({ searchParams }: Props) {
         </div>
         <p className="text-[12px] text-slate-500">
           Didn&apos;t see the email? Check spam, then reach out to{' '}
-          <a href="mailto:hello@riverregionparents.com" className="text-[#ff7a59] font-semibold hover:underline inline-flex items-center gap-0.5">
-            hello@riverregionparents.com <ArrowRight size={11} />
-          </a>
+          <BrandContactLink className="text-[#ff7a59] font-semibold hover:underline inline-flex items-center gap-0.5" />
         </p>
       </div>
     </div>

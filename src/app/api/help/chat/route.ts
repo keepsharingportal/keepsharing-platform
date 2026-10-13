@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import Anthropic from '@anthropic-ai/sdk'
 import { buildKBContext, searchArticles } from '@/lib/knowledge-base'
 

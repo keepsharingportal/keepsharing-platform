@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import {
   CheckCircle2, ChevronRight, ChevronLeft, X, Globe, Printer,
   Package, Upload, CreditCard, RefreshCw, AlertCircle, Check, Info,
@@ -583,6 +584,7 @@ function BookingModal({
 // ── Main public component ─────────────────────────────────────────────────────
 
 export function AdBookingPublic() {
+  const { displayName: brandName } = useBrandCopy()
   const [selectedPub, setSelectedPub]   = useState('RRP')
   const [pageView, setPageView]         = useState<PageView>('premium')
   const [inventory, setInventory]       = useState<InventoryMap>({})
@@ -627,7 +629,7 @@ export function AdBookingPublic() {
       {/* Page header */}
       <div className="bg-white border-b border-gray-200 px-6 py-5">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900">Advertise with River Region Parents</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Advertise with {brandName}</h1>
           <p className="text-sm text-gray-500 mt-1">Select an available spot below and book your space in minutes.</p>
         </div>
       </div>
@@ -803,7 +805,7 @@ export function AdBookingPublic() {
 
         {/* Why advertise section */}
         <div className="bg-blue-600 rounded-2xl p-6 text-white">
-          <h2 className="text-lg font-bold mb-1">Why advertise with River Region Parents?</h2>
+          <h2 className="text-lg font-bold mb-1">Why advertise with {brandName}?</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
             {[
               { stat: '18,000+', label: 'Monthly readers' },

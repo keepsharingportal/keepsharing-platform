@@ -6,6 +6,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { GATEWAY_GROUPS, SUBMISSION_TYPES, TYPE_COLORS } from '@/lib/submissions'
+import { loadBrandContext } from '@/lib/brand-context'
+import { chromeForBrand } from '@/lib/brands'
+import { brandifyCopy } from '@/lib/brandify'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
@@ -14,11 +17,13 @@ export async function generateMetadata(): Promise<Metadata> {
     description: 'Nominate a Teacher of the Month, a Play Ball athlete, a Mom to Mom feature, a Grandparent who deserves recognition, share School News, celebrate a birthday, submit a family event — your community story has a home here.',
     path:        '/submit',
     type:        'website',
-    keywords:    ['nominate', 'submit', 'community submissions', 'River Region', 'family stories'],
+    keywords:    ['nominate', 'submit', 'community submissions', (await loadBrandContext()).market.regionLabel, 'family stories'],
   })
 }
 
-export default function SubmitPage() {
+export default async function SubmitPage() {
+  const { market, brand } = await loadBrandContext()
+  const contactEmail = chromeForBrand(brand).contactEmail
   return (
     <main>
 
@@ -30,7 +35,7 @@ export default function SubmitPage() {
             Community Participation
           </div>
           <h1 className="text-3xl md:text-5xl font-black text-foreground leading-tight max-w-2xl mx-auto mb-4">
-            Share Your Story With River Region Families
+            Share Your Story With {market.regionLabel} Families
           </h1>
           <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto">
             Nominate a teacher. Celebrate a birthday. Share school news. Tell us about a local business
@@ -62,7 +67,7 @@ export default function SubmitPage() {
                   <span className="text-2xl" aria-hidden="true">{group.emoji}</span>
                   <div>
                     <h2 className="text-xl font-black text-foreground leading-snug">{group.label}</h2>
-                    <p className="text-sm text-muted-foreground">{group.description}</p>
+                    <p className="text-sm text-muted-foreground">{brandifyCopy(group.description, market)}</p>
                   </div>
                 </div>
 
@@ -82,16 +87,16 @@ export default function SubmitPage() {
                           <span className="text-xl" aria-hidden="true">{sub.emoji}</span>
                           <h3 className="text-base font-bold text-foreground leading-tight">{sub.label}</h3>
                         </div>
-                        <p className="text-sm text-muted-foreground leading-relaxed mb-3">{sub.description}</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-3">{brandifyCopy(sub.description, market)}</p>
 
                         <div className="flex flex-col gap-1 mb-4 text-xs">
                           <div className="flex gap-1.5">
                             <span className="text-muted-foreground/70 shrink-0">Who:</span>
-                            <span className="text-foreground/70 leading-snug">{sub.whoShouldUse}</span>
+                            <span className="text-foreground/70 leading-snug">{brandifyCopy(sub.whoShouldUse, market)}</span>
                           </div>
                           <div className="flex gap-1.5">
                             <span className="text-muted-foreground/70 shrink-0">Next:</span>
-                            <span className="text-foreground/70 leading-snug">{sub.whatHappensNext}</span>
+                            <span className="text-foreground/70 leading-snug">{brandifyCopy(sub.whatHappensNext, market)}</span>
                           </div>
                           <div className="flex gap-1.5">
                             <span className="text-muted-foreground/70 shrink-0">Time:</span>
@@ -124,14 +129,16 @@ export default function SubmitPage() {
           <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-5">
             We are a small, local editorial team — not a bot. When you submit something, a real
             person reads it. We may not feature everything, but we appreciate every submission
-            from the River Region community.
+            from the {market.regionLabel} community.
           </p>
-          <p className="text-sm text-muted-foreground">
-            Questions? Email{' '}
-            <a href="mailto:hello@riverregionparents.com" className="font-semibold text-primary hover:text-primary/80">
-              hello@riverregionparents.com
-            </a>
-          </p>
+          {contactEmail && (
+            <p className="text-sm text-muted-foreground">
+              Questions? Email{' '}
+              <a href={`mailto:${contactEmail}`} className="font-semibold text-primary hover:text-primary/80">
+                {contactEmail}
+              </a>
+            </p>
+          )}
         </div>
       </section>
     </main>

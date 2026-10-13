@@ -62,6 +62,9 @@ interface Props {
    *  of the district logo fallback. Undefined → cards fall back to
    *  the logo layout gracefully. */
   emSuperintendentPhotos?: Record<string, { photoUrl: string | null }>
+  /** Byline fallback when the article has no author. Optional: an absent
+   *  brand name omits the byline rather than borrowing another brand's. */
+  brandName?: string
 }
 
 function fmtDate(iso: string | null | undefined) {
@@ -69,7 +72,11 @@ function fmtDate(iso: string | null | undefined) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function ArticleCard({ article, showAuthor = true, variant = 'default', emSuperintendentPhotos }: Props) {
+// Re-exported through components/theme, which CalendarClient (a client
+// component) imports — so this cannot await the brand. The byline fallback
+// arrives as a prop, and when it is absent the byline is omitted rather than
+// falling back to another brand's name.
+export function ArticleCard({ article, showAuthor = true, variant = 'default', emSuperintendentPhotos, brandName }: Props) {
   const url = articleHref(article)
 
   // Education Matters articles carry a district-specific column slug
@@ -210,9 +217,9 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default', e
       {/* Meta row */}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
-          {showAuthor && (
+          {showAuthor && (article.author_name || brandName) && (
             <span className="font-medium text-foreground/70">
-              {article.author_name ?? 'River Region Parents'}
+              {article.author_name ?? brandName}
             </span>
           )}
           {dateStr && <span>{dateStr}</span>}

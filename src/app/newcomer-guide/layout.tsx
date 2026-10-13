@@ -1,4 +1,5 @@
 import { PublicHeader } from '@/components/PublicHeader'
+import { loadBrandContext } from '@/lib/brand-context'
 import { MobileNav } from '@/components/family-guide/MobileNav'
 import { MobileFilterStrip } from '@/components/family-guide/MobileFilterStrip'
 import { MobileStickyPromo } from '@/components/family-guide/MobileStickyPromo'
@@ -8,7 +9,9 @@ import { dmSans, fraunces } from '@/lib/fonts'
 
 
 
-export default function NewcomerGuideLayout({ children }: { children: React.ReactNode }) {
+export default async function NewcomerGuideLayout({ children }: { children: React.ReactNode }) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   return (
     <div className={`${fraunces.variable} ${dmSans.variable}`} style={{ fontFamily: 'var(--font-dm-sans, sans-serif)' }}>
       <PublicHeader />
@@ -21,7 +24,7 @@ export default function NewcomerGuideLayout({ children }: { children: React.Reac
       <footer style={{ borderTop: '1px solid rgba(0,0,0,0.06)', backgroundColor: 'white', padding: '16px 24px 8px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-            <p style={{ fontSize: 12, color: '#888', fontStyle: 'italic' }}>River Region Parents · Montgomery, AL</p>
+            <p style={{ fontSize: 12, color: '#888', fontStyle: 'italic' }}>{brandName} · Montgomery, AL</p>
             <div style={{ flex: 1, minWidth: 280, maxWidth: 440 }}>
               <NewsletterSignup variant="compact" source="main-footer" cta_label="Subscribe" />
             </div>

@@ -1,31 +1,35 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import Link from 'next/link'
 import { ArrowRight, Check, RefreshCw } from 'lucide-react'
 
-const QUESTIONS = [
-  {
-    id: 'restaurant',
-    question: "What's the one River Region restaurant you bring out-of-town visitors to, and what's the dish you make them order?",
-    placeholder: 'e.g. "We always take people to Acre — the smoked chicken is incredible and everyone leaves obsessed."',
-  },
-  {
-    id: 'saturday_morning',
-    question: "Where do you take your kids on a Saturday morning, and what makes that spot special?",
-    placeholder: 'e.g. "The farmers market on Dexter — my kids love picking out breakfast and the atmosphere is just really warm."',
-  },
-  {
-    id: 'newcomer_must',
-    question: "If a new family moved to the River Region tomorrow, what's the one place you'd tell them they HAVE to know about?",
-    placeholder: 'e.g. "Blount Cultural Park. It\'s free, beautiful, and the kids can run for hours."',
-  },
-  {
-    id: 'hidden_gem',
-    question: "What's a hidden gem in the River Region — somewhere most people don't know about — that your family loves?",
-    placeholder: 'e.g. "There\'s a little trail behind Oak Park that\'s basically unknown but we go there every fall."',
-  },
-]
+const QUESTIONS = (c: BrandCopy) => {
+  const { regionLabel: region, regionPhrase } = c
+  return [
+    {
+      id: 'restaurant',
+      question: `What's the one ${region} restaurant you bring out-of-town visitors to, and what's the dish you make them order?`,
+      placeholder: 'e.g. "We always take people to Acre — the smoked chicken is incredible and everyone leaves obsessed."',
+    },
+    {
+      id: 'saturday_morning',
+      question: "Where do you take your kids on a Saturday morning, and what makes that spot special?",
+      placeholder: 'e.g. "The farmers market on Dexter — my kids love picking out breakfast and the atmosphere is just really warm."',
+    },
+    {
+      id: 'newcomer_must',
+      question: `If a new family moved to ${regionPhrase} tomorrow, what's the one place you'd tell them they HAVE to know about?`,
+      placeholder: 'e.g. "Blount Cultural Park. It\'s free, beautiful, and the kids can run for hours."',
+    },
+    {
+      id: 'hidden_gem',
+      question: `What's a hidden gem in ${regionPhrase} — somewhere most people don't know about — that your family loves?`,
+      placeholder: 'e.g. "There\'s a little trail behind Oak Park that\'s basically unknown but we go there every fall."',
+    },
+  ]
+}
 
 const PERMISSION_OPTIONS = [
   { value: 'yes',           label: 'Yes — publish my name and answer' },
@@ -34,6 +38,8 @@ const PERMISSION_OPTIONS = [
 ]
 
 export default function ShareYourPickPage() {
+  const copy = useBrandCopy()
+  const { displayName: brandName, regionPhrase } = copy
   const [responses, setResponses] = useState<Record<string, string>>({})
   const [meta, setMeta] = useState({ first_name: '', neighborhood: '', email: '', phone: '' })
   const [permission, setPermission] = useState('yes')
@@ -46,7 +52,7 @@ export default function ShareYourPickPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const answeredResponses = QUESTIONS
+    const answeredResponses = QUESTIONS(copy)
       .filter(q => responses[q.id]?.trim())
       .map(q => ({ question_id: q.id, question: q.question, answer: responses[q.id] }))
 
@@ -89,7 +95,7 @@ export default function ShareYourPickPage() {
           Thank you, {meta.first_name}!
         </h1>
         <p style={{ fontSize: 15, color: '#666', lineHeight: 1.7, marginBottom: 28 }}>
-          Your picks are in. When we use your answer in the magazine or on our website, you&apos;ll be the first to know. New families in the River Region will find their footing partly because of what you just shared.
+          Your picks are in. When we use your answer in the magazine or on our website, you&apos;ll be the first to know. New families in {regionPhrase} will find their footing partly because of what you just shared.
         </p>
         <Link href="/newcomer-guide" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '12px 24px', borderRadius: 10, fontSize: 14, fontWeight: 700, backgroundColor: '#1a2744', color: 'white', textDecoration: 'none' }}>
           Browse the Family Guide <ArrowRight size={13} />
@@ -105,7 +111,7 @@ export default function ShareYourPickPage() {
       <div style={{ backgroundColor: '#1a2744', padding: '20px 24px' }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
           <Link href="/newcomer-guide" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }}>
-            ← River Region Parents
+            ← {brandName}
           </Link>
         </div>
       </div>
@@ -121,7 +127,7 @@ export default function ShareYourPickPage() {
             <span style={{ color: '#f0a070', fontStyle: 'italic' }}>Other moms&apos; lifeline.</span>
           </h1>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.75)', lineHeight: 1.7 }}>
-            Tell us about your favorite places in the River Region. Real moms read these. Real new families find their footing because of what you share.
+            Tell us about your favorite places in {regionPhrase}. Real moms read these. Real new families find their footing because of what you share.
           </p>
         </div>
       </div>
@@ -132,7 +138,7 @@ export default function ShareYourPickPage() {
 
           {/* 4 questions */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, marginBottom: 40 }}>
-            {QUESTIONS.map((q, i) => (
+            {QUESTIONS(copy).map((q, i) => (
               <div key={q.id} style={{ backgroundColor: 'white', borderRadius: 16, padding: '24px 22px', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 <p style={{ fontSize: 12, fontWeight: 800, color: '#ef6442', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
                   Question {i + 1} <span style={{ color: '#ccc', fontWeight: 400 }}>· Optional</span>
@@ -176,7 +182,7 @@ export default function ShareYourPickPage() {
               </div>
               <div>
                 <label className={lbl}>Neighborhood *</label>
-                <input className={`${inp} h-11`} required placeholder="e.g. Pike Road, EastChase" value={meta.neighborhood} onChange={e => setMeta(m => ({...m, neighborhood: e.target.value}))} />
+                <input className={`${inp} h-11`} required placeholder={copy.towns.length ? `e.g. ${copy.towns.slice(0, 2).join(", ")}` : "Your neighborhood"} value={meta.neighborhood} onChange={e => setMeta(m => ({...m, neighborhood: e.target.value}))} />
               </div>
             </div>
             <div>

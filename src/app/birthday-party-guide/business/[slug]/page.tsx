@@ -11,6 +11,8 @@
 // the core advertiser fields so every vendor has a page on day one.
 
 import type { Metadata } from 'next'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
@@ -45,14 +47,17 @@ interface Profile {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
   const { slug } = await params
   const { data } = await sb().from('advertiser_accounts').select('business_name, card_hook').eq('slug', slug).maybeSingle()
   const name = (data as { business_name?: string } | null)?.business_name ?? 'Birthday vendor'
   const hook = (data as { card_hook?: string | null } | null)?.card_hook
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
-    title:       `${name} — Birthday Parties in the River Region`,
-    description: hook ?? `Plan a birthday with ${name} — featured in the River Region Parents Big Birthday Bash.`,
+    title:       `${name} — Birthday Parties in ${regionPhrase}`,
+    description: hook ?? `Plan a birthday with ${name} — featured in the ${brandName} Big Birthday Bash.`,
     path:        `/birthday-party-guide/business/${slug}`,
     type:        'website',
   })

@@ -6,6 +6,7 @@
 // browser tab isn't the only way to follow along.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import { MARKETS } from '@/lib/markets'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { createClient } from '@supabase/supabase-js'

@@ -7,6 +7,7 @@
 
 import type { Metadata } from 'next'
 import { currentBrandSlug } from '@/lib/current-brand'
+import { loadBrandContext } from '@/lib/brand-context'
 import { articleBrandFilter } from '@/lib/brand-context'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -29,8 +30,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   return buildPageMetadata({
     title,
     description: q
-      ? `Stories, guides, events, and resources matching "${q}" from River Region Parents.`
-      : 'Search River Region Parents for local family stories, events, guides, and resources.',
+      ? `Stories, guides, events, and resources matching "${q}" from ${(await loadBrandContext()).market.displayName}.`
+      : `Search ${(await loadBrandContext()).market.displayName} for local family stories, events, guides, and resources.`,
     path:        `/search${q ? `?q=${encodeURIComponent(q)}` : ''}`,
     type:        'website',
     // Results pages should not be indexed — only the search hub itself.
@@ -80,6 +81,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const { q } = await searchParams
   const query = (q ?? '').trim()
   const hits  = query ? await searchArticles(query) : []
+  const pageBrandName = (await loadBrandContext()).market.displayName
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,7 +90,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
         <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Search</p>
         <h1 className="text-3xl md:text-4xl font-black text-foreground leading-tight mb-2">
-          {query ? `Results for "${query}"` : 'Search River Region Parents'}
+          {query ? `Results for "${query}"` : `Search ${pageBrandName}`}
         </h1>
         <p className="text-base text-muted-foreground mb-6">
           {query

@@ -5,18 +5,22 @@
 // pending_review row into business_spotlights and publishes nothing.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { ArrowLeft } from 'lucide-react'
 import { BusinessSpotlightForm } from '@/components/public/BusinessSpotlightForm'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       'Tell Us Your Story — Business Spotlight',
-    description: 'Apply to be featured in a River Region Parents Business Spotlight — a professional article about your business, read by thousands of Montgomery-area families.',
+    description: `Apply to be featured in a ${brandName} Business Spotlight — a professional article about your business, read by thousands of ${market.city}-area families.`,
     path:        '/business-spotlight/apply',
     type:        'website',
-    keywords:    ['business spotlight', 'Montgomery advertising', 'River Region small business'],
+    keywords:    ['business spotlight', `${market.city} advertising`, `${region} small business`],
   })
 }
 

@@ -392,7 +392,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     headline: 'Apply to Be Featured in River Region Boom',
     description: 'River Region Boom profiles the people, entrepreneurs, and community leaders shaping the River Region\'s future. Apply to share your story.',
     whoShouldUse: 'Entrepreneurs, community leaders, professionals, and change-makers in the River Region.',
-    whatHappensNext: 'Our editorial team reviews applications and reaches out to schedule a profile interview. Selected profiles appear in River Region Boom magazine.',
+    whatHappensNext: 'Our editorial team reviews applications and reaches out to schedule a profile interview. Selected profiles appear in River Region 50+ magazine.',
     estimatedTime: '5 minutes',
     nomineeContact: 'self',  // apply yourself
     photoLabel: 'Your Professional / Lifestyle Photo',

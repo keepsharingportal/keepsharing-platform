@@ -3,6 +3,7 @@
 // new families who want to know what to look forward to.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { ArrowRight, Sun } from 'lucide-react'
 import { SectionHeader } from '@/components/theme'
 import { Button } from '@/components/ui/button'
@@ -60,7 +61,9 @@ const SEASONS: SeasonBlock[] = [
   },
 ]
 
-export function YearRoundEvents() {
+export async function YearRoundEvents() {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return (
     <section id="seasons" className="scroll-mt-24">
       <SectionHeader
@@ -73,7 +76,7 @@ export function YearRoundEvents() {
           </Button>
         }
       />
-      <p className="text-sm text-muted-foreground -mt-3 mb-5">River Region family life by the season.</p>
+      <p className="text-sm text-muted-foreground -mt-3 mb-5">{region} family life by the season.</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {SEASONS.map(s => (

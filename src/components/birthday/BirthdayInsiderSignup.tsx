@@ -12,7 +12,7 @@
 import { useState } from 'react'
 import { Mail, CheckCircle2 } from 'lucide-react'
 
-export function BirthdayInsiderSignup({ brandSlug }: { brandSlug: string }) {
+export function BirthdayInsiderSignup({ brandSlug, region }: { brandSlug: string; region: string }) {
   const [email, setEmail] = useState('')
   const [busy,  setBusy]  = useState(false)
   const [done,  setDone]  = useState(false)
@@ -47,7 +47,7 @@ export function BirthdayInsiderSignup({ brandSlug }: { brandSlug: string }) {
         <h3 className="text-[14px] font-bold uppercase tracking-wider">Join Our Email List</h3>
       </div>
       <p className="text-[12px] text-white/95 leading-relaxed mb-3">
-        Weekly picks for River Region parents — events, deals, features, and the local voices we love.
+        Weekly picks for {region} parents — events, deals, features, and the local voices we love.
       </p>
 
       {done ? (

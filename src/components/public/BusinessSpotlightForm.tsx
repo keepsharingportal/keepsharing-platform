@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { Building2, Upload, X, ChevronRight, CheckCircle2, Loader2 } from 'lucide-react'
 
 const QUESTIONS = [
   { id: 'q1', label: 'What does your business do, and who do you serve?',           placeholder: 'Tell us about your products or services and your ideal customer…' },
   { id: 'q2', label: 'What makes your business different from others in your field?', placeholder: 'Your unique approach, special qualities, or competitive advantage…' },
   { id: 'q3', label: 'How long have you been in business, and how did it start?',    placeholder: 'Your founding story — what inspired you to start this business…' },
-  { id: 'q4', label: 'What do you love most about serving families in Montgomery?',  placeholder: 'Your connection to the community and why local families matter to you…' },
+  { id: 'q4', label: 'What do you love most about serving families here?',  placeholder: 'Your connection to the community and why local families matter to you…' },
   { id: 'q5', label: 'What is one thing you wish more parents knew about your business?', placeholder: 'A common misconception, hidden gem, or underused service…' },
   { id: 'q6', label: 'Do you have any current specials, promotions, or seasonal offers?', placeholder: 'Upcoming deals, seasonal programs, or limited-time offers for readers…' },
   { id: 'q7', label: 'Can you share a success story or testimonial from a family you have served?', placeholder: 'A specific example of how you helped a local family (anonymized is fine)…' },
@@ -20,6 +21,7 @@ const labelCls = 'block text-sm font-semibold text-gray-700 mb-1.5'
 type Step = 'info' | 'questions' | 'photos' | 'review' | 'submitting' | 'done'
 
 export function BusinessSpotlightForm() {
+  const { displayName: brandName, city } = useBrandCopy()
   const [step, setStep]       = useState<Step>('info')
   const [submitting, setSubmitting] = useState(false)
   const [article, setArticle] = useState<string | null>(null)
@@ -82,7 +84,7 @@ export function BusinessSpotlightForm() {
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Business Spotlight</h1>
         <p className="text-gray-600 max-w-md mx-auto">
-          Get featured in River Region Parents! Our team will write a professional 400-word article about your business — seen by thousands of Montgomery families.
+          Get featured in {brandName}! Our team will write a professional 400-word article about your business — seen by thousands of {city} families.
         </p>
         <div className="flex items-center justify-center gap-4 mt-4 text-xs text-gray-500">
           <span className="flex items-center gap-1">✓ 400-word editorial article</span>

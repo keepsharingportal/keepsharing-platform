@@ -4,6 +4,10 @@
 // advertiser a clear next step.
 
 import Link from 'next/link'
+import { chromeForBrand } from '@/lib/brands'
+import { theRegion, townPhrase, brandifyCopy } from '@/lib/brandify'
+import type { MarketDef } from '@/lib/markets'
+import { loadBrandContext } from '@/lib/brand-context'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
@@ -36,6 +40,8 @@ interface Vertical {
 }
 
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { verticalSlug } = await params
   const supabase = getSupabase()
   const { data } = await supabase
@@ -45,69 +51,80 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
     .eq('is_active', true)
     .maybeSingle()
 
-  if (!data) return { title: 'Sponsor a Vertical — River Region Parents' }
+  if (!data) return { title: `Sponsor a Vertical — ${brandName}` }
   return {
-    title:       `Sponsor ${data.display_name} — River Region Parents`,
-    description: `Become the exclusive sponsor of ${data.display_name}. ${data.subtitle ?? ''}`.trim(),
+    title:       `Sponsor ${data.display_name} — ${brandName}`,
+    description: brandifyCopy(`Become the exclusive sponsor of ${data.display_name}. ${data.subtitle ?? ''}`.trim(), market),
   }
 }
 
 // Each vertical can declare a pitch — what an exclusive sponsor gets. For
 // now we hand-tune a few. Anything not listed falls back to the generic
 // "year-round sponsorship of this vertical" pitch.
-const PITCH: Record<string, { audience: string; whatYouGet: string[]; perfectFor: string[] }> = {
-  'school-zone': {
-    audience: 'Parents, grandparents, and educators across the River Region — Montgomery, Autauga, Elmore, Pike Road, and private schools.',
-    whatYouGet: [
-      'Exclusive "Proudly Presented By" banner at the top of the School Zone home page',
-      'Sponsor logo + tagline embedded across every School Bits roundup',
-      'Featured ad placement on Teacher of the Month and Student Spotlight articles',
-      'Mention in our monthly School Zone email to subscribers',
-      'First right of refusal to renew each year',
-    ],
-    perfectFor: [
-      'Pediatric clinics and urgent care',
-      'Tutoring + enrichment programs',
-      'Private schools recruiting families',
-      'Family-focused banks and credit unions',
-      'Sports leagues and dance studios',
-    ],
-  },
-  'mom-knows-best': {
-    audience: 'Local moms — engaged readers who trust real River Region voices over national advice columns.',
-    whatYouGet: [
-      'Exclusive "Proudly Presented By" banner at the top of Mom Knows Best',
-      'Sponsor mention on every blogger profile page',
-      'Featured placement on individual blog posts',
-      'Mention in our monthly newsletter alongside the latest mom-life posts',
-      'First right of refusal to renew each year',
-    ],
-    perfectFor: [
-      'Family photographers',
-      'Mom-and-baby retail and boutiques',
-      'OB-GYN, lactation, and postpartum services',
-      'Subscription boxes and meal services',
-      'Wellness studios (yoga, pilates, fitness)',
-    ],
-  },
+const PITCH = (market: MarketDef): Record<string, { audience: string; whatYouGet: string[]; perfectFor: string[] }> => {
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
+  return {
+    'school-zone': {
+      audience: `Parents, grandparents, and educators across ${regionPhrase} — ${townPhrase(market)}, and private schools.`,
+      whatYouGet: [
+        'Exclusive "Proudly Presented By" banner at the top of the School Zone home page',
+        'Sponsor logo + tagline embedded across every School Bits roundup',
+        'Featured ad placement on Teacher of the Month and Student Spotlight articles',
+        'Mention in our monthly School Zone email to subscribers',
+        'First right of refusal to renew each year',
+      ],
+      perfectFor: [
+        'Pediatric clinics and urgent care',
+        'Tutoring + enrichment programs',
+        'Private schools recruiting families',
+        'Family-focused banks and credit unions',
+        'Sports leagues and dance studios',
+      ],
+    },
+    'mom-knows-best': {
+      audience: `Local moms — engaged readers who trust real ${region} voices over national advice columns.`,
+      whatYouGet: [
+        'Exclusive "Proudly Presented By" banner at the top of Mom Knows Best',
+        'Sponsor mention on every blogger profile page',
+        'Featured placement on individual blog posts',
+        'Mention in our monthly newsletter alongside the latest mom-life posts',
+        'First right of refusal to renew each year',
+      ],
+      perfectFor: [
+        'Family photographers',
+        'Mom-and-baby retail and boutiques',
+        'OB-GYN, lactation, and postpartum services',
+        'Subscription boxes and meal services',
+        'Wellness studios (yoga, pilates, fitness)',
+      ],
+    },
+  }
 }
 
-const FALLBACK_PITCH = {
-  audience: 'River Region families who turn to us first for trusted local recommendations and news.',
-  whatYouGet: [
-    'Exclusive "Proudly Presented By" banner at the top of this section',
-    'Sponsor mention across every article in this vertical',
-    'Featured placement in our monthly newsletter',
-    'First right of refusal to renew each year',
-  ],
-  perfectFor: [
-    'Family-focused local businesses',
-    'Service providers reaching River Region parents',
-    'Education, health, and wellness brands',
-  ],
+const FALLBACK_PITCH = (market: MarketDef) => {
+  const region       = market.regionLabel
+  return {
+    audience: `${region} families who turn to us first for trusted local recommendations and news.`,
+    whatYouGet: [
+      'Exclusive "Proudly Presented By" banner at the top of this section',
+      'Sponsor mention across every article in this vertical',
+      'Featured placement in our monthly newsletter',
+      'First right of refusal to renew each year',
+    ],
+    perfectFor: [
+      'Family-focused local businesses',
+      `Service providers reaching ${region} parents`,
+      'Education, health, and wellness brands',
+    ],
+  }
 }
 
 export default async function AdvertiseVerticalPage({ params }: PageParams) {
+  const { market, brand } = await loadBrandContext()
+  const region       = market.regionLabel
+  // Null until the publisher sets one — the inquiry CTA then has no address.
+  const advContact   = chromeForBrand(brand).contactEmail
   const { verticalSlug } = await params
   const supabase = getSupabase()
 
@@ -135,12 +152,12 @@ export default async function AdvertiseVerticalPage({ params }: PageParams) {
   } | null
 
   const sponsoredBy = sponsorRecord?.advertiser?.business_name ?? null
-  const pitch       = PITCH[verticalSlug] ?? FALLBACK_PITCH
+  const pitch       = PITCH(market)[verticalSlug] ?? FALLBACK_PITCH(market)
 
   const publicHref       = `/${verticalSlug}`
   const inquirySubject   = `Sponsorship inquiry: ${vertical.display_name}`
   const inquiryBody      = `Hi — I'd like to learn more about sponsoring ${vertical.display_name}. Please send pricing and availability.`
-  const inquiryMailto    = `mailto:hello@riverregionparents.com?subject=${encodeURIComponent(inquirySubject)}&body=${encodeURIComponent(inquiryBody)}`
+  const inquiryMailto    = `mailto:${advContact ?? ''}?subject=${encodeURIComponent(inquirySubject)}&body=${encodeURIComponent(inquiryBody)}`
 
   return (
     <div className="min-h-screen bg-background public-page">
@@ -183,7 +200,7 @@ export default async function AdvertiseVerticalPage({ params }: PageParams) {
               Sponsor {vertical.display_name}
             </h1>
             <p className="text-base md:text-lg text-white/85 leading-relaxed max-w-xl mb-7">
-              {vertical.subtitle ?? `Become the year-round sponsor of ${vertical.display_name}, reaching engaged River Region families every time they visit this section.`}
+              {brandifyCopy(vertical.subtitle ?? '', market) || `Become the year-round sponsor of ${vertical.display_name}, reaching engaged ${region} families every time they visit this section.`}
             </p>
             <div className="flex flex-wrap gap-2.5">
               {!sponsoredBy && (
@@ -241,7 +258,7 @@ export default async function AdvertiseVerticalPage({ params }: PageParams) {
             </p>
             {vertical.description && (
               <p className="text-sm text-muted-foreground leading-relaxed mt-4 pt-4 border-t border-border/30">
-                {vertical.description}
+                {brandifyCopy(vertical.description, market)}
               </p>
             )}
           </div>

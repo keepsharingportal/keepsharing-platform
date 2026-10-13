@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { loadBrandContext } from '@/lib/brand-context'
 import { isValidSlug, NEIGHBORHOODS } from '@/lib/neighborhood'
 import { NeighborhoodBanner } from '@/components/public/NeighborhoodBanner'
 import Link from 'next/link'
@@ -10,6 +11,8 @@ interface Props {
 }
 
 export default async function NeighborhoodLayout({ children, params }: Props) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { neighborhood } = await params
   if (!isValidSlug(neighborhood)) notFound()
 
@@ -36,7 +39,7 @@ export default async function NeighborhoodLayout({ children, params }: Props) {
             </div>
             <div>
               <div className="text-sm font-bold text-gray-900 leading-tight">
-                River Region Parents
+                {brandName}
               </div>
               <div className="text-[10px] text-gray-500 leading-tight">
                 {meta.label} Edition
@@ -75,7 +78,7 @@ export default async function NeighborhoodLayout({ children, params }: Props) {
 
       <footer className="border-t border-gray-200 bg-white mt-12">
         <div className="max-w-4xl mx-auto px-4 py-6 text-center text-xs text-gray-400">
-          © 2026 KeepSharing LLC · River Region Parents · {meta.label} Edition
+          © 2026 KeepSharing LLC · {brandName} · {meta.label} Edition
           <span className="mx-2">·</span>
           <Link href="/advertise" className="hover:text-gray-700">Advertise with us</Link>
         </div>

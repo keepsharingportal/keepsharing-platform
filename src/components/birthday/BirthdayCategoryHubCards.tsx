@@ -9,6 +9,9 @@
 // at /birthday-party-guide/category/[slug] to drive its query).
 
 import Link from 'next/link'
+import { theRegion } from '@/lib/brandify'
+import type { MarketDef } from '@/lib/markets'
+import { loadBrandContext } from '@/lib/brand-context'
 import {
   Cake, Music, Calendar, Sparkles, MapPin, ClipboardList, Gift,
   ArrowRight, BookOpen,
@@ -52,176 +55,183 @@ export interface CategoryBucket {
   subs?:       CategorySub[]
 }
 
-export const BIRTHDAY_CATEGORY_BUCKETS: CategoryBucket[] = [
-  {
-    slug:       'cakes-and-treats',
-    label:      'Cakes & Treats',
-    eyebrow:    'SWEETS & FINGER FOODS',
-    blurb:      'Custom cakes, cupcake stations, ice cream cakes, and treats made by local bakers and shops.',
-    Icon:       Cake,
-    gradient:   'from-pink-500/85 via-rose-500/75 to-rose-700/70',
-    iconTone:   'text-pink-50',
-    categories: ['Cakes/Finger Foods'],
-  },
-  {
-    slug:       'entertainment',
-    label:      'Entertainment',
-    eyebrow:    'KEEP THE PARTY GOING',
-    blurb:      'Magicians, DJs, mobile gym buses, princess parties, and characters who come to you.',
-    Icon:       Music,
-    gradient:   'from-amber-500/85 via-orange-500/75 to-orange-700/70',
-    iconTone:   'text-amber-50',
-    categories: ['Entertainment'],
-  },
-  {
-    slug:       'rentals-and-games',
-    label:      'Rentals & Games',
-    eyebrow:    'EQUIPMENT & INFLATABLES',
-    blurb:      'Bounce houses, water slides, tables, chairs, tents, carnival games, and concession machines.',
-    Icon:       Calendar,
-    gradient:   'from-emerald-600/85 via-emerald-700/75 to-teal-800/70',
-    iconTone:   'text-emerald-50',
-    categories: ['Equipment/Games Rentals'],
-  },
-  {
-    slug:       'decor-and-invitations',
-    label:      'Decor & Invitations',
-    eyebrow:    'PAPER, BALLOONS, FAVORS',
-    blurb:      'Themed decorations, balloon bouquets, custom invitations, and the party supply stops.',
-    Icon:       Sparkles,
-    gradient:   'from-purple-600/85 via-purple-700/75 to-indigo-800/70',
-    iconTone:   'text-purple-50',
-    categories: ['Paper Goods/Decoration/Invitations', 'Printed Invitations'],
-    subs: [
-      { slug: 'paper-goods-and-decor', label: 'Decor, Balloons & Favors',
-        blurb: 'Themed decorations, balloon bouquets, party supplies, and themed favors for River Region birthday parties.',
-        metaTitle: 'Birthday Decorations, Balloons & Party Supplies | Montgomery & River Region',
-        categories: ['Paper Goods/Decoration/Invitations'],
-        Icon: Sparkles,
-        gradient: 'from-purple-500/85 via-purple-600/75 to-violet-700/70',
-        iconTone: 'text-purple-50' },
-      { slug: 'printed-invitations', label: 'Printed Invitations',
-        blurb: 'Custom birthday invitations, print shops, and stationers serving the River Region.',
-        metaTitle: 'Custom Birthday Invitations | Montgomery & River Region',
-        categories: ['Printed Invitations'],
-        Icon: Mail,
-        gradient: 'from-indigo-500/85 via-indigo-600/75 to-blue-700/70',
-        iconTone: 'text-indigo-50' },
-    ],
-  },
-  {
-    slug:       'places-to-party',
-    label:      'Places to Party',
-    eyebrow:    'VENUES & DESTINATIONS',
-    blurb:      'Bowling, gymnastics, art studios, skating, martial arts, restaurants, and outdoor spots.',
-    Icon:       MapPin,
-    gradient:   'from-blue-600/85 via-blue-700/75 to-blue-900/70',
-    iconTone:   'text-blue-100',
-    categories: [
-      'Places to Party - Artistic',
-      'Places to Party - Bowling',
-      'Places to Party - Cheer/Gymnastics/Dance',
-      'Places to Party - Martial Arts',
-      'Places to Party - Outdoors',
-      'Places to Party - Parks',
-      'Places to Party - Restaurants',
-      'Places to Party - Skating',
-      'Places to Party - Miscellaneous',
-    ],
-    subs: [
-      { slug: 'bowling', label: 'Bowling',
-        blurb: 'Bowling alleys and centers hosting birthday parties across the River Region.',
-        metaTitle: 'Bowling Birthday Parties | Montgomery, Prattville & River Region',
-        categories: ['Places to Party - Bowling'],
-        Icon: Disc,
-        gradient: 'from-emerald-600/85 via-emerald-700/75 to-teal-800/70',
-        iconTone: 'text-emerald-50' },
-      { slug: 'gymnastics-and-dance', label: 'Gymnastics, Cheer & Dance',
-        blurb: 'Gym, cheer, and dance studios that host birthday parties for River Region kids.',
-        metaTitle: 'Gymnastics, Cheer & Dance Birthday Parties | Montgomery & River Region',
-        categories: ['Places to Party - Cheer/Gymnastics/Dance'],
-        Icon: Trophy,
-        gradient: 'from-rose-500/85 via-rose-600/75 to-pink-700/70',
-        iconTone: 'text-rose-50' },
-      { slug: 'skating', label: 'Skating',
-        blurb: 'Skating rinks and roller-skating birthday party venues in the River Region.',
-        metaTitle: 'Skating Rink Birthday Parties | Montgomery & River Region',
-        categories: ['Places to Party - Skating'],
-        Icon: Disc,
-        gradient: 'from-sky-500/85 via-sky-600/75 to-cyan-700/70',
-        iconTone: 'text-sky-50' },
-      { slug: 'martial-arts', label: 'Martial Arts',
-        blurb: 'Martial arts studios that throw active, themed birthday parties.',
-        metaTitle: 'Martial Arts Birthday Parties | Montgomery & River Region',
-        categories: ['Places to Party - Martial Arts'],
-        Icon: Shield,
-        gradient: 'from-red-600/85 via-red-700/75 to-rose-800/70',
-        iconTone: 'text-red-50' },
-      { slug: 'art-studios', label: 'Art Studios',
-        blurb: 'Paint, pottery, and creative studios hosting kid birthday parties.',
-        metaTitle: 'Art Studio Birthday Parties | Montgomery & River Region',
-        categories: ['Places to Party - Artistic'],
-        Icon: Palette,
-        gradient: 'from-violet-500/85 via-violet-600/75 to-purple-700/70',
-        iconTone: 'text-violet-50' },
-      { slug: 'restaurants', label: 'Restaurants',
-        blurb: 'River Region restaurants that book birthday parties — pizza, themed dining, more.',
-        metaTitle: 'Restaurant Birthday Parties | Montgomery & River Region',
-        categories: ['Places to Party - Restaurants'],
-        Icon: UtensilsCrossed,
-        gradient: 'from-amber-500/85 via-amber-600/75 to-orange-700/70',
-        iconTone: 'text-amber-50' },
-      { slug: 'outdoors', label: 'Outdoor Venues',
-        blurb: 'Outdoor venues for River Region birthday parties — splash pads, farms, adventure spots.',
-        metaTitle: 'Outdoor Birthday Party Venues | Montgomery & River Region',
-        categories: ['Places to Party - Outdoors'],
-        Icon: TreePine,
-        gradient: 'from-lime-600/85 via-green-700/75 to-emerald-800/70',
-        iconTone: 'text-lime-50' },
-      { slug: 'parks', label: 'Parks',
-        blurb: 'Local parks with shelters and pavilions perfect for River Region birthday parties.',
-        metaTitle: 'Park Birthday Party Venues | Montgomery & River Region',
-        categories: ['Places to Party - Parks'],
-        Icon: Trees,
-        gradient: 'from-green-600/85 via-emerald-700/75 to-teal-800/70',
-        iconTone: 'text-green-50' },
-      { slug: 'other-venues', label: 'Other Venues',
-        blurb: 'Other birthday party venues in the River Region that don’t fit the standard buckets.',
-        metaTitle: 'Other Birthday Party Venues | Montgomery & River Region',
-        categories: ['Places to Party - Miscellaneous'],
-        Icon: MapPin,
-        gradient: 'from-slate-600/85 via-slate-700/75 to-slate-900/70',
-        iconTone: 'text-slate-100' },
-    ],
-  },
-  {
-    slug:       'party-planners',
-    label:      'Party Planners',
-    eyebrow:    'DONE-FOR-YOU EVENTS',
-    blurb:      'Local pros who plan the whole thing — theme, setup, activities, and cleanup handled.',
-    Icon:       ClipboardList,
-    gradient:   'from-slate-700/85 via-slate-800/75 to-slate-900/70',
-    iconTone:   'text-slate-100',
-    categories: ['Party Planners'],
-  },
-  {
-    slug:       'unique-gifts',
-    label:      'Unique Gifts',
-    eyebrow:    'SOMETHING DIFFERENT',
-    blurb:      'Gift shops with one-of-a-kind finds for kids and the parents on your guest list.',
-    Icon:       Gift,
-    gradient:   'from-fuchsia-600/85 via-fuchsia-700/75 to-pink-800/70',
-    iconTone:   'text-fuchsia-50',
-    categories: ['Unique Gifts for Kids and Adults'],
-  },
-]
-
-export function bucketBySlug(slug: string): CategoryBucket | null {
-  return BIRTHDAY_CATEGORY_BUCKETS.find(b => b.slug === slug) ?? null
+export const BIRTHDAY_CATEGORY_BUCKETS = (market: MarketDef): CategoryBucket[] => {
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
+  return [
+    {
+      slug:       'cakes-and-treats',
+      label:      'Cakes & Treats',
+      eyebrow:    'SWEETS & FINGER FOODS',
+      blurb:      'Custom cakes, cupcake stations, ice cream cakes, and treats made by local bakers and shops.',
+      Icon:       Cake,
+      gradient:   'from-pink-500/85 via-rose-500/75 to-rose-700/70',
+      iconTone:   'text-pink-50',
+      categories: ['Cakes/Finger Foods'],
+    },
+    {
+      slug:       'entertainment',
+      label:      'Entertainment',
+      eyebrow:    'KEEP THE PARTY GOING',
+      blurb:      'Magicians, DJs, mobile gym buses, princess parties, and characters who come to you.',
+      Icon:       Music,
+      gradient:   'from-amber-500/85 via-orange-500/75 to-orange-700/70',
+      iconTone:   'text-amber-50',
+      categories: ['Entertainment'],
+    },
+    {
+      slug:       'rentals-and-games',
+      label:      'Rentals & Games',
+      eyebrow:    'EQUIPMENT & INFLATABLES',
+      blurb:      'Bounce houses, water slides, tables, chairs, tents, carnival games, and concession machines.',
+      Icon:       Calendar,
+      gradient:   'from-emerald-600/85 via-emerald-700/75 to-teal-800/70',
+      iconTone:   'text-emerald-50',
+      categories: ['Equipment/Games Rentals'],
+    },
+    {
+      slug:       'decor-and-invitations',
+      label:      'Decor & Invitations',
+      eyebrow:    'PAPER, BALLOONS, FAVORS',
+      blurb:      'Themed decorations, balloon bouquets, custom invitations, and the party supply stops.',
+      Icon:       Sparkles,
+      gradient:   'from-purple-600/85 via-purple-700/75 to-indigo-800/70',
+      iconTone:   'text-purple-50',
+      categories: ['Paper Goods/Decoration/Invitations', 'Printed Invitations'],
+      subs: [
+        { slug: 'paper-goods-and-decor', label: 'Decor, Balloons & Favors',
+          blurb: `Themed decorations, balloon bouquets, party supplies, and themed favors for ${region} birthday parties.`,
+          metaTitle: `Birthday Decorations, Balloons & Party Supplies | Montgomery & ${region}`,
+          categories: ['Paper Goods/Decoration/Invitations'],
+          Icon: Sparkles,
+          gradient: 'from-purple-500/85 via-purple-600/75 to-violet-700/70',
+          iconTone: 'text-purple-50' },
+        { slug: 'printed-invitations', label: 'Printed Invitations',
+          blurb: `Custom birthday invitations, print shops, and stationers serving ${regionPhrase}.`,
+          metaTitle: `Custom Birthday Invitations | Montgomery & ${region}`,
+          categories: ['Printed Invitations'],
+          Icon: Mail,
+          gradient: 'from-indigo-500/85 via-indigo-600/75 to-blue-700/70',
+          iconTone: 'text-indigo-50' },
+      ],
+    },
+    {
+      slug:       'places-to-party',
+      label:      'Places to Party',
+      eyebrow:    'VENUES & DESTINATIONS',
+      blurb:      'Bowling, gymnastics, art studios, skating, martial arts, restaurants, and outdoor spots.',
+      Icon:       MapPin,
+      gradient:   'from-blue-600/85 via-blue-700/75 to-blue-900/70',
+      iconTone:   'text-blue-100',
+      categories: [
+        'Places to Party - Artistic',
+        'Places to Party - Bowling',
+        'Places to Party - Cheer/Gymnastics/Dance',
+        'Places to Party - Martial Arts',
+        'Places to Party - Outdoors',
+        'Places to Party - Parks',
+        'Places to Party - Restaurants',
+        'Places to Party - Skating',
+        'Places to Party - Miscellaneous',
+      ],
+      subs: [
+        { slug: 'bowling', label: 'Bowling',
+          blurb: `Bowling alleys and centers hosting birthday parties across ${regionPhrase}.`,
+          metaTitle: `Bowling Birthday Parties | ${market.city} & ${region}`,
+          categories: ['Places to Party - Bowling'],
+          Icon: Disc,
+          gradient: 'from-emerald-600/85 via-emerald-700/75 to-teal-800/70',
+          iconTone: 'text-emerald-50' },
+        { slug: 'gymnastics-and-dance', label: 'Gymnastics, Cheer & Dance',
+          blurb: `Gym, cheer, and dance studios that host birthday parties for ${region} kids.`,
+          metaTitle: `Gymnastics, Cheer & Dance Birthday Parties | Montgomery & ${region}`,
+          categories: ['Places to Party - Cheer/Gymnastics/Dance'],
+          Icon: Trophy,
+          gradient: 'from-rose-500/85 via-rose-600/75 to-pink-700/70',
+          iconTone: 'text-rose-50' },
+        { slug: 'skating', label: 'Skating',
+          blurb: `Skating rinks and roller-skating birthday party venues in ${regionPhrase}.`,
+          metaTitle: `Skating Rink Birthday Parties | Montgomery & ${region}`,
+          categories: ['Places to Party - Skating'],
+          Icon: Disc,
+          gradient: 'from-sky-500/85 via-sky-600/75 to-cyan-700/70',
+          iconTone: 'text-sky-50' },
+        { slug: 'martial-arts', label: 'Martial Arts',
+          blurb: 'Martial arts studios that throw active, themed birthday parties.',
+          metaTitle: `Martial Arts Birthday Parties | Montgomery & ${region}`,
+          categories: ['Places to Party - Martial Arts'],
+          Icon: Shield,
+          gradient: 'from-red-600/85 via-red-700/75 to-rose-800/70',
+          iconTone: 'text-red-50' },
+        { slug: 'art-studios', label: 'Art Studios',
+          blurb: 'Paint, pottery, and creative studios hosting kid birthday parties.',
+          metaTitle: `Art Studio Birthday Parties | Montgomery & ${region}`,
+          categories: ['Places to Party - Artistic'],
+          Icon: Palette,
+          gradient: 'from-violet-500/85 via-violet-600/75 to-purple-700/70',
+          iconTone: 'text-violet-50' },
+        { slug: 'restaurants', label: 'Restaurants',
+          blurb: `${region} restaurants that book birthday parties — pizza, themed dining, more.`,
+          metaTitle: `Restaurant Birthday Parties | Montgomery & ${region}`,
+          categories: ['Places to Party - Restaurants'],
+          Icon: UtensilsCrossed,
+          gradient: 'from-amber-500/85 via-amber-600/75 to-orange-700/70',
+          iconTone: 'text-amber-50' },
+        { slug: 'outdoors', label: 'Outdoor Venues',
+          blurb: `Outdoor venues for ${region} birthday parties — splash pads, farms, adventure spots.`,
+          metaTitle: `Outdoor Birthday Party Venues | Montgomery & ${region}`,
+          categories: ['Places to Party - Outdoors'],
+          Icon: TreePine,
+          gradient: 'from-lime-600/85 via-green-700/75 to-emerald-800/70',
+          iconTone: 'text-lime-50' },
+        { slug: 'parks', label: 'Parks',
+          blurb: `Local parks with shelters and pavilions perfect for ${region} birthday parties.`,
+          metaTitle: `Park Birthday Party Venues | Montgomery & ${region}`,
+          categories: ['Places to Party - Parks'],
+          Icon: Trees,
+          gradient: 'from-green-600/85 via-emerald-700/75 to-teal-800/70',
+          iconTone: 'text-green-50' },
+        { slug: 'other-venues', label: 'Other Venues',
+          blurb: `Other birthday party venues in ${regionPhrase} that don’t fit the standard buckets.`,
+          metaTitle: `Other Birthday Party Venues | Montgomery & ${region}`,
+          categories: ['Places to Party - Miscellaneous'],
+          Icon: MapPin,
+          gradient: 'from-slate-600/85 via-slate-700/75 to-slate-900/70',
+          iconTone: 'text-slate-100' },
+      ],
+    },
+    {
+      slug:       'party-planners',
+      label:      'Party Planners',
+      eyebrow:    'DONE-FOR-YOU EVENTS',
+      blurb:      'Local pros who plan the whole thing — theme, setup, activities, and cleanup handled.',
+      Icon:       ClipboardList,
+      gradient:   'from-slate-700/85 via-slate-800/75 to-slate-900/70',
+      iconTone:   'text-slate-100',
+      categories: ['Party Planners'],
+    },
+    {
+      slug:       'unique-gifts',
+      label:      'Unique Gifts',
+      eyebrow:    'SOMETHING DIFFERENT',
+      blurb:      'Gift shops with one-of-a-kind finds for kids and the parents on your guest list.',
+      Icon:       Gift,
+      gradient:   'from-fuchsia-600/85 via-fuchsia-700/75 to-pink-800/70',
+      iconTone:   'text-fuchsia-50',
+      categories: ['Unique Gifts for Kids and Adults'],
+    },
+  ]
 }
 
-export function subBySlug(bucketSlug: string, subSlug: string): { bucket: CategoryBucket; sub: CategorySub } | null {
-  const bucket = bucketBySlug(bucketSlug)
+// Both lookups take the market rather than awaiting it: the bucket table is
+// now a function of market, but a pure slug lookup has no business reaching
+// into a request context, and three route files call these.
+export function bucketBySlug(slug: string, market: MarketDef): CategoryBucket | null {
+  return BIRTHDAY_CATEGORY_BUCKETS(market).find(b => b.slug === slug) ?? null
+}
+
+export function subBySlug(bucketSlug: string, subSlug: string, market: MarketDef): { bucket: CategoryBucket; sub: CategorySub } | null {
+  const bucket = bucketBySlug(bucketSlug, market)
   if (!bucket?.subs) return null
   const sub = bucket.subs.find(s => s.slug === subSlug)
   if (!sub) return null
@@ -289,12 +299,13 @@ export function BirthdaySubCategoryCards({
   )
 }
 
-export function BirthdayCategoryHubCards({ countsByCategory }: {
+export async function BirthdayCategoryHubCards({ countsByCategory }: {
   // Optional: { csvCategory → count } so each card can render its size.
   // Page component computes from the same guide_listings query that
   // feeds everything else, no separate round trip.
   countsByCategory?: Record<string, number>
 }) {
+  const { market } = await loadBrandContext()
   function bucketCount(b: CategoryBucket): number {
     if (!countsByCategory) return 0
     return b.categories.reduce((sum, c) => sum + (countsByCategory[c] ?? 0), 0)
@@ -318,7 +329,7 @@ export function BirthdayCategoryHubCards({ countsByCategory }: {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-        {BIRTHDAY_CATEGORY_BUCKETS.map(b => {
+        {BIRTHDAY_CATEGORY_BUCKETS(market).map(b => {
           const Icon = b.Icon
           const count = bucketCount(b)
           return (

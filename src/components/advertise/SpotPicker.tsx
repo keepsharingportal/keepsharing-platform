@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { X, ChevronLeft, ChevronRight, Upload, Check, RefreshCw, AlertCircle, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -264,6 +265,7 @@ function BookingPanel({
   bookings: ActiveBooking[]
   onClose: () => void
 }) {
+  const { displayName: brandName } = useBrandCopy()
   const MONTHS = getNext18Months()
   const [step, setStep]             = useState<Step>(1)
   const [months, setMonths]         = useState<string[]>([])
@@ -386,7 +388,7 @@ function BookingPanel({
             <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors"><X size={18} /></button>
           </div>
           <div className="text-base font-bold text-gray-900">{zone.displayName}</div>
-          <div className="text-xs text-gray-500 mt-0.5">River Region Parents</div>
+          <div className="text-xs text-gray-500 mt-0.5">{brandName}</div>
         </div>
 
         {/* Step indicator */}
@@ -609,7 +611,7 @@ function BookingPanel({
               <div className="bg-[#fdf9f5] border border-[#ddd4c8] rounded-xl p-4 space-y-2 text-sm">
                 {[
                   ['Zone', zone.displayName],
-                  ['Publication', 'River Region Parents'],
+                  ['Publication', `${brandName}`],
                   ['Business', form.businessName],
                   ['Contact', `${form.firstName} ${form.lastName}`.trim()],
                   ['Email', form.email],
@@ -686,6 +688,7 @@ function BookingPanel({
 // ── Main SpotPicker export ─────────────────────────────────────────────────────
 
 export function SpotPicker() {
+  const { displayName: brandName } = useBrandCopy()
   const [sizeTab, setSizeTab]       = useState<SizeTab>('quarter')
   const [halfOri, setHalfOri]       = useState<'h' | 'v'>('h')
   const [bookings, setBookings]     = useState<ActiveBooking[]>([])
@@ -733,7 +736,7 @@ export function SpotPicker() {
         {/* Section header */}
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-3">
-            Reserve Your Spot in River Region Parents
+            Reserve Your Spot in {brandName}
           </h2>
           <p className="text-sm text-gray-500 max-w-xl mx-auto">
             Click an available position below to see pricing and secure your space.

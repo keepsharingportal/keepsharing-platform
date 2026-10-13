@@ -10,92 +10,103 @@
 // real value, not abstract bullet points.
 
 import type { Metadata } from 'next'
+import { chromeForBrand } from '@/lib/brands'
+import type { MarketDef } from '@/lib/markets'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowLeft, Check, X, Crown, Sparkles, Star, ArrowRight } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Sponsor the Big Birthday Bash — River Region Parents',
-  description: 'Reach River Region moms while they\'re actively planning a birthday. Annual sponsorship packages with print, portal, and Birthday Club email touchpoints.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
+  return {
+    title: `Sponsor the Big Birthday Bash — ${brandName}`,
+    description: `Reach ${region} moms while they're actively planning a birthday. Annual sponsorship packages with print, portal, and Birthday Club email touchpoints.`,
+  }
 }
 export const revalidate = 3600
 
-const TIERS = [
-  {
-    key:       'featured',
-    icon:      Star,
-    name:      'Featured Birthday Partner',
-    tagline:   'Stand out in the directory',
-    price:     '$995/year',
-    monthly:   '~$83/mo',
-    color:     '#84cc16',
-    pitch:     'Your business at the top of its category, with a dedicated profile page and a 12-month listing — for less than half the cost of one quarter-page print ad.',
-    includes: [
-      'Featured placement at the top of your category page (Cakes, Entertainers, etc.)',
-      'Custom business profile page with packages, hours, gallery, FAQ',
-      'Listed in 2 Birthday Deal slots/year (your offer at /deals)',
-      'Mention in 2 issues of the Birthday Insider newsletter',
-      'Live link from the July magazine print ad to your profile',
-      'Quarterly view + click report',
-    ],
-    excludes: [
-      'Logo on portal home page',
-      'Category exclusivity',
-      'Presenting sponsor placement',
-    ],
-    cta:       'Pitch perfect for individual cake artists, entertainers, single-location venues.',
-  },
-  {
-    key:       'sponsored-category',
-    icon:      Sparkles,
-    name:      'Sponsored Category',
-    tagline:   'Own a category for a year',
-    price:     '$2,495/year',
-    monthly:   '~$208/mo',
-    color:     '#f59e0b',
-    popular:   true,
-    pitch:     'You become the sponsor of an entire category — Cakes, Venues, Entertainers, etc. Your logo on the category header. Your business listed first. Competitors can still appear, but you own the page.',
-    includes: [
-      'Your logo + 60-word pitch at the top of the category page',
-      'Featured placement #1 in the category directory',
-      'Custom business profile page',
-      'Listed in 4 Birthday Deal slots/year',
-      'Mention in every Birthday Insider newsletter (12/year)',
-      'Birthday Club email sponsor for 1 issue/year',
-      'Quarter-page print ad in the July Big Birthday Issue',
-      'Monthly view + click report',
-      'Right of first refusal on renewal',
-    ],
-    excludes: [
-      'Top-of-home logo placement (Presenting Sponsor only)',
-    ],
-    cta:       'Best for businesses competing in a single category — cake bakeries, party rental companies, gym/dance studios.',
-  },
-  {
-    key:       'presenting',
-    icon:      Crown,
-    name:      'Presenting Sponsor',
-    tagline:   'Own the whole portal',
-    price:     '$5,995/year',
-    monthly:   '~$500/mo',
-    color:     '#ff7a59',
-    pitch:     'Be the brand every River Region mom sees while planning her kid\'s birthday. One slot per year, period. The "Brought to you by" position at the top of every page.',
-    includes: [
-      '"Brought to you by [you]" header on every Birthday Bash page',
-      'Sidebar sponsor card on the portal home (sitewide on RRP birthday content)',
-      'Logo on the July Big Birthday Issue print cover',
-      'Half-page print ad in the July magazine',
-      'Custom business profile page',
-      'Sponsor banner on /finder, /deals, /checklists pages',
-      'Listed in 6 Birthday Deal slots/year',
-      'Birthday Club email co-branding (12 issues, "Presented by" tag)',
-      'Featured in 4 social posts on RRP\'s Facebook + Instagram',
-      'Monthly performance report + quarterly editor sync',
-      'First refusal on renewal — 2-year option locks rate',
-    ],
-    excludes: [],
-    cta:       'For businesses going all-in on birthday-active families — Skyzone, Newtopia, large venue brands.',
-  },
-]
+const TIERS = (market: MarketDef) => {
+  const region       = market.regionLabel
+  return [
+    {
+      key:       'featured',
+      icon:      Star,
+      name:      'Featured Birthday Partner',
+      tagline:   'Stand out in the directory',
+      price:     '$995/year',
+      monthly:   '~$83/mo',
+      color:     '#84cc16',
+      pitch:     'Your business at the top of its category, with a dedicated profile page and a 12-month listing — for less than half the cost of one quarter-page print ad.',
+      includes: [
+        'Featured placement at the top of your category page (Cakes, Entertainers, etc.)',
+        'Custom business profile page with packages, hours, gallery, FAQ',
+        'Listed in 2 Birthday Deal slots/year (your offer at /deals)',
+        'Mention in 2 issues of the Birthday Insider newsletter',
+        'Live link from the July magazine print ad to your profile',
+        'Quarterly view + click report',
+      ],
+      excludes: [
+        'Logo on portal home page',
+        'Category exclusivity',
+        'Presenting sponsor placement',
+      ],
+      cta:       'Pitch perfect for individual cake artists, entertainers, single-location venues.',
+    },
+    {
+      key:       'sponsored-category',
+      icon:      Sparkles,
+      name:      'Sponsored Category',
+      tagline:   'Own a category for a year',
+      price:     '$2,495/year',
+      monthly:   '~$208/mo',
+      color:     '#f59e0b',
+      popular:   true,
+      pitch:     'You become the sponsor of an entire category — Cakes, Venues, Entertainers, etc. Your logo on the category header. Your business listed first. Competitors can still appear, but you own the page.',
+      includes: [
+        'Your logo + 60-word pitch at the top of the category page',
+        'Featured placement #1 in the category directory',
+        'Custom business profile page',
+        'Listed in 4 Birthday Deal slots/year',
+        'Mention in every Birthday Insider newsletter (12/year)',
+        'Birthday Club email sponsor for 1 issue/year',
+        'Quarter-page print ad in the July Big Birthday Issue',
+        'Monthly view + click report',
+        'Right of first refusal on renewal',
+      ],
+      excludes: [
+        'Top-of-home logo placement (Presenting Sponsor only)',
+      ],
+      cta:       'Best for businesses competing in a single category — cake bakeries, party rental companies, gym/dance studios.',
+    },
+    {
+      key:       'presenting',
+      icon:      Crown,
+      name:      'Presenting Sponsor',
+      tagline:   'Own the whole portal',
+      price:     '$5,995/year',
+      monthly:   '~$500/mo',
+      color:     '#ff7a59',
+      pitch:     `Be the brand every ${region} mom sees while planning her kid's birthday. One slot per year, period. The "Brought to you by" position at the top of every page.`,
+      includes: [
+        '"Brought to you by [you]" header on every Birthday Bash page',
+        'Sidebar sponsor card on the portal home (sitewide on RRP birthday content)',
+        'Logo on the July Big Birthday Issue print cover',
+        'Half-page print ad in the July magazine',
+        'Custom business profile page',
+        'Sponsor banner on /finder, /deals, /checklists pages',
+        'Listed in 6 Birthday Deal slots/year',
+        'Birthday Club email co-branding (12 issues, "Presented by" tag)',
+        'Featured in 4 social posts on RRP\'s Facebook + Instagram',
+        'Monthly performance report + quarterly editor sync',
+        'First refusal on renewal — 2-year option locks rate',
+      ],
+      excludes: [],
+      cta:       'For businesses going all-in on birthday-active families — Skyzone, Newtopia, large venue brands.',
+    },
+  ]
+}
 
 const COMPARE_ROWS: Array<{ feature: string; standard: string | boolean; featured: string | boolean; sponsoredCategory: string | boolean; presenting: string | boolean }> = [
   { feature: 'Listing in the directory',                       standard: true,             featured: true,        sponsoredCategory: true,            presenting: true },
@@ -113,7 +124,10 @@ const COMPARE_ROWS: Array<{ feature: string; standard: string | boolean; feature
   { feature: 'Renewal pricing lock',                          standard: false,            featured: false,       sponsoredCategory: 'Right of refusal', presenting: '2-year lock available' },
 ]
 
-export default function SponsorPackagesPage() {
+export default async function SponsorPackagesPage() {
+  const sponsorContact = chromeForBrand((await loadBrandContext()).brand).contactEmail
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return (
     <main className="bg-[#fffaf5] min-h-screen">
 
@@ -128,7 +142,7 @@ export default function SponsorPackagesPage() {
             Sponsor the <span className="text-[#ff7a59]">Big Birthday Bash</span>
           </h1>
           <p className="text-[15px] sm:text-base text-slate-300 mt-4 max-w-3xl leading-relaxed">
-            River Region moms plan ~8,000 kids&apos; birthdays a year. They visit this portal when they&apos;re actively
+            {region} moms plan ~8,000 kids&apos; birthdays a year. They visit this portal when they&apos;re actively
             comparing venues, cakes, entertainers, and party rentals — credit card in hand. Sponsor it and
             you&apos;re part of every decision.
           </p>
@@ -152,7 +166,7 @@ export default function SponsorPackagesPage() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-5">
-          {TIERS.map(tier => {
+          {TIERS(market).map(tier => {
             const Icon = tier.icon
             return (
               <div key={tier.key}
@@ -193,7 +207,7 @@ export default function SponsorPackagesPage() {
                   <p className="text-[11px] italic text-slate-500 mb-4 leading-snug">{tier.cta}</p>
 
                   <a
-                    href={`mailto:advertise@riverregionparents.com?subject=${encodeURIComponent('Birthday Bash sponsorship — ' + tier.name)}&body=${encodeURIComponent(`Hi RRP team,\n\nI'm interested in the ${tier.name} package. My business is:\n\nName:\nCategory:\nWebsite:\n\nPlease send me the proposal.\n\nThanks!`)}`}
+                    href={`mailto:${sponsorContact ?? ''}?subject=${encodeURIComponent('Birthday Bash sponsorship — ' + tier.name)}&body=${encodeURIComponent(`Hi RRP team,\n\nI'm interested in the ${tier.name} package. My business is:\n\nName:\nCategory:\nWebsite:\n\nPlease send me the proposal.\n\nThanks!`)}`}
                     className="mt-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-[13px] font-bold text-white rounded-lg hover:opacity-90"
                     style={{ background: tier.color }}
                   >
@@ -248,7 +262,7 @@ export default function SponsorPackagesPage() {
           </p>
           <div className="mt-5 flex items-center gap-3 flex-wrap">
             <a
-              href="mailto:advertise@riverregionparents.com?subject=Birthday%20Bash%20sponsorship"
+              href={`mailto:${sponsorContact ?? ''}?subject=Birthday%20Bash%20sponsorship`}
               className="inline-flex items-center gap-1.5 px-5 py-2.5 text-[13px] font-bold text-white bg-slate-900 rounded-lg hover:opacity-90"
             >
               Book a call

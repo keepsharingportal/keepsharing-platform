@@ -1,19 +1,23 @@
+import { loadBrandContext } from '@/lib/brand-context'
+import { BrandContactLink } from '@/components/BrandContactLink'
 // Branded maintenance holding page. Shown to public visitors when
 // maintenance_mode is toggled on. Staff sees this instead of a broken page
 // while the team is making repairs. Matches the brand — coral accents,
 // magazine feel, light and reassuring.
 
-export function MaintenancePage() {
+export async function MaintenancePage() {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return (
     <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center px-6 py-20">
       <div className="max-w-md text-center">
         {/* Brand mark */}
         <div className="mb-8">
           <div className="text-xl font-bold text-[#1a2744] mb-0.5">
-            River Region <span className="text-[#ef6442]">Parents</span>
+            {region} <span className="text-[#ef6442]">Parents</span>
           </div>
           <div className="text-[10px] font-semibold tracking-widest uppercase text-[#ef6442]">
-            The Go-To Resource for River Region Families
+            The Go-To Resource for {region} Families
           </div>
         </div>
 
@@ -39,9 +43,7 @@ export function MaintenancePage() {
 
         <p className="mt-10 text-xs text-gray-400">
           Questions? Email us at{' '}
-          <a href="mailto:hello@riverregionparents.com" className="text-[#ef6442] hover:underline">
-            hello@riverregionparents.com
-          </a>
+          <BrandContactLink className="text-[#ef6442] hover:underline" />
         </p>
       </div>
     </div>

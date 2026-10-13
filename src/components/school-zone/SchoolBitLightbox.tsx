@@ -13,6 +13,7 @@
 //           [ / ] navigate between bits.
 
 import { useEffect, useState, useCallback } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight, Camera } from 'lucide-react'
 import { splitBlurbParagraphs, normalizeUnicodeText } from '@/lib/school-news/text'
@@ -52,6 +53,7 @@ interface Props {
 }
 
 export function SchoolBitLightbox({ bits, index, onClose, onIndexChange, buildShareUrl }: Props) {
+  const { displayName: brandName, regionLabel: region } = useBrandCopy()
   const [images, setImages]       = useState<BitImage[] | null>(null)
   const [photoIdx, setPhotoIdx]   = useState(0)
   const [loading,  setLoading]    = useState(false)
@@ -188,7 +190,7 @@ export function SchoolBitLightbox({ bits, index, onClose, onIndexChange, buildSh
         <header className="flex items-center justify-between gap-3 px-5 md:px-7 py-4 border-b border-border/50">
           <div className="flex flex-col min-w-0">
             <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground leading-none mb-1.5">
-              River Region <span className="text-primary">Parents</span>
+              {region} <span className="text-primary">Parents</span>
             </span>
             <SchoolBitsLogo size="md" />
           </div>
@@ -197,7 +199,7 @@ export function SchoolBitLightbox({ bits, index, onClose, onIndexChange, buildSh
               <ShareRow
                 url={buildShareUrl(bit.id)}
                 title={normalizeUnicodeText(bit.title)}
-                text={`${bit.school_name} — on River Region Parents`}
+                text={`${bit.school_name} — on ${brandName}`}
                 size="compact"
               />
             )}

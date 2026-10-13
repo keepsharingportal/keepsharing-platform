@@ -1,9 +1,13 @@
 import type { PartnerPageData } from './types'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import { ArrowRight } from 'lucide-react'
 
 const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-export function OfferLocations({ data }: { data: PartnerPageData }) {
+export async function OfferLocations({ data }: { data: PartnerPageData }) {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
   const { locations, account, brand } = data
 
   if (!locations.length) return null
@@ -24,7 +28,7 @@ export function OfferLocations({ data }: { data: PartnerPageData }) {
           Find us near you
         </h2>
         <p style={{ fontSize: 14, color: '#888', marginBottom: 36 }}>
-          {account.business_name} serves families across the River Region.
+          {account.business_name} serves families across {regionPhrase}.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>

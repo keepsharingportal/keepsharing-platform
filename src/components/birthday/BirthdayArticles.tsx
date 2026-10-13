@@ -2,6 +2,7 @@
 // 3-card grid; mom-voice articles drive return visits.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { SectionHeader } from './BudgetTiers'
 import { BookOpen, ArrowRight } from 'lucide-react'
 
@@ -34,7 +35,9 @@ function bodyLead(body: string | null | undefined): string {
   return stripped.slice(0, 140).replace(/\s+\S*$/, '') + '…'
 }
 
-export function BirthdayArticles({ articles }: { articles: Array<Record<string, unknown>> }) {
+export async function BirthdayArticles({ articles }: { articles: Array<Record<string, unknown>> }) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const useArticles: Article[] = articles.map(a => {
     const excerpt    = ((a.excerpt as string | null) ?? '').trim()
     const socialHook = ((a.social_hook as string | null) ?? '').trim()
@@ -89,7 +92,7 @@ export function BirthdayArticles({ articles }: { articles: Array<Record<string, 
                   <p className="text-[12px] text-slate-600 mt-2 leading-relaxed line-clamp-3">{a.preview}</p>
                 )}
                 <div className="flex items-center justify-between mt-3 text-[11px] text-slate-500">
-                  <span>{a.author_byline ?? 'River Region Parents'}</span>
+                  <span>{a.author_byline ?? `${brandName}`}</span>
                   <span className="inline-flex items-center gap-1 text-[#ff7a59] font-bold">
                     Read <ArrowRight size={10} />
                   </span>

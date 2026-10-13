@@ -5,6 +5,7 @@
 // expired deals (valid_until < now).
 
 import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import { ArrowLeft, Tag, Star, ExternalLink, Clock, ArrowRight } from 'lucide-react'
@@ -18,9 +19,14 @@ function sb() {
   )
 }
 
-export const metadata: Metadata = {
-  title: 'Birthday Deals — The Big Birthday Bash | River Region Parents',
-  description: 'Exclusive birthday party deals from River Region vendors — venues, cakes, entertainment, rentals. Limited-time offers, updated weekly.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
+  return {
+    title: `Birthday Deals — The Big Birthday Bash | ${brandName}`,
+    description: `Exclusive birthday party deals from ${region} vendors — venues, cakes, entertainment, rentals. Limited-time offers, updated weekly.`,
+  }
 }
 
 interface Deal {
@@ -49,6 +55,8 @@ const CATEGORY_LABEL: Record<string, string> = {
 }
 
 export default async function BirthdayDealsPage() {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const supabase = sb()
   const nowIso = new Date().toISOString()
   const { data } = await supabase
@@ -83,7 +91,7 @@ export default async function BirthdayDealsPage() {
             <h1 className="text-3xl sm:text-4xl font-black">Birthday Deals</h1>
           </div>
           <p className="text-[14px] sm:text-base text-white/95 mt-3 max-w-2xl leading-relaxed">
-            Exclusive offers from local birthday vendors. Mention River Region Parents when you book.
+            Exclusive offers from local birthday vendors. Mention {brandName} when you book.
           </p>
         </div>
       </div>

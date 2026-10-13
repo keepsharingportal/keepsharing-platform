@@ -1,16 +1,22 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { RefreshCw, CheckCircle2 } from 'lucide-react'
 import { RRPFormShell, rrpInput, rrpLabel, rrpTa } from './RRPFormShell'
 
 // This month's poll question — would be dynamic in production
 const THIS_MONTHS_QUESTION = "What's the biggest challenge you face when choosing after-school activities for your kids?"
 
-const NEIGHBORHOODS = ['Prattville', 'Wetumpka', 'Millbrook', 'Pike Road', 'Eastchase', 'Montgomery (other)', 'Outside River Region']
+const NEIGHBORHOODS = (c: BrandCopy) => {
+  const { regionLabel: region } = c
+  return ['Prattville', 'Wetumpka', 'Millbrook', 'Pike Road', 'Eastchase', 'Montgomery (other)', `Outside ${region}`]
+}
 
 export function ParentPollForm() {
-  const [form, setForm] = useState({ answer: '', firstName: '', neighborhood: NEIGHBORHOODS[0], email: '' })
+  const copy = useBrandCopy()
+  const { displayName: brandName, regionLabel: region } = copy
+  const [form, setForm] = useState({ answer: '', firstName: '', neighborhood: NEIGHBORHOODS(copy)[0], email: '' })
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
 
@@ -45,7 +51,7 @@ export function ParentPollForm() {
       <div className="text-center py-6">
         <CheckCircle2 size={40} className="mx-auto text-green-500 mb-3" />
         <h2 className="text-lg font-bold text-gray-900 mb-2">Answer submitted, {form.firstName}!</h2>
-        <p className="text-sm text-gray-600">Your perspective helps make the Parent Poll reflect the real experience of River Region families. Results publish next issue.</p>
+        <p className="text-sm text-gray-600">Your perspective helps make the Parent Poll reflect the real experience of {region} families. Results publish next issue.</p>
       </div>
     </RRPFormShell>
   )
@@ -53,7 +59,7 @@ export function ParentPollForm() {
   return (
     <RRPFormShell
       title="Parent Poll"
-      subtitle="Each month, we ask River Region Parents one real question and share the results in the magazine. This month's question:"
+      subtitle={`Each month, we ask ${brandName} one real question and share the results in the magazine. This month's question:`}
       department="Parent Poll"
     >
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
@@ -74,7 +80,7 @@ export function ParentPollForm() {
           <div>
             <label className={rrpLabel}>Neighborhood</label>
             <select value={form.neighborhood} onChange={set('neighborhood')} className={rrpInput}>
-              {NEIGHBORHOODS.map(n => <option key={n}>{n}</option>)}
+              {NEIGHBORHOODS(copy).map(n => <option key={n}>{n}</option>)}
             </select>
           </div>
           <div className="col-span-2">
@@ -83,7 +89,7 @@ export function ParentPollForm() {
           </div>
         </div>
 
-        <p className="text-xs text-gray-400">Responses may be quoted in River Region Parents (first name + neighborhood only). No last names ever published.</p>
+        <p className="text-xs text-gray-400">Responses may be quoted in {brandName} (first name + neighborhood only). No last names ever published.</p>
 
         <button type="submit" disabled={submitting || !form.answer || !form.firstName}
           className="w-full py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2">

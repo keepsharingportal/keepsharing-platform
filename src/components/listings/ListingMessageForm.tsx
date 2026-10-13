@@ -10,6 +10,7 @@
 // that — we don't claim to email the business directly.
 
 import { useState, FormEvent } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function ListingMessageForm({ advertiserAccountId, advertiserName, guideTypeSlug, directToBusiness = false }: Props) {
+  const { displayName: brandName } = useBrandCopy()
   const [name,     setName]    = useState('')
   const [email,    setEmail]   = useState('')
   const [phone,    setPhone]   = useState('')
@@ -93,7 +95,7 @@ export function ListingMessageForm({ advertiserAccountId, advertiserName, guideT
       <CardContent className="p-6">
         <h3 className="font-bold text-foreground mb-1 flex items-center gap-2">
           <Mail className="h-4 w-4 text-primary" />
-          Request Info Through River Region Parents
+          Request Info Through {brandName}
         </h3>
         <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
           {directToBusiness ? (

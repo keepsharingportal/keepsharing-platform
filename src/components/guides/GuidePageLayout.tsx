@@ -1,4 +1,6 @@
 import Image from 'next/image'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowRight, ChevronRight, CheckCircle } from 'lucide-react'
 import { NewsletterSignup } from '@/components/newsletter/NewsletterSignup'
@@ -110,7 +112,7 @@ function ArticleCard({ article }: { article: AnchorArticle }) {
 
 // ── Main layout component (server component) ──────────────────────────────────
 
-export function GuidePageLayout({
+export async function GuidePageLayout({
   heroImageUrl,
   heroEyebrow,
   heroTitle,
@@ -125,6 +127,8 @@ export function GuidePageLayout({
   newsletter,
   sponsorCta,
 }: GuidePageLayoutProps) {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
   const hasHeroImage = !!heroImageUrl
 
   return (
@@ -205,7 +209,7 @@ export function GuidePageLayout({
               → Start Here
             </p>
             <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, color: 'var(--fg-navy, #1a2744)', marginBottom: 8 }}>
-              New to the River Region?
+              New to {regionPhrase}?
             </h2>
             <p style={{ fontSize: 14, color: 'var(--fg-mid, #666)', marginBottom: 32, maxWidth: 520 }}>
               These three reads will orient your whole family.

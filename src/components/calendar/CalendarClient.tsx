@@ -49,6 +49,9 @@ interface Props {
   topBannerAd?:   ActiveAd | null
   bottomBannerAd?: ActiveAd | null
   inlineAds?:     ActiveAd[]
+  /** Brand region phrase for ad placeholder copy — threaded from the
+   *  server page because this tree is client-side. */
+  region:         string
 }
 
 const TIME_WINDOWS = [
@@ -178,7 +181,7 @@ function ListRow({ ev }: { ev: CalEvent }) {
   )
 }
 
-export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inlineAds }: Props) {
+export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inlineAds, region }: Props) {
   const [view,        setView]     = useState<'grid' | 'list'>('grid')
   const [when,        setWhen]     = useState('upcoming')
   const [category,    setCategory] = useState<string>('all')
@@ -481,7 +484,7 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
             list." Subtle bottom border under the ad's container reinforces
             the break without being heavy. */}
         <div className="mb-8 pb-6 border-b border-border/30">
-          <SponsorAdBanner placement="calendar-top" variant="tan" ad={topBannerAd} />
+          <SponsorAdBanner placement="calendar-top" variant="tan" ad={topBannerAd} region={region} />
         </div>
 
         {loading ? (
@@ -496,7 +499,7 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
             )}
           </div>
         ) : view === 'grid' ? (
-          <ThreeTierGrid events={events} inlineAds={inlineAds ?? []} bottomBannerAd={bottomBannerAd ?? null} />
+          <ThreeTierGrid events={events} inlineAds={inlineAds ?? []} bottomBannerAd={bottomBannerAd ?? null} region={region} />
         ) : (
           <div className="bg-card rounded-2xl ring-1 ring-border overflow-hidden">
             {events.map(ev => <ListRow key={ev.id} ev={ev} />)}
@@ -522,7 +525,7 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
 const PAGE_SIZE  = 12       // events per page, ad slots ON TOP of this
 const AD_INDICES = [3, 8]   // 0-indexed positions inside each batch of PAGE_SIZE
 
-function ThreeTierGrid({ events, inlineAds, bottomBannerAd }: { events: CalEvent[]; inlineAds: ActiveAd[]; bottomBannerAd: ActiveAd | null }) {
+function ThreeTierGrid({ events, inlineAds, bottomBannerAd, region }: { events: CalEvent[]; inlineAds: ActiveAd[]; bottomBannerAd: ActiveAd | null; region: string }) {
   // Per editor request (Jun 2026): recurring events are no longer pulled
   // into a separate "Weekly Picks" pile at the bottom. They get one event
   // card per occurrence in the main grid, just like one-off events.
@@ -603,7 +606,7 @@ function ThreeTierGrid({ events, inlineAds, bottomBannerAd }: { events: CalEvent
             {gridItems.map((item, idx) =>
               item.kind === 'event'
                 ? <EventCard key={item.event.id} event={item.event} />
-                : <CalendarAdCard key={`ad-${idx}`} placement={item.placement} ad={item.ad} />
+                : <CalendarAdCard key={`ad-${idx}`} placement={item.placement} ad={item.ad} region={region} />
             )}
           </div>
 
@@ -628,7 +631,7 @@ function ThreeTierGrid({ events, inlineAds, bottomBannerAd }: { events: CalEvent
               the way down lands on a paid surface before they bounce. Uses
               the coral variant to differentiate from the cream top banner. */}
           <div className="mt-8">
-            <SponsorAdBanner placement="calendar-bottom" variant="coral" ad={bottomBannerAd} />
+            <SponsorAdBanner placement="calendar-bottom" variant="coral" ad={bottomBannerAd} region={region} />
           </div>
         </section>
       )}

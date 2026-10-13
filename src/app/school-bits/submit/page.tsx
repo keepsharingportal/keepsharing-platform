@@ -9,6 +9,8 @@
 // gets a notification via the configured webhook so they know to look.
 
 import type { Metadata } from 'next'
+import { BrandContactLink } from '@/components/BrandContactLink'
+import { loadBrandContext } from '@/lib/brand-context'
 import { createClient } from '@supabase/supabase-js'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
@@ -16,9 +18,13 @@ import { Camera, Sparkles, Mail } from 'lucide-react'
 import { SchoolBitsLogo } from '@/components/school-zone/SchoolBitsLogo'
 import { SubmitForm } from './SubmitForm'
 
-export const metadata: Metadata = {
-  title:       'Submit School News — River Region Parents',
-  description: 'Share your school\'s news, achievements, and events with River Region Parents readers.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return {
+    title:       `Submit School News — ${brandName}`,
+    description: `Share your school's news, achievements, and events with ${brandName} readers.`,
+  }
 }
 export const dynamic = 'force-dynamic'
 
@@ -98,7 +104,7 @@ export default async function SubmitSchoolBitPage({ searchParams }: PageProps) {
             <p className="text-base font-bold text-amber-900 mb-1">Submission system not yet activated</p>
             <p className="text-sm text-amber-800">
               We&apos;re still setting up School Bits — check back soon, or email{' '}
-              <a href="mailto:editor@riverregionparents.com" className="underline font-semibold">editor@riverregionparents.com</a>{' '}
+              <BrandContactLink className="underline font-semibold" />{' '}
               to submit your news directly.
             </p>
           </div>
@@ -121,7 +127,7 @@ export default async function SubmitSchoolBitPage({ searchParams }: PageProps) {
               <FootCard
                 icon={<Mail className="h-5 w-5" />}
                 title="Need help?"
-                body={<>Email <a href="mailto:editor@riverregionparents.com" className="text-primary hover:underline">editor@riverregionparents.com</a> if you can&apos;t find your school or have questions.</>}
+                body={<>Email <BrandContactLink className="text-primary hover:underline" /> if you can&apos;t find your school or have questions.</>}
               />
             </div>
           </>

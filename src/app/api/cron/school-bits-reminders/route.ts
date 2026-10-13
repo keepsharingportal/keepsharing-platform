@@ -11,6 +11,7 @@
 // var; we verify it so the route can't be called externally.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
@@ -39,6 +40,8 @@ function nextMonthLabel(): string {
 }
 
 export async function GET(req: NextRequest) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   // ── Cron auth: Vercel adds Authorization: Bearer ${CRON_SECRET}
   const cronSecret = process.env.CRON_SECRET
   const authHeader = req.headers.get('authorization') ?? ''
@@ -103,7 +106,7 @@ export async function GET(req: NextRequest) {
       issue_label: issueLabel,
       submit_url:  submitUrl,
       subject:     `Share your ${s.name} news for the ${issueLabel} issue`,
-      message:     `Hi ${s.name},\n\nIt's time to send us your School Bits for the ${issueLabel} River Region Parents issue.\n\nClick here to submit (the form already knows you're at ${s.name}):\n${submitUrl}\n\nGreat content: award winners, Purple Star recognitions, science fair winners, band/sports championships, ribbon cuttings, teacher recognitions, community service projects. We can use either a quick paragraph + photo or a longer story.\n\nDeadline for the ${issueLabel} issue: mid-month before print.\n\nThanks!\n— River Region Parents`,
+      message:     `Hi ${s.name},\n\nIt's time to send us your School Bits for the ${issueLabel} ${brandName} issue.\n\nClick here to submit (the form already knows you're at ${s.name}):\n${submitUrl}\n\nGreat content: award winners, Purple Star recognitions, science fair winners, band/sports championships, ribbon cuttings, teacher recognitions, community service projects. We can use either a quick paragraph + photo or a longer story.\n\nDeadline for the ${issueLabel} issue: mid-month before print.\n\nThanks!\n— ${brandName}`,
     }
 
     try {

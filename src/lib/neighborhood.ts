@@ -15,6 +15,11 @@ export type NeighborhoodMeta = {
   description: string
 }
 
+/** The brand these neighborhoods belong to. The towns, counties and school
+ *  districts below are River Region's; a sibling brand has its own, or none
+ *  yet, and must not serve these pages under its own name. */
+export const NEIGHBORHOOD_BRAND = 'rrp'
+
 export const NEIGHBORHOODS: Record<NeighborhoodSlug, NeighborhoodMeta> = {
   prattville: {
     slug: 'prattville',

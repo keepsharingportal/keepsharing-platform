@@ -3,8 +3,9 @@
 // Server component. Surfaces image-bearing articles first.
 
 import Link from 'next/link'
+import { theRegion } from '@/lib/brandify'
 import { currentBrandSlug } from '@/lib/current-brand'
-import { articleBrandFilter } from '@/lib/brand-context'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { GraduationCap, ArrowRight, Trophy, Star } from 'lucide-react'
@@ -155,6 +156,10 @@ function SmallCard({ article }: { article: Article }) {
 // ── Section ───────────────────────────────────────────────────────────────────
 
 export async function SchoolBitsBlock() {
+  const { loadBrandContext } = await import('@/lib/brand-context')
+  const sbMarket    = (await loadBrandContext()).market
+  const region      = sbMarket.regionLabel
+  const regionPhrase = theRegion(sbMarket)
   const articles = await getSchoolArticles()
 
   if (articles.length === 0) {
@@ -164,9 +169,9 @@ export async function SchoolBitsBlock() {
           <GraduationCap className="h-5 w-5 text-primary" />
           <span className="text-xs font-bold uppercase tracking-widest text-primary">School Zone</span>
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">River Region School News</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{region} School News</h2>
         <p className="text-sm text-muted-foreground mb-5 max-w-md leading-relaxed">
-          Student spotlights, teacher recognitions, and school news from across the River Region — published monthly.
+          Student spotlights, teacher recognitions, and school news from across {regionPhrase} — published monthly.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link href="/school-zone" className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-bold hover:bg-primary/90 transition-colors">

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { loadBrandContext } from '@/lib/brand-context'
 import Image from 'next/image'
 import { GraduationCap } from 'lucide-react'
 import { ArticleBody } from '@/components/articles/ArticleBody'
@@ -188,7 +189,9 @@ function parseSchoolBits(rawBody: string): { intro: string; bits: SchoolBit[] } 
 
 // ── Inline sponsor placeholder ─────────────────────────────────────────
 
-function InlineSponsorCard() {
+async function InlineSponsorCard() {
+  const { market } = await loadBrandContext()
+  const region = market.regionLabel
   return (
     <div className="sm:col-span-2 p-5 sm:p-6 rounded-2xl relative text-center overflow-hidden border border-dashed border-secondary/30 bg-secondary/4">
       <span className="absolute top-2.5 right-3 text-[10px] text-muted-foreground font-bold uppercase tracking-widest bg-background/80 px-2 py-0.5 rounded border border-border/50">
@@ -200,7 +203,7 @@ function InlineSponsorCard() {
         </p>
         <h4 className="text-base font-bold text-foreground mb-2">Advertise with School Bits</h4>
         <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-          Reach River Region families and educators. Contact us to become an Education Partner.
+          Reach {region} families and educators. Contact us to become an Education Partner.
         </p>
         <ClaimSpotButton
           as="a"

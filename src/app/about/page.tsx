@@ -16,13 +16,16 @@ import { Heart, Award, BookOpen, ArrowRight } from 'lucide-react'
 export const revalidate = 3600
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       'About Us',
-    description: 'Who we are, what we cover, and why we exist — a locally-owned magazine and digital ecosystem serving River Region families since 2005.',
+    description: `Who we are, what we cover, and why we exist — a locally-owned magazine and digital ecosystem serving ${region} families since 2005.`,
     path:        '/about',
     type:        'website',
-    keywords:    ['About River Region Parents', 'local family magazine', 'River Region publisher'],
+    keywords:    [`About ${brandName}`, 'local family magazine', `${region} publisher`],
   })
 }
 

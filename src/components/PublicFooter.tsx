@@ -7,6 +7,7 @@
 import Link from 'next/link'
 import { loadBrandContext } from '@/lib/brand-context'
 import { chromeForBrand } from '@/lib/brands'
+import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 import { NewsletterSignup } from '@/components/NewsletterSignup'
 import { Mail } from 'lucide-react'
 import {
@@ -56,7 +57,9 @@ const RRP_CHROME_FALLBACK: BrandChrome = {
   tertiaryColorHex:        '#f3bf24',
   backgroundColorHex:      '#fbfaf8',
   foregroundColorHex:      '#2b2420',
+  // RRP's own fallback chrome, used only when no brand resolves.
   contactEmail:            'hello@riverregionparents.com',
+  contactPhone:            '(334) 328-5189',
   socialFacebook:          null,
   socialInstagram:         null,
   homepageRotationColumns: [],
@@ -126,8 +129,28 @@ export async function PublicFooter(props: FooterBrandProps = {}) {
   const legalCustoms   = customs.filter(c => c.parentKey === 'footer.legal')
 
   const explore = mergeNavItems(FOOTER_EXPLORE, overrides, exploreCustoms)
-  const connect = mergeNavItems(FOOTER_CONNECT, overrides, connectCustoms)
   const legal   = mergeNavItems(FOOTER_LEGAL,   overrides, legalCustoms)
+
+  // The catalog's social link is River Region's handle, so every brand's
+  // footer pointed readers at River Region's Instagram. Resolve it from the
+  // brand's own socialUrls and drop the link entirely for a brand that has
+  // none — a dead or wrong handle is worse than no link.
+  // Order matters: an admin-set handle (brand_voice.social_*) is the most
+  // current, then the per-brand list in brand-seo, then nothing. The catalog
+  // item itself carries no URL — see FOOTER_CONNECT.
+  const brandSocials = getBrandSeoConfig(market, ctx?.publicOrigin ?? `https://${market.publicHost}`).socialUrls ?? []
+  const socialFor = (host: string) => brandSocials.find(u => u.includes(host)) ?? null
+  const igUrl = chrome.socialInstagram ?? socialFor('instagram.com')
+  const fbUrl = chrome.socialFacebook  ?? socialFor('facebook.com')
+  const connect = mergeNavItems(FOOTER_CONNECT, overrides, connectCustoms)
+    .flatMap(item => {
+      if (item.key !== 'footer.connect.instagram') return [item]
+      if (igUrl) return [{ ...item, label: 'Instagram', href: igUrl }]
+      // No Instagram but a real Facebook page: send readers somewhere that
+      // exists, correctly labelled.
+      if (fbUrl) return [{ ...item, label: 'Facebook', href: fbUrl }]
+      return []
+    })
 
   function newTabFor(key: string): boolean {
     return overrides.get(key)?.openInNewTab ?? false

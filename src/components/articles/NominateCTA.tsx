@@ -20,6 +20,8 @@
 // surface clean for non-community-spotlight columns.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
+import { brandifyFields } from '@/lib/brandify'
 import { ArrowRight } from 'lucide-react'
 import { getNominateCTA } from '@/lib/articles/nominate-cta'
 import { getColumnBrand } from '@/lib/articles/column-brand'
@@ -29,8 +31,10 @@ interface Props {
   variant:    'pill' | 'article' | 'archive'
 }
 
-export function NominateCTA({ columnSlug, variant }: Props) {
-  const cta = getNominateCTA(columnSlug)
+export async function NominateCTA({ columnSlug, variant }: Props) {
+  const { market } = await loadBrandContext()
+  const raw = getNominateCTA(columnSlug)
+  const cta = raw && brandifyFields(raw, market, ['pitch', 'headline', 'label'])
   if (!cta) return null
 
   const brand    = getColumnBrand(columnSlug)

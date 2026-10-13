@@ -2,6 +2,8 @@
 // in one line, population, school district. Links to /family-resource-guide/town/[slug].
 
 import Image from 'next/image'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowRight, MapPin, Users } from 'lucide-react'
 
@@ -27,14 +29,16 @@ const FALLBACKS: Record<string, string> = {
   'pike-road':'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80&auto=format&fit=crop',
 }
 
-export function TownsGrid({ towns }: Props) {
+export async function TownsGrid({ towns }: Props) {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
   return (
     <section id="towns" className="scroll-mt-24">
       <div className="flex items-end justify-between gap-3 mb-5 flex-wrap">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">Communities</p>
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            Meet the River Region
+            Meet {regionPhrase}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">Five towns, one community. Find your fit.</p>
         </div>

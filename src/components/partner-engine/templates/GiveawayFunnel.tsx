@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import Image from 'next/image'
 import { Trophy, Gift, Users, Star, Check, RefreshCw, ArrowRight, Calendar, Ticket, Heart } from 'lucide-react'
 import { getColorScheme } from '@/lib/color-schemes'
@@ -37,6 +38,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 }
 
 export function GiveawayFunnel(props: GiveawayFunnelProps) {
+  const { displayName: brandName } = useBrandCopy()
   const scheme = getColorScheme(props.color_scheme)
   const [form, setForm] = useState({ name: '', email: '', phone: '' })
   const [saving, setSaving] = useState(false)
@@ -166,7 +168,7 @@ export function GiveawayFunnel(props: GiveawayFunnelProps) {
 
       <footer style={{ backgroundColor: scheme.primary, padding: '24px', textAlign: 'center' }}>
         <p style={{ fontSize: 12, color: `${scheme.primaryForeground}99` }}>
-          {props.business_name} · Powered by River Region Parents · Powered by KeepSharing.
+          {props.business_name} · Powered by {brandName} · Powered by KeepSharing.
         </p>
       </footer>
     </div>

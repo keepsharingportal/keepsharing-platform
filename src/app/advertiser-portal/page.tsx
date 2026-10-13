@@ -1,14 +1,22 @@
 import { redirect } from 'next/navigation'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 import { Phone, Mail, Calendar, ArrowRight, Package, Users, BarChart3 } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Advertiser Portal — River Region Parents',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return {
+    title: `Advertiser Portal — ${brandName}`,
+  }
 }
 
 export default async function AdvertiserPortalPage() {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
   const supabase = await createClient()
 
   // Check auth
@@ -44,7 +52,7 @@ export default async function AdvertiserPortalPage() {
         <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 16, fontWeight: 700, color: 'white', marginBottom: 2 }}>
-              River Region <span style={{ color: 'var(--fg-sky, #4a90d9)' }}>Parents</span>
+              {region} <span style={{ color: 'var(--fg-sky, #4a90d9)' }}>Parents</span>
             </div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Advertiser Portal</div>
           </div>
@@ -167,7 +175,7 @@ export default async function AdvertiserPortalPage() {
                 </div>
                 <div>
                   <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--fg-navy)', marginBottom: 2 }}>Jason Watson</p>
-                  <p style={{ fontSize: 12, color: 'var(--fg-mid)' }}>Owner, River Region Parents</p>
+                  <p style={{ fontSize: 12, color: 'var(--fg-mid)' }}>Owner, {brandName}</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>

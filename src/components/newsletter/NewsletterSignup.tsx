@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { ArrowRight, Check, RefreshCw, X, Mail } from 'lucide-react'
 
 export interface NewsletterSignupProps {
@@ -17,20 +18,26 @@ export interface NewsletterSignupProps {
   on_close?: () => void
 }
 
-const DEFAULT_HEADLINES: Record<string, string> = {
-  'article-footer':       'Want more like this?',
-  'newcomer-guide-footer': 'Stay in the Loop',
-  'main-footer':          'Get the weekly newsletter',
-  'popup':                'Join 8,000+ River Region Families',
-  default:                'Subscribe to River Region Parents',
+const DEFAULT_HEADLINES = (c: BrandCopy): Record<string, string> => {
+  const { displayName: brandName, regionLabel: region } = c
+  return {
+    'article-footer':       'Want more like this?',
+    'newcomer-guide-footer': 'Stay in the Loop',
+    'main-footer':          'Get the weekly newsletter',
+    'popup':                `Join 8,000+ ${region} Families`,
+    default:                `Subscribe to ${brandName}`,
+  }
 }
 
-const DEFAULT_SUBS: Record<string, string> = {
-  'article-footer':       'Get the best of River Region Parents in your inbox every Friday morning.',
-  'newcomer-guide-footer': 'Get our weekly email with what\'s new, what\'s coming up, and what local moms are talking about.',
-  'main-footer':          'Every Friday — the best of River Region Parents in your inbox.',
-  'popup':                'Weekly local family life, hidden gems, and the events everyone\'s talking about.',
-  default:                'Every Friday — what local families are doing, talking about, and recommending.',
+const DEFAULT_SUBS = (c: BrandCopy): Record<string, string> => {
+  const { displayName: brandName } = c
+  return {
+    'article-footer':       `Get the best of ${brandName} in your inbox every Friday morning.`,
+    'newcomer-guide-footer': 'Get our weekly email with what\'s new, what\'s coming up, and what local moms are talking about.',
+    'main-footer':          `Every Friday — the best of ${brandName} in your inbox.`,
+    'popup':                'Weekly local family life, hidden gems, and the events everyone\'s talking about.',
+    default:                'Every Friday — what local families are doing, talking about, and recommending.',
+  }
 }
 
 function SuccessState({ variant }: { variant: string }) {
@@ -50,14 +57,16 @@ function SuccessState({ variant }: { variant: string }) {
 }
 
 export function NewsletterSignup({ variant, source, context, headline, subheadline, cta_label, on_close }: NewsletterSignupProps) {
+  const copy = useBrandCopy()
+  const { displayName: brandName } = copy
   const [email, setEmail] = useState('')
   const [firstName, setFirstName] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
-  const hl = headline ?? DEFAULT_HEADLINES[source] ?? DEFAULT_HEADLINES.default
-  const sub = subheadline ?? DEFAULT_SUBS[source] ?? DEFAULT_SUBS.default
+  const hl = headline ?? DEFAULT_HEADLINES(copy)[source] ?? DEFAULT_HEADLINES(copy).default
+  const sub = subheadline ?? DEFAULT_SUBS(copy)[source] ?? DEFAULT_SUBS(copy).default
   const btn = cta_label ?? 'Subscribe'
 
   const tags = ['rrp-main-email', `source-${source}`]
@@ -133,7 +142,7 @@ export function NewsletterSignup({ variant, source, context, headline, subheadli
           ) : (
             <>
               <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#ef6442', marginBottom: 10 }}>
-                River Region Parents
+                {brandName}
               </p>
               <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 700, color: '#1a2744', lineHeight: 1.2, marginBottom: 10 }}>
                 {hl}
@@ -171,7 +180,7 @@ export function NewsletterSignup({ variant, source, context, headline, subheadli
       {submitted ? <SuccessState variant="inline" /> : (
         <>
           <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg-sky, #4a90d9)', marginBottom: 10 }}>
-            River Region Parents Newsletter
+            {brandName} Newsletter
           </p>
           <h3 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 700, color: 'var(--fg-navy, #1a2744)', lineHeight: 1.2, marginBottom: 8 }}>
             {hl}

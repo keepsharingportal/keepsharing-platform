@@ -12,6 +12,7 @@
 // for their different jobs.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { SectionHeader } from './BudgetTiers'
 import { Cake, Sparkles, ThumbsUp, Heart, Send } from 'lucide-react'
 
@@ -34,7 +35,9 @@ const KIND_META: Record<Buzz['kind'], { label: string; icon: React.ComponentType
   vendor_spotlight: { label: 'Featured',             icon: Sparkles, color: '#ff7a59' }, // never rendered here
 }
 
-export function BirthdayBuzz({ buzz }: { buzz: Array<Record<string, unknown>> }) {
+export async function BirthdayBuzz({ buzz }: { buzz: Array<Record<string, unknown>> }) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const items: Buzz[] = buzz
     .map(b => ({
       id:           b.id           as string,
@@ -55,7 +58,7 @@ export function BirthdayBuzz({ buzz }: { buzz: Array<Record<string, unknown>> })
       <SectionHeader
         eyebrow="What's happening locally"
         title="Birthday Buzz"
-        kicker="The real-life heartbeat of River Region birthdays — kid celebrations, mom party stories (the wins AND the fails), and the little tips that actually help."
+        kicker={`The real-life heartbeat of ${region} birthdays — kid celebrations, mom party stories (the wins AND the fails), and the little tips that actually help.`}
       />
 
       {items.length === 0 ? (

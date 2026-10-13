@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
@@ -124,11 +125,13 @@ async function getRelatedListings(articleSlug: string): Promise<GuideListing[]> 
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { slug } = await params
   const article = await getArticle(slug)
   if (!article) return {}
   return {
-    title: `${article.title} — River Region Family Guide`,
+    title: `${article.title} — ${region} Family Guide`,
     description: article.excerpt ?? undefined,
   }
 }
@@ -136,6 +139,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function ArticlePage({ params }: Props) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
   const { slug } = await params
   const [article, related] = await Promise.all([getArticle(slug), getRelatedListings(slug)])
   if (!article) notFound()
@@ -216,13 +222,13 @@ export default async function ArticlePage({ params }: Props) {
           textAlign: 'center',
         }}>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg-gold, #d4a843)', marginBottom: 10 }}>
-            River Region Parents
+            {brandName}
           </p>
           <h3 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 22, fontWeight: 700, color: 'white', marginBottom: 10 }}>
             Stay Connected to Your Community
           </h3>
           <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, marginBottom: 24, maxWidth: 420, margin: '0 auto 24px' }}>
-            Join thousands of River Region families who get local news, events, and resources delivered to their inbox.
+            Join thousands of {region} families who get local news, events, and resources delivered to their inbox.
           </p>
           <Link href="/advertise" style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -256,7 +262,7 @@ export default async function ArticlePage({ params }: Props) {
           source="article-footer"
           context={{ article_slug: article.slug }}
           headline="Want more like this?"
-          subheadline="Get the best of River Region Parents in your inbox every Friday morning."
+          subheadline={`Get the best of ${brandName} in your inbox every Friday morning.`}
           cta_label="Send Me the Newsletter"
         />
 

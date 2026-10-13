@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Menu, X, ChevronDown } from 'lucide-react'
@@ -34,9 +35,10 @@ interface NavigationBarProps {
 }
 
 export function NavigationBar(props: NavigationBarProps = {}) {
-  const wordmarkBase   = props.wordmarkBase   ?? 'River Region '
+  const { regionLabel: region } = useBrandCopy()
+  const wordmarkBase   = props.wordmarkBase   ?? `${region} `
   const wordmarkAccent = props.wordmarkAccent ?? 'Parents'
-  const tagline        = props.tagline        ?? 'The Go-To Resource for River Region Families'
+  const tagline        = props.tagline        ?? `The Go-To Resource for ${region} Families`
   const logoUrl        = props.logoUrl        ?? null
   const primaryColor   = props.primaryColorHex
   const [mobileOpen, setMobileOpen] = useState(false)

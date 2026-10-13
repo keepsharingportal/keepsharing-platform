@@ -4,17 +4,20 @@
 // full guide page always agree.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { SectionHeader } from './BudgetTiers'
 import { Gift, ArrowRight } from 'lucide-react'
 import { AGE_BUCKETS } from '@/lib/birthday/gift-guides'
 
-export function GiftGuidesByAge() {
+export async function GiftGuidesByAge() {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return (
     <div>
       <SectionHeader
         eyebrow="Gift inspiration"
         title="Gift guides by age"
-        kicker="Picked by River Region moms — gifts kids actually use, not just unwrap. 15 picks per age."
+        kicker={`Picked by ${region} moms — gifts kids actually use, not just unwrap. 15 picks per age.`}
       />
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {AGE_BUCKETS.map(b => (

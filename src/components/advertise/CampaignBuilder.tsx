@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Check, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react'
@@ -22,67 +23,70 @@ const RATES: Record<SizeKey, Record<number, number>> = {
   sixth:   { 1: 327, 3: 297, 6: 263, 12: 223, 18: 197 },
 }
 
-const SIZE_META = {
-  full: {
-    label: 'Full Page',
-    reach: 'Reach up to 18,000+ River Region Families each month',
-    badge: '',
-    included: [
-      'Full-Page Magazine Placement (8.375 × 10.875")',
-      'Front-of-Issue Priority Positioning',
-      'Professional Ad Design Included',
-      'Monthly Design Updates Included',
-      'Smart QR Code for Immediate Action',
-      'Full-Page Web Ad at Top of Articles',
-      'Strong Website Visibility',
-      'Targeted Social Media Campaigns (Facebook + Instagram)',
-      'Zip Code + Interest Targeting',
-      'Retargeting Ads',
-    ],
-    bestFor: 'Businesses that want to dominate visibility and be the first choice when moms are ready to act.',
-  },
-  half: {
-    label: 'Half Page',
-    reach: 'Reach up to 18,000+ River Region Families each month',
-    badge: '',
-    included: [
-      'Half-Page Magazine Placement',
-      'Professional Ad Design Included',
-      'Monthly Design Updates Included',
-      'Half-Page Web Ad on Articles',
-      'Strong Website Visibility',
-      'Targeted Social Media Campaigns',
-      'Zip Code + Interest Targeting',
-    ],
-    bestFor: 'Businesses that want strong visibility with a more flexible budget.',
-  },
-  quarter: {
-    label: 'Quarter Page',
-    reach: 'Reach up to 18,000+ River Region Families each month',
-    badge: '',
-    included: [
-      'Quarter-Page Magazine Placement',
-      'Professional Ad Design Included',
-      'Monthly Design Updates Included',
-      'Web Ad on Articles',
-      'Targeted Social Media Campaigns',
-      'Zip Code Targeting',
-    ],
-    bestFor: 'Businesses getting started with local advertising or running seasonal campaigns.',
-  },
-  sixth: {
-    label: 'Sixth Page',
-    reach: 'Reach up to 18,000+ River Region Families each month',
-    badge: '',
-    included: [
-      'Sixth-Page Magazine Placement',
-      'Professional Ad Design Included',
-      'Monthly Design Updates Included',
-      'Web Ad Included',
-      'Basic Social Media Exposure',
-    ],
-    bestFor: 'Businesses looking for consistent, affordable community presence.',
-  },
+const SIZE_META = (c: BrandCopy) => {
+  const { regionLabel: region } = c
+  return {
+    full: {
+      label: 'Full Page',
+      reach: `Reach up to 18,000+ ${region} Families each month`,
+      badge: '',
+      included: [
+        'Full-Page Magazine Placement (8.375 × 10.875")',
+        'Front-of-Issue Priority Positioning',
+        'Professional Ad Design Included',
+        'Monthly Design Updates Included',
+        'Smart QR Code for Immediate Action',
+        'Full-Page Web Ad at Top of Articles',
+        'Strong Website Visibility',
+        'Targeted Social Media Campaigns (Facebook + Instagram)',
+        'Zip Code + Interest Targeting',
+        'Retargeting Ads',
+      ],
+      bestFor: 'Businesses that want to dominate visibility and be the first choice when moms are ready to act.',
+    },
+    half: {
+      label: 'Half Page',
+      reach: `Reach up to 18,000+ ${region} Families each month`,
+      badge: '',
+      included: [
+        'Half-Page Magazine Placement',
+        'Professional Ad Design Included',
+        'Monthly Design Updates Included',
+        'Half-Page Web Ad on Articles',
+        'Strong Website Visibility',
+        'Targeted Social Media Campaigns',
+        'Zip Code + Interest Targeting',
+      ],
+      bestFor: 'Businesses that want strong visibility with a more flexible budget.',
+    },
+    quarter: {
+      label: 'Quarter Page',
+      reach: `Reach up to 18,000+ ${region} Families each month`,
+      badge: '',
+      included: [
+        'Quarter-Page Magazine Placement',
+        'Professional Ad Design Included',
+        'Monthly Design Updates Included',
+        'Web Ad on Articles',
+        'Targeted Social Media Campaigns',
+        'Zip Code Targeting',
+      ],
+      bestFor: 'Businesses getting started with local advertising or running seasonal campaigns.',
+    },
+    sixth: {
+      label: 'Sixth Page',
+      reach: `Reach up to 18,000+ ${region} Families each month`,
+      badge: '',
+      included: [
+        'Sixth-Page Magazine Placement',
+        'Professional Ad Design Included',
+        'Monthly Design Updates Included',
+        'Web Ad Included',
+        'Basic Social Media Exposure',
+      ],
+      bestFor: 'Businesses looking for consistent, affordable community presence.',
+    },
+  }
 }
 
 const COMMITMENTS = [
@@ -130,6 +134,10 @@ const EMPTY_CAMPAIGN: CampaignForm = {
 }
 
 export function CampaignBuilder() {
+  const copy = useBrandCopy()
+  // Sentence-initial form: BrandCopy stores only the lowercase article.
+  const RegionPhrase = copy.regionPhrase.replace(/^the /, 'The ')
+  const { displayName: brandName, regionLabel: region } = copy
   const searchParams = useSearchParams()
 
   const [selectedSize,    setSelectedSize]    = useState<SizeKey>('full')
@@ -157,7 +165,7 @@ export function CampaignBuilder() {
   const leadId       = searchParams.get('lead') ?? undefined
   const monthlyRate  = RATES[selectedSize][selectedMonths]
   const totalAmount  = monthlyRate * selectedMonths
-  const sizeMeta     = SIZE_META[selectedSize]
+  const sizeMeta     = SIZE_META(copy)[selectedSize]
 
   const toggleGoal = (id: string) =>
     setForm(f => ({
@@ -210,9 +218,9 @@ export function CampaignBuilder() {
       <header className="sticky top-0 z-40 bg-white border-b border-[#ede6de] shadow-sm">
         <div className="max-w-4xl mx-auto px-5 py-3 flex items-center justify-between">
           <div>
-            <div className="text-base font-black text-gray-900 tracking-tight leading-none">River Region</div>
+            <div className="text-base font-black text-gray-900 tracking-tight leading-none">{region}</div>
             <div className="text-xs font-bold tracking-widest uppercase leading-none" style={{ color: TERRA }}>Parents</div>
-            <div className="text-[9px] text-gray-400 leading-none mt-0.5">The River Region&apos;s Go-To Resource For Families!</div>
+            <div className="text-[9px] text-gray-400 leading-none mt-0.5">{RegionPhrase}&apos;s Go-To Resource For Families!</div>
           </div>
           <Link href="/advertise" className="text-xs text-gray-500 hover:text-gray-800 transition-colors">
             ← Back to main page
@@ -223,7 +231,7 @@ export function CampaignBuilder() {
       {/* ── Hero image ────────────────────────────────────────────────── */}
       <div className="w-full" style={{ background: `linear-gradient(160deg, #d4b8a2 0%, #b8906a 50%, #9a7258 100%)`, height: 220 }}>
         <div className="max-w-4xl mx-auto h-full flex items-end px-5 pb-4">
-          <div className="text-xs italic" style={{ color: '#8a6040' }}>River Region families</div>
+          <div className="text-xs italic" style={{ color: '#8a6040' }}>{region} families</div>
         </div>
       </div>
 
@@ -272,7 +280,7 @@ export function CampaignBuilder() {
               <h3 className="text-sm font-bold text-gray-700 mb-1">CHOOSE YOUR VISIBILITY LEVEL</h3>
               <p className="text-xs text-gray-400 mb-4">Details for each plan listed below.</p>
               <div className="flex gap-2 flex-wrap">
-                {(Object.keys(SIZE_META) as SizeKey[]).map(size => (
+                {(Object.keys(SIZE_META(copy)) as SizeKey[]).map(size => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
@@ -284,7 +292,7 @@ export function CampaignBuilder() {
                     )}
                     style={selectedSize === size ? { backgroundColor: TERRA, borderColor: TERRA } : {}}
                   >
-                    {SIZE_META[size].label}
+                    {SIZE_META(copy)[size].label}
                   </button>
                 ))}
               </div>
@@ -507,7 +515,7 @@ export function CampaignBuilder() {
                 If you have questions or want help choosing the right option, you can reach us directly.
               </p>
               <a href="tel:+13343285189" className="block text-lg font-bold mb-3" style={{ color: TERRA }}>
-                Call or Text: (334) 328-5189
+                Call or Text: {copy.contactPhone}
               </a>
               <a
                 href="https://calendly.com/rrparents"
@@ -593,9 +601,9 @@ export function CampaignBuilder() {
 
       {/* ── Footer ───────────────────────────────────────────────────── */}
       <footer className="py-8 px-5 text-center" style={{ backgroundColor: TERRA_DK }}>
-        <div className="text-white text-sm font-black mb-1">River Region Parents</div>
-        <div className="text-white/50 text-xs">The River Region&apos;s Go-To Resource For Families!</div>
-        <div className="text-white/40 text-xs mt-2">© 2026 River Region Parents. All rights reserved. Reaching 18,000 local families every month.</div>
+        <div className="text-white text-sm font-black mb-1">{brandName}</div>
+        <div className="text-white/50 text-xs">{RegionPhrase}&apos;s Go-To Resource For Families!</div>
+        <div className="text-white/40 text-xs mt-2">© 2026 {brandName}. All rights reserved. Reaching 18,000 local families every month.</div>
       </footer>
 
     </div>

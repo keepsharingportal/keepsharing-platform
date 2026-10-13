@@ -10,7 +10,8 @@
 // metadata.
 
 import { createClient } from '@supabase/supabase-js'
-import { loadBrandContext } from '@/lib/brand-context'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 
 export const runtime = 'nodejs'
 export const revalidate = 3600
@@ -32,6 +33,7 @@ function xmlEscape(s: string): string {
 }
 
 export async function GET() {
+  const brandSlug = (await currentBrandSlug()) ?? 'rrp'
   const ctx      = await loadBrandContext()
   const origin   = ctx.publicOrigin.replace(/\/$/, '')
   const supabase = getSupabase()
@@ -42,6 +44,7 @@ export async function GET() {
     .from('guide_articles')
     .select('column_slug, slug, title, hero_image_url, excerpt')
     .eq('published', true)
+    .or(articleBrandFilter(brandSlug))
     .not('hero_image_url', 'is', null)
     .order('published_at', { ascending: false })
     .limit(1000)

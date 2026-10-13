@@ -1,6 +1,9 @@
 import type { PartnerPageData } from './types'
+import { loadBrandContext } from '@/lib/brand-context'
 
-export function PartnerSocialProof({ data }: { data: PartnerPageData }) {
+export async function PartnerSocialProof({ data }: { data: PartnerPageData }) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { account, brand } = data
 
   return (
@@ -30,11 +33,11 @@ export function PartnerSocialProof({ data }: { data: PartnerPageData }) {
       </div>
       <span style={{ color: '#ddd', fontSize: 12 }}>·</span>
       <span style={{ fontSize: 12, color: '#777' }}>
-        Featured in River Region Parents
+        Featured in {brandName}
       </span>
       <span style={{ color: '#ddd', fontSize: 12 }}>·</span>
       <span style={{ fontSize: 12, color: '#777', fontStyle: 'italic' }}>
-        Built by River Region Parents. Powered by KeepSharing.
+        Built by {brandName}. Powered by KeepSharing.
       </span>
     </div>
   )

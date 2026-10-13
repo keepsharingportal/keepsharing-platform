@@ -1,3 +1,4 @@
+import { loadBrandContext } from '@/lib/brand-context'
 /**
  * Partner notification email: sent within 60 seconds to the partner's contact_email
  * with full lead details + handoff instructions.
@@ -31,6 +32,7 @@ export interface PartnerNotificationParams {
 
 export async function sendPartnerNotification(params: PartnerNotificationParams): Promise<{ success: boolean; error?: string }> {
   const token = getToken()
+  const brandName = (await loadBrandContext()).market.displayName
 
   const metaLines: string[] = []
   if (params.offerType === 'schedule_consult') {
@@ -50,7 +52,7 @@ export async function sendPartnerNotification(params: PartnerNotificationParams)
 </div>
 
 <div style="background: white; border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 10px 10px;">
-  <p style="color: #555; margin: 0 0 20px;">Hi ${params.partnerContactName}, you have a new lead from your KeepSharing Partner Engine page on River Region Parents.</p>
+  <p style="color: #555; margin: 0 0 20px;">Hi ${params.partnerContactName}, you have a new lead from your KeepSharing Partner Engine page on ${brandName}.</p>
 
   <div style="background: #f9fafb; border-radius: 8px; padding: 16px 18px; margin-bottom: 20px;">
     <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin: 0 0 10px;">Lead Details</p>
@@ -77,7 +79,7 @@ export async function sendPartnerNotification(params: PartnerNotificationParams)
   <p style="font-size: 13px; color: #888;">You can manage this lead at: <a href="${params.partnerDashboardUrl}" style="color: #4a90d9;">${params.partnerDashboardUrl}</a></p>
 
   <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;" />
-  <p style="font-size: 11px; color: #aaa; text-align: center; margin: 0;">The KeepSharing Partner Engine — Built by River Region Parents. Powered by KeepSharing.</p>
+  <p style="font-size: 11px; color: #aaa; text-align: center; margin: 0;">The KeepSharing Partner Engine — Built by ${brandName}. Powered by KeepSharing.</p>
 </div>
 
 </body></html>

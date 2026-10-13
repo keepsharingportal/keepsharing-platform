@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowRight, Check, RefreshCw } from 'lucide-react'
 
 export default function AdvertiserLoginPage() {
+  const { displayName: brandName, regionLabel: region } = useBrandCopy()
   const [email, setEmail]   = useState('')
   const [saving, setSaving] = useState(false)
   const [sent, setSent]     = useState(false)
@@ -41,7 +43,7 @@ export default function AdvertiserLoginPage() {
         {/* Logo */}
         <div style={{ marginBottom: 32, textAlign: 'center' }}>
           <div style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 20, fontWeight: 700, color: 'var(--fg-navy, #1a2744)', marginBottom: 4 }}>
-            River Region <span style={{ color: 'var(--fg-sky, #4a90d9)' }}>Parents</span>
+            {region} <span style={{ color: 'var(--fg-sky, #4a90d9)' }}>Parents</span>
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg-terra, #ef6442)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             Advertiser Portal
@@ -84,7 +86,7 @@ export default function AdvertiserLoginPage() {
               </button>
             </form>
             <p style={{ fontSize: 12, color: 'var(--fg-dim, #999)', textAlign: 'center', marginTop: 20, lineHeight: 1.5 }}>
-              Only active River Region Parents partners can log in. Questions? Email Jason.
+              Only active {brandName} partners can log in. Questions? Email Jason.
             </p>
           </>
         )}

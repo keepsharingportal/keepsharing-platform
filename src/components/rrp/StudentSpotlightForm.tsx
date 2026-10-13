@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { RefreshCw, CheckCircle2 } from 'lucide-react'
 import { RRPFormShell, rrpInput, rrpLabel, rrpTa } from './RRPFormShell'
 
 export function StudentSpotlightForm() {
+  const { displayName: brandName } = useBrandCopy()
   const [form, setForm] = useState({
     studentName: '', gradeAge: '', school: '', neighborhood: '',
     whatMakesRemarkable: '', nominatorName: '', nominatorRelationship: '', email: '',
@@ -54,7 +56,7 @@ export function StudentSpotlightForm() {
   return (
     <RRPFormShell
       title="Student Spotlight"
-      subtitle="Know a student doing something exceptional — in school, in the community, or in life? Nominate them for a River Region Parents Student Spotlight."
+      subtitle={`Know a student doing something exceptional — in school, in the community, or in life? Nominate them for a ${brandName} Student Spotlight.`}
       department="Student Spotlight"
     >
       <form onSubmit={handleSubmit} className="space-y-4">

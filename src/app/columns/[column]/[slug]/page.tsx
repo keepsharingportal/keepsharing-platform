@@ -220,9 +220,12 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
 }
 
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
   const { column, slug } = await params
   const data = await getArticleData(column, slug)
-  if (!data) return { title: 'Article — River Region Parents' }
+  if (!data) return { title: `Article — ${brandName}` }
 
   const heroImage = (data.article.hero_image_url as string | null)
                  ?? (data.article.web_image_url  as string | null)
@@ -248,7 +251,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
                    || (data.article.excerpt as string | null)?.trim()
                    || (data.article.dek     as string | null)?.trim()
                    || deriveLeadFromBody(data.article.body as string | null)
-                   || `Read ${data.article.title} on River Region Parents.`
+                   || `Read ${data.article.title} on ${brandName}.`
 
   const brandLabel = data.column?.label ?? undefined
   const keywordSet = new Set<string>(
@@ -256,7 +259,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
       ...(focusKw ? [focusKw] : []),
       ...secondaryKw,
       ...(brandLabel ? [brandLabel] : []),
-      'River Region', 'Parenting',
+      `${region}`, 'Parenting',
     ].map(k => k.trim()).filter(Boolean)
   )
 
@@ -277,6 +280,8 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 }
 
 export default async function ArticlePage({ params }: PageParams) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { column, slug } = await params
   const data = await getArticleData(column, slug)
   if (!data) notFound()
@@ -416,7 +421,8 @@ export default async function ArticlePage({ params }: PageParams) {
   }))
 
   const heroImageUrl = article.hero_image_url || getFallbackByContext(column, article.id)
-  const shareUrl = `${SITE_URL}/columns/${column}/${slug}`
+  // Brand host — see /articles/[slug] for why.
+  const shareUrl = `${(await loadBrandContext()).publicOrigin || SITE_URL}/columns/${column}/${slug}`
   const columnDisplay = columnData?.display_name
     ?? column.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
 
@@ -712,7 +718,7 @@ export default async function ArticlePage({ params }: PageParams) {
     const monthLabel = article.published_at
       ? new Date(article.published_at as string).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
       : ''
-    const authorByline = (article.author_name as string | null)?.trim() || 'By River Region Parents'
+    const authorByline = (article.author_name as string | null)?.trim() || `By ${brandName}`
 
     return (
       <div className="min-h-screen bg-background public-page">

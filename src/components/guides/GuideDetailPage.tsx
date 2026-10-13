@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
-import { loadBrandContext } from '@/lib/brand-context'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -145,6 +147,10 @@ interface Props {
 }
 
 export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false }: Props) {
+  const gdpBrandSlug = (await currentBrandSlug()) ?? 'rrp'
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   const supabase = getSupabase()
 
   const { data: guide } = await supabase
@@ -302,6 +308,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
     .from('guide_articles')
     .select('id, title, slug, hero_image_url, excerpt, column_slug')
     .eq('published', true)
+    .or(articleBrandFilter(gdpBrandSlug))
     .in('guide_slug', [guide.slug, urlSlug])
     .order('published_at', { ascending: false, nullsFirst: false })
     .limit(4)
@@ -586,7 +593,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
                   <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6 leading-relaxed">
                     {categoryFilter
                       ? `We're still building out this category. Know a business that belongs here?`
-                      : `River Region families are already searching here. Get your business in front of them before your competitors do.`}
+                      : `${region} families are already searching here. Get your business in front of them before your competitors do.`}
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Button asChild className="rounded-full">
@@ -614,7 +621,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-foreground leading-tight">Events on the community calendar</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Family-friendly events across the River Region — updated weekly.
+                    Family-friendly events across {regionPhrase} — updated weekly.
                   </p>
                 </div>
               </div>

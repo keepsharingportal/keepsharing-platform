@@ -4,26 +4,26 @@
 
 import { Quote } from 'lucide-react'
 
-const QUOTES = [
-  {
-    quote: 'The best birthday gift isn\'t the flashiest box — it\'s the one that\'s out of the toy chest a year later.',
-    by:    'River Region Parents editorial team',
-  },
-  {
-    quote: 'Parents-of-three rule: if it makes noise AND has 47 small pieces, you regifted it within a month.',
-    by:    'Mom of 3, Prattville',
-  },
-  {
-    quote: 'Experience gifts beat physical ones nine times out of ten. The kid still talks about the museum trip; they\'ve forgotten the LEGO set.',
-    by:    'Mom of 2, Montgomery',
-  },
+const QUOTES = (brandName: string) => [
+    {
+      quote: 'The best birthday gift isn\'t the flashiest box — it\'s the one that\'s out of the toy chest a year later.',
+      by:    `${brandName} editorial team`,
+    },
+    {
+      quote: 'Parents-of-three rule: if it makes noise AND has 47 small pieces, you regifted it within a month.',
+      by:    'Mom of 3, Prattville',
+    },
+    {
+      quote: 'Experience gifts beat physical ones nine times out of ten. The kid still talks about the museum trip; they\'ve forgotten the LEGO set.',
+      by:    'Mom of 2, Montgomery',
+    },
 ] as const
 
-export function GiftPullQuote({ accent }: { accent: string }) {
+export function GiftPullQuote({ accent, brandName }: { accent: string; brandName: string }) {
   // Pick deterministically based on accent so the same age always
   // shows the same quote (looks intentional, not random).
-  const idx = (accent.charCodeAt(1) + accent.charCodeAt(4)) % QUOTES.length
-  const q = QUOTES[idx]
+  const idx = (accent.charCodeAt(1) + accent.charCodeAt(4)) % QUOTES(brandName).length
+  const q = QUOTES(brandName)[idx]
 
   return (
     <div

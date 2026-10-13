@@ -1,6 +1,8 @@
 ﻿import { notFound } from "next/navigation"
 import Link from "next/link"
-import { NEIGHBORHOODS, NEIGHBORHOOD_SLUGS, isValidSlug } from "@/lib/neighborhood"
+import { loadBrandContext } from '@/lib/brand-context'
+import { NEIGHBORHOODS, NEIGHBORHOOD_SLUGS, isValidSlug, NEIGHBORHOOD_BRAND } from "@/lib/neighborhood"
+import { currentBrandSlug } from "@/lib/current-brand"
 import { NeighborhoodBanner } from "@/components/NeighborhoodBanner"
 import type { Metadata } from "next"
 
@@ -13,15 +15,24 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { neighborhood } = await params
   if (!isValidSlug(neighborhood)) return {}
+  // Match the page's own gate, so a 404 body never ships a real <title>.
+  if (((await currentBrandSlug()) ?? NEIGHBORHOOD_BRAND) !== NEIGHBORHOOD_BRAND) return {}
   const meta = NEIGHBORHOODS[neighborhood]
-  return { title: `${meta.label} -- River Region Parents`, description: meta.description }
+  return { title: `${meta.label} -- ${brandName}`, description: meta.description }
 }
 
 export default async function NeighborhoodPage({ params }: Props) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { neighborhood } = await params
   if (!isValidSlug(neighborhood)) notFound()
+  // These towns are one brand's. Serving them elsewhere puts another
+  // brand's name on River Region geography.
+  if (((await currentBrandSlug()) ?? NEIGHBORHOOD_BRAND) !== NEIGHBORHOOD_BRAND) notFound()
 
   const meta = NEIGHBORHOODS[neighborhood]
 
@@ -41,7 +52,7 @@ export default async function NeighborhoodPage({ params }: Props) {
       <NeighborhoodBanner />
       <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white px-5 py-14">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-3">River Region Parents</div>
+          <div className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-3">{brandName}</div>
           <h1 className="text-4xl sm:text-5xl font-bold mb-3">{meta.label}</h1>
           <p className="text-lg text-blue-100">{meta.description}</p>
           <p className="text-sm text-blue-200 mt-2">{meta.county} &middot; {meta.schoolDistrict}</p>

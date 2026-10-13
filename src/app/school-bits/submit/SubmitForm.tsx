@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useBrandCopy } from '@/components/BrandCopyProvider'
 import { useRouter } from 'next/navigation'
 import { Camera, RefreshCw, CheckCircle2, X, Upload, ArrowRight } from 'lucide-react'
 import { SchoolTypeahead, type TypeaheadSchool } from '@/app/admin/school-news/SchoolTypeahead'
@@ -19,6 +20,7 @@ const MAX_BLURB   = 600
 const MAX_IMAGES  = 3
 
 export function SubmitForm({ schools: initialSchools, prefilledSchoolId }: Props) {
+  const { contactEmail: sfContact } = useBrandCopy()
   const router = useRouter()
   const schools = initialSchools.map(s => ({ ...s, area: s.area as Area })) as TypeaheadSchool[]
 
@@ -169,8 +171,8 @@ export function SubmitForm({ schools: initialSchools, prefilledSchoolId }: Props
             notListedNote={
               <>
                 Don&apos;t see your school?{' '}
-                <a href="mailto:editor@riverregionparents.com" className="text-primary hover:underline font-semibold">
-                  Email editor@riverregionparents.com
+                <a href={`mailto:${sfContact ?? ''}`} className="text-primary hover:underline font-semibold">
+                  Email {sfContact}
                 </a>{' '}
                 and we&apos;ll add it.
               </>

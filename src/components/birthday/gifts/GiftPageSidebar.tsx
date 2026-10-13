@@ -15,14 +15,14 @@ import Link from 'next/link'
 import { Mail, Gift, MapPin, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react'
 import { AGE_BUCKETS, type AgeBucket } from '@/lib/birthday/gift-guides'
 
-export function GiftPageSidebar({ currentSlug, accent }: { currentSlug: string; accent: string }) {
+export function GiftPageSidebar({ currentSlug, accent, region }: { currentSlug: string; accent: string; region: string }) {
   const others = AGE_BUCKETS.filter(b => b.slug !== currentSlug)
   return (
     <aside className="lg:col-span-4 space-y-5 lg:sticky lg:top-6 lg:self-start">
       <EmailCaptureCard accent={accent} ageSlug={currentSlug} />
       <OtherAgesCard others={others} currentSlug={currentSlug} />
       <SponsorSlotCard />
-      <PartyPlanningCard accent={accent} />
+      <PartyPlanningCard accent={accent} region={region} />
     </aside>
   )
 }
@@ -178,7 +178,7 @@ function SponsorSlotCard() {
 
 // ── Cross-sell to vendor + party planner ──────────────────────────
 
-function PartyPlanningCard({ accent }: { accent: string }) {
+function PartyPlanningCard({ accent, region }: { accent: string; region: string }) {
   return (
     <div className="rounded-2xl p-5 text-white relative overflow-hidden"
       style={{ background: `linear-gradient(135deg, #1e293b, #0f172a)` }}
@@ -193,7 +193,7 @@ function PartyPlanningCard({ accent }: { accent: string }) {
           Find your venue, cake, or entertainer.
         </h3>
         <p className="text-[12px] text-white/80 leading-snug mb-4">
-          The full River Region birthday vendor guide — venues, cakes, entertainers, rentals — all in one place.
+          The full {region} birthday vendor guide — venues, cakes, entertainers, rentals — all in one place.
         </p>
         <Link
           href="/birthday-party-guide"

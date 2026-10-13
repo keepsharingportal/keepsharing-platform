@@ -1,19 +1,27 @@
 import Link from 'next/link'
+import { chromeForBrand } from '@/lib/brands'
+import { loadBrandContext } from '@/lib/brand-context'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       'Privacy Policy',
-    description: 'How River Region Parents collects, uses, and protects personal information. Our promise on nominee contact info, newsletter data, and third-party advertising.',
+    description: `How ${brandName} collects, uses, and protects personal information. Our promise on nominee contact info, newsletter data, and third-party advertising.`,
     path:        '/privacy',
     type:        'website',
   })
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const { brand } = await loadBrandContext()
+  // Null until the publisher sets one — omit rather than route this brand's
+  // readers to another brand's inbox.
+  const privacyContact = chromeForBrand(brand).contactEmail
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -50,7 +58,7 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-lg font-bold text-foreground mb-2">Contact Us</h2>
-              <p className="leading-relaxed">If you have questions about this privacy policy, please contact us at <a href="mailto:hello@riverregionparents.com" className="text-primary hover:text-primary/80">hello@riverregionparents.com</a>.</p>
+              <p className="leading-relaxed">If you have questions about this privacy policy{privacyContact ? <>, please contact us at <a href={`mailto:${privacyContact}`} className="text-primary hover:text-primary/80">{privacyContact}</a></> : <>, please reach us through the form on our site</>}.</p>
             </section>
           </div>
 

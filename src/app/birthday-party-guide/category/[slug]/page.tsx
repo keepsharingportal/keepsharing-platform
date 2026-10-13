@@ -11,6 +11,7 @@
 //   Hub cards again at bottom so parents can pivot to another category
 
 import { createClient } from '@supabase/supabase-js'
+import { loadBrandContext } from '@/lib/brand-context'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
@@ -46,11 +47,13 @@ function sb() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { slug } = await params
-  const bucket = bucketBySlug(slug)
+  const bucket = bucketBySlug(slug, (await loadBrandContext()).market)
   if (!bucket) return { title: 'Birthday Category Not Found' }
   return {
-    title:       `${bucket.label} — Birthday Party Guide | River Region Parents`,
+    title:       `${bucket.label} — Birthday Party Guide | ${brandName}`,
     description: bucket.blurb,
   }
 }
@@ -104,7 +107,7 @@ function toListingData(row: ListingRow): ListingData | null {
 
 export default async function BirthdayCategoryPage({ params }: Props) {
   const { slug } = await params
-  const bucket = bucketBySlug(slug)
+  const bucket = bucketBySlug(slug, (await loadBrandContext()).market)
   if (!bucket) notFound()
 
   const supabase = sb()

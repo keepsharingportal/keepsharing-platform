@@ -6,6 +6,7 @@
 // Closes on success and shows a brief thank-you.
 
 import { useEffect, useState, type FormEvent } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { X, Send } from 'lucide-react'
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function SlotInquiryModal({ open, onClose, placementType, placementLabel }: Props) {
+  const { regionLabel: region, contactEmail: slotContact } = useBrandCopy()
   const [businessName, setBusinessName] = useState('')
   const [contactName,  setContactName]  = useState('')
   const [email,        setEmail]        = useState('')
@@ -94,7 +96,7 @@ export function SlotInquiryModal({ open, onClose, placementType, placementLabel 
           <div>
             <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-0.5">Advertise with us</p>
             <h2 className="text-lg font-black text-gray-900 leading-tight">
-              {placementLabel ? `Tell us about ${placementLabel}` : 'Reach River Region families'}
+              {placementLabel ? `Tell us about ${placementLabel}` : `Reach ${region} families`}
             </h2>
             <p className="text-xs text-gray-500 mt-1">
               We&apos;ll email you back within one business day with pricing, audience, and a hold on the spot while you decide.
@@ -117,7 +119,7 @@ export function SlotInquiryModal({ open, onClose, placementType, placementLabel 
             <p className="text-base font-bold text-gray-900 mb-1">Got it — message sent.</p>
             <p className="text-sm text-gray-600">
               We&apos;ll be in touch within one business day. Check your inbox for a reply from
-              <strong> hello@riverregionparents.com</strong>.
+              <strong> {slotContact}</strong>.
             </p>
             <button
               onClick={onClose}

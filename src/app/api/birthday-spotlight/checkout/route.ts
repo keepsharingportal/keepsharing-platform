@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 
@@ -13,6 +14,8 @@ const TIER_PRICES: Record<string, { amount: number; name: string }> = {
 }
 
 export async function POST(req: NextRequest) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   try {
     const body = await req.json()
     const { tier, childName, birthdayDate, parentEmail, parentName, parentPhone, childAge, message } = body
@@ -51,7 +54,7 @@ export async function POST(req: NextRequest) {
           unit_amount: tierConfig.amount,
           product_data: {
             name: tierConfig.name,
-            description: `${childName}'s Birthday Spotlight in River Region Parents — ${tier.charAt(0).toUpperCase() + tier.slice(1)} Package`,
+            description: `${childName}'s Birthday Spotlight in ${brandName} — ${tier.charAt(0).toUpperCase() + tier.slice(1)} Package`,
             images: [],
           },
         },

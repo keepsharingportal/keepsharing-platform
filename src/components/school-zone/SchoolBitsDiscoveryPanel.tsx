@@ -16,6 +16,7 @@
 // not a loading skeleton. Client takes over only when the user interacts.
 
 import { useState, useEffect, useMemo } from 'react'
+import { useBrandCopy } from '@/components/BrandCopyProvider'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Heart, MapPin, ArrowRight, Sparkles, X, Megaphone, Search } from 'lucide-react'
@@ -62,7 +63,9 @@ interface Props {
 
 type AreaSelection = Area | 'private' | null
 
-export function SchoolBitsDiscoveryPanel({ initialBits, initialSchools, regionLabel = 'River Region' }: Props) {
+export function SchoolBitsDiscoveryPanel({ initialBits, initialSchools, regionLabel }: Props) {
+  const { regionLabel: brandRegion } = useBrandCopy()
+  const areaLabel = regionLabel ?? brandRegion
   const [mounted, setMounted] = useState(false)
 
   const [areaSelected,   setAreaSelected]   = useState<AreaSelection>(null)

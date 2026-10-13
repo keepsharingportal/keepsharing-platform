@@ -17,7 +17,7 @@ export async function NewsletterPhoneCard() {
   // so the live site does not move.
   const { market } = await loadBrandContext()
   const short      = market.short              // RRP / GPP / ESP
-  const region     = market.regionLabel        // River Region / Greater Pensacola
+  const region     = market.regionLabel        // {region} / Greater Pensacola
 
   return (
     <div id="newsletter" className="rounded-3xl overflow-hidden border border-primary/15 bg-gradient-to-br from-primary/8 via-background to-secondary/8 shadow-sm">

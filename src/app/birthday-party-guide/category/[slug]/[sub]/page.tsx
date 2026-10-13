@@ -13,6 +13,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
@@ -48,7 +49,7 @@ function sb() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, sub } = await params
-  const match = subBySlug(slug, sub)
+  const match = subBySlug(slug, sub, (await loadBrandContext()).market)
   if (!match) return { title: 'Birthday Sub-Category Not Found' }
   return {
     title:       match.sub.metaTitle ?? `${match.sub.label} — ${match.bucket.label} | Birthday Party Guide`,
@@ -106,7 +107,7 @@ function toListingData(row: ListingRow): ListingData | null {
 
 export default async function BirthdaySubCategoryPage({ params }: Props) {
   const { slug, sub } = await params
-  const match = subBySlug(slug, sub)
+  const match = subBySlug(slug, sub, (await loadBrandContext()).market)
   if (!match) notFound()
   const { bucket, sub: subCfg } = match
 

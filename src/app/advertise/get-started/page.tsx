@@ -8,11 +8,17 @@
 // Stripe Checkout funnel (purchase → webhook → magic link).
 
 import type { Metadata } from 'next'
+import { BrandContactLink } from '@/components/BrandContactLink'
+import { loadBrandContext } from '@/lib/brand-context'
 import { SignupForm } from './SignupForm'
 
-export const metadata: Metadata = {
-  title:       'Get listed on River Region Parents',
-  description: 'Sign up your business for a listing in the River Region Parents directory.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return {
+    title:       `Get listed on ${brandName}`,
+    description: `Sign up your business for a listing in the ${brandName} directory.`,
+  }
 }
 
 const GUIDE_OPTIONS = [
@@ -27,16 +33,19 @@ const GUIDE_OPTIONS = [
   { value: 'newcomer',       label: 'Family Resource Guide' },
 ]
 
-export default function GetStartedPage() {
+export default async function GetStartedPage() {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fffaf5] via-white to-white">
       <div className="max-w-4xl mx-auto px-6 py-14">
         <header className="text-center mb-10">
           <div className="text-[11px] font-bold uppercase tracking-widest text-[#ff7a59] mb-3">
-            Get Listed on River Region Parents
+            Get Listed on {brandName}
           </div>
           <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight mb-4">
-            Put your business in front of every River Region parent searching for you.
+            Put your business in front of every {region} parent searching for you.
           </h1>
           <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             Sign up, get an email with a private editor link, and fill out your listing one section at a time. Photos, packages, hours — all yours to control.
@@ -62,7 +71,7 @@ export default function GetStartedPage() {
 
         <footer className="text-center mt-12 text-[12px] text-slate-500">
           Questions? Email{' '}
-          <a href="mailto:hello@riverregionparents.com" className="text-[#ff7a59] font-semibold hover:underline">hello@riverregionparents.com</a>
+          <BrandContactLink className="text-[#ff7a59] font-semibold hover:underline" />
           {' '}— we read every message.
         </footer>
       </div>

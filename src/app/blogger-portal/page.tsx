@@ -7,6 +7,8 @@
 // blogger profile linked), we redirect to login.
 
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
@@ -18,7 +20,11 @@ import {
 import { BloggerLogoutButton } from './BloggerLogoutButton'
 import { articleHref } from '@/lib/articles/slug'
 
-export const metadata = { title: 'Blogger Portal — River Region Parents' }
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return { title: `Blogger Portal — ${brandName}` }
+}
 export const dynamic  = 'force-dynamic'
 
 interface Blogger {

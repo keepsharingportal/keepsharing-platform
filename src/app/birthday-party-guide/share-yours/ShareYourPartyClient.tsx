@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { CheckCircle2, AlertTriangle, Send } from 'lucide-react'
 
 export function ShareYourPartyClient() {
+  const { regionLabel: region } = useBrandCopy()
   const [form, setForm] = useState({
     submitter_name:  '',
     submitter_email: '',
@@ -53,7 +55,7 @@ export function ShareYourPartyClient() {
         <h2 className="text-[18px] font-bold text-slate-900">Got it — thank you!</h2>
         <p className="text-[13px] text-slate-700 mt-2 leading-relaxed">
           Our editor will review your submission within a couple of days. If it&apos;s a great fit (and it usually is),
-          it&apos;ll land on the Real River Region Parties wall. We&apos;ll email you when it&apos;s live.
+          it&apos;ll land on the Real {region} Parties wall. We&apos;ll email you when it&apos;s live.
         </p>
       </div>
     )

@@ -1,5 +1,6 @@
 ﻿import { notFound } from "next/navigation"
 import Link from "next/link"
+import { loadBrandContext } from '@/lib/brand-context'
 import { Phone, Globe, MapPin, ArrowLeft, Heart, ShieldCheck, Navigation, ExternalLink, Tag, User } from "lucide-react"
 import { MOCK_CAMPS, CATEGORY_CONFIG, getTier } from "@/components/rrp/SummerFunGuide"
 import type { Camp } from "@/components/rrp/SummerFunGuide"
@@ -43,6 +44,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CampListingPage({ params }: Props) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { slug } = await params
   const camp = await getCamp(slug)
   if (!camp) notFound()
@@ -92,7 +95,7 @@ export default async function CampListingPage({ params }: Props) {
                   <div className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
                     style={{ backgroundColor: "#1D4ED8", color: "#fff" }}>
                     <ShieldCheck size={12} strokeWidth={2.5} />
-                    River Region Parents Advertiser
+                    {brandName} Advertiser
                   </div>
                 )}
                 {tier === "enhanced" && (

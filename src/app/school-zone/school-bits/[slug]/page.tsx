@@ -10,6 +10,8 @@
 // Old ?focus= links still work; the feed page 301s them here.
 
 import { notFound } from 'next/navigation'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import { currentBrandSlug } from '@/lib/current-brand'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -53,6 +55,8 @@ async function loadBit(slug: string): Promise<Bit | null> {
 }
 
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
   const { slug } = await params
   const bit = await loadBit(slug)
   if (!bit) return { title: 'School Bit Not Found' }
@@ -67,7 +71,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   // side-thumbnail card instead of the full-width one.
   return buildPageMetadata({
     title:       bit.school_name ? `${title} — ${bit.school_name}` : title,
-    description: blurb.length > 200 ? `${blurb.slice(0, 197)}…` : (blurb || `School news from ${bit.school_name ?? 'the River Region'}.`),
+    description: blurb.length > 200 ? `${blurb.slice(0, 197)}…` : (blurb || `School news from ${bit.school_name ?? regionPhrase}.`),
     path:        `/school-zone/school-bits/${bit.slug}`,
     image:       bit.image_web_url,
     type:        'article',
@@ -76,6 +80,8 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 }
 
 export default async function SchoolBitPage({ params }: PageParams) {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
   const { slug } = await params
   const bit = await loadBit(slug)
   if (!bit) notFound()
@@ -167,7 +173,7 @@ export default async function SchoolBitPage({ params }: PageParams) {
 
         {more.length > 0 && (
           <section className="max-w-3xl mx-auto mt-12">
-            <h2 className="text-xl font-bold text-foreground mb-4">More from the River Region</h2>
+            <h2 className="text-xl font-bold text-foreground mb-4">More from {regionPhrase}</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {more.map(m => (
                 <Link

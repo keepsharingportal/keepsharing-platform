@@ -5,8 +5,9 @@
 // Navigation + PublicFooter come from the family-resource-guide layout — don't render them again here.
 
 import { createClient } from '@supabase/supabase-js'
+import { theRegion } from '@/lib/brandify'
 import { currentBrandSlug } from '@/lib/current-brand'
-import { articleBrandFilter } from '@/lib/brand-context'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import { marketScope, scopeToMarket } from '@/lib/market-scope'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -47,13 +48,15 @@ function getSupabase() {
 export const revalidate = 600
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       'Family Resource Guide',
-    description: 'The distilled essentials for River Region families — schools, pediatricians, parks, day trips, counselors, summer camps, and more. Local. Real. Updated weekly.',
+    description: `The distilled essentials for ${region} families — schools, pediatricians, parks, day trips, counselors, summer camps, and more. Local. Real. Updated weekly.`,
     path:        '/family-resource-guide',
     type:        'website',
-    keywords:    ['River Region', 'family resources', 'Montgomery', 'parenting guide'],
+    keywords:    [region, 'family resources', market.city, 'parenting guide'],
   })
 }
 
@@ -97,6 +100,9 @@ interface RawListingRow {
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function FamilyResourceGuidePage() {
+  const { market } = await loadBrandContext()
+  const RegionPhrase = theRegion(market, true)
+  const region       = market.regionLabel
   const supabase = getSupabase()
 
   const [
@@ -117,6 +123,7 @@ export default async function FamilyResourceGuidePage() {
   // Guide configs are per-brand from migration 232; an unscoped lookup matches
   // every brand's row and .maybeSingle() throws.
   const frgCfgScope = await marketScope(supabase, 'guide_configs')
+  const frgListScope = await marketScope(supabase, 'guide_listings')
   // Articles carry brand_slug + syndicated_to_brands rather than market.
   const frgBrand  = (await currentBrandSlug()) ?? 'rrp'
   const frgFilter = articleBrandFilter(frgBrand)
@@ -161,7 +168,7 @@ export default async function FamilyResourceGuidePage() {
     // advertiser. The advertiser_accounts join is kept for the slug
     // (claim/listing URL) and as a legacy fallback for any row whose
     // inline columns weren't backfilled.
-    supabase.from('guide_listings')
+    scopeToMarket(supabase.from('guide_listings')
       .select(`
         id, listing_tier, category, guide_data, display_order,
         business_name, office_phone, mobile_phone,
@@ -176,7 +183,7 @@ export default async function FamilyResourceGuidePage() {
       `)
       .in('guide_type_slug', ['newcomer', 'newcomer-guide', 'family-resource-guide', 'family-resource'])
       .eq('is_published', true)
-      .order('display_order'),
+      .order('display_order'), frgListScope),
 
     // Active section sponsor (if any)
     supabase.from('ad_placements')
@@ -205,6 +212,7 @@ export default async function FamilyResourceGuidePage() {
     supabase.from('guide_articles')
       .select('id, slug, title, excerpt, hero_image_url, profile_image_url, column_slug, author_name, published_at')
       .eq('published', true)
+      .or(frgFilter)
       .in('column_slug', [
         'mom-to-mom',
         'teacher-of-month', 'teacher-of-the-month',
@@ -538,7 +546,7 @@ export default async function FamilyResourceGuidePage() {
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 mt-2 group-hover:scale-105 transition-transform">
                   <Sparkles className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-bold text-foreground mb-2 leading-tight">Reach River Region Families</h3>
+                <h3 className="text-lg font-bold text-foreground mb-2 leading-tight">Reach {region} Families</h3>
                 <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
                   This premium sidebar placement reaches every Family Resource Guide visitor.
                 </p>
@@ -599,7 +607,7 @@ export default async function FamilyResourceGuidePage() {
 
         {/* ── Newsletter ── */}
         <section className="rounded-3xl bg-gradient-to-r from-secondary/10 to-primary/10 border border-border/50 p-8 md:p-12 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">The River Region Weekly</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">{RegionPhrase} Weekly</p>
           <h2 className="text-2xl font-bold text-foreground mb-2">
             One email. The week, distilled.
           </h2>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { Check, RefreshCw, MessageSquare } from 'lucide-react'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function InlineSubmissionWidget({ contextQuestion, contextPlaceholder, source, sourceListing, sourceArticle }: Props) {
+  const { displayName: brandName } = useBrandCopy()
   const [expanded, setExpanded] = useState(false)
   const [form, setForm] = useState({ answer: '', first_name: '', neighborhood: '', email: '' })
   const [submitting, setSubmitting] = useState(false)
@@ -92,7 +94,7 @@ export function InlineSubmissionWidget({ contextQuestion, contextPlaceholder, so
             {submitting ? <><RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> Sharing…</> : 'Share my pick →'}
           </button>
         </div>
-        <p style={{ fontSize: 10, color: '#aaa', textAlign: 'center' }}>May be published in River Region Parents magazine.</p>
+        <p style={{ fontSize: 10, color: '#aaa', textAlign: 'center' }}>May be published in {brandName} magazine.</p>
       </form>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

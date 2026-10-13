@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation'
+import { chromeForBrand } from '@/lib/brands'
+import { loadBrandContext } from '@/lib/brand-context'
 import { createClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 import { TIER_LABELS } from '@/lib/proposal-templates'
@@ -7,13 +9,18 @@ import { ProposalActions } from './ProposalActions'
 interface Props { params: Promise<{ token: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { token } = await params
   const supabase = await createClient()
   const { data } = await supabase.from('proposals').select('business_name').eq('token_slug', token).maybeSingle()
-  return { title: data ? `Proposal for ${data.business_name} — River Region Parents` : 'Proposal' }
+  return { title: data ? `Proposal for ${data.business_name} — ${brandName}` : 'Proposal' }
 }
 
 export default async function ProposalPage({ params }: Props) {
+  const proposalPhone = chromeForBrand((await loadBrandContext()).brand).contactPhone
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { token } = await params
   const supabase = await createClient()
 
@@ -42,7 +49,7 @@ export default async function ProposalPage({ params }: Props) {
       {/* Nav */}
       <nav style={{ backgroundColor: 'white', borderBottom: '1px solid rgba(0,0,0,0.07)', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 16, fontWeight: 700, color: NAVY }}>
-          River Region Parents
+          {brandName}
         </div>
         <p style={{ fontSize: 11, color: '#999', fontStyle: 'italic' }}>
           Confidential · Prepared for {proposal.business_name}
@@ -146,7 +153,7 @@ export default async function ProposalPage({ params }: Props) {
         {/* Footer */}
         <div style={{ marginTop: 64, paddingTop: 24, borderTop: '1px solid rgba(0,0,0,0.07)', textAlign: 'center' }}>
           <p style={{ fontSize: 12, color: '#999' }}>
-            Questions? Call Jason at 334-328-5189 or reply to the email with this proposal.
+            Questions? {proposalPhone ? `Call us at ${proposalPhone} or reply` : 'Reply'} to the email with this proposal.
           </p>
         </div>
       </div>

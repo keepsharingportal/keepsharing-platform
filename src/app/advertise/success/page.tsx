@@ -1,21 +1,29 @@
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { Check } from 'lucide-react'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Campaign Confirmed — River Region Parents' }
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return { title: `Campaign Confirmed — ${brandName}` }
+}
 
 const TERRA    = '#7d4535'
 const TERRA_DK = '#5f3227'
 const CREAM    = '#faf7f2'
 
-export default function AdvertiseSuccessPage() {
+export default async function AdvertiseSuccessPage() {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: CREAM }}>
 
       {/* Header */}
       <header className="bg-white border-b border-[#ede6de]">
         <div className="max-w-4xl mx-auto px-5 py-3">
-          <div className="text-base font-black text-gray-900 tracking-tight leading-none">River Region</div>
+          <div className="text-base font-black text-gray-900 tracking-tight leading-none">{region}</div>
           <div className="text-xs font-bold tracking-widest uppercase leading-none" style={{ color: TERRA }}>Parents</div>
         </div>
       </header>
@@ -28,7 +36,7 @@ export default function AdvertiseSuccessPage() {
           </div>
 
           <h1 className="text-xl font-black text-gray-900 mb-2">
-            You&apos;re in. Welcome to River Region Parents.
+            You&apos;re in. Welcome to {brandName}.
           </h1>
           <p className="text-sm text-gray-600 mb-2 leading-relaxed">
             Your spot is reserved and your payment is complete. We are glad to have you.
@@ -71,8 +79,8 @@ export default function AdvertiseSuccessPage() {
 
       {/* Footer */}
       <footer className="py-6 px-5 text-center" style={{ backgroundColor: TERRA_DK }}>
-        <div className="text-white text-sm font-black mb-1">River Region Parents</div>
-        <div className="text-white/40 text-xs">© 2026 River Region Parents. All rights reserved.</div>
+        <div className="text-white text-sm font-black mb-1">{brandName}</div>
+        <div className="text-white/40 text-xs">© 2026 {brandName}. All rights reserved.</div>
       </footer>
 
     </div>

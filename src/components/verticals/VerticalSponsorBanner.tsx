@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { ArrowRight, Crown, Zap } from 'lucide-react'
 import { TrackedImpression } from '@/components/tracking/TrackedImpression'
 import { TrackedLink } from '@/components/tracking/TrackedLink'
@@ -20,7 +21,9 @@ interface Props {
   sponsor:       SponsorInfo | null
 }
 
-export function VerticalSponsorBanner({ verticalName, verticalSlug, sponsorLabel, sponsor }: Props) {
+export async function VerticalSponsorBanner({ verticalName, verticalSlug, sponsorLabel, sponsor }: Props) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const pitchHref = verticalSlug ? `/advertise/${verticalSlug}` : '/advertise'
 
   if (sponsor) {
@@ -94,7 +97,7 @@ export function VerticalSponsorBanner({ verticalName, verticalSlug, sponsorLabel
               Own {verticalName} — be the only sponsor, every visit
             </p>
             <p className="text-sm text-muted-foreground mt-1 max-w-lg leading-relaxed">
-              Your business anchors every page River Region families see in this vertical.
+              Your business anchors every page {region} families see in this vertical.
               One sponsor, year-round.
             </p>
           </div>

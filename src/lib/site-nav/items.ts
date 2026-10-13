@@ -112,7 +112,13 @@ export const FOOTER_CONNECT: NavItem[] = [
   { key: 'footer.connect.nominate',      label: 'Nominate Someone',     href: '/nominate'              },
   { key: 'footer.connect.submit-event',  label: 'Submit an Event',      href: '/calendar/submit'       },
   { key: 'footer.connect.mom-to-mom',    label: 'Mom to Mom Column',    href: '/columns/mom-to-mom'    },
-  { key: 'footer.connect.instagram',     label: 'Instagram',            href: 'https://instagram.com/riverregionparents', external: true },
+  // No URL here on purpose. This used to carry River Region's Instagram,
+  // and one deployment serves six brand domains — so every brand's footer
+  // sent its readers to River Region's account. PublicFooter resolves the
+  // href from the brand's own handle (admin-set first, then brand-seo) and
+  // drops the item entirely for a brand with no social presence. Putting a
+  // literal URL back here would reintroduce the leak.
+  { key: 'footer.connect.instagram',     label: 'Instagram',            href: '', external: true },
 ]
 
 export const FOOTER_LEGAL: NavItem[] = [

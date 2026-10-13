@@ -30,7 +30,7 @@ interface Theme {
   image_url: string | null
 }
 
-export function TrendingThemes({ themes }: { themes: Array<Record<string, unknown>> }) {
+export function TrendingThemes({ themes, region }: { themes: Array<Record<string, unknown>>; region: string }) {
   const [filter, setFilter] = useState<Filter>('all')
 
   const useThemes: Theme[] = themes.length > 0
@@ -59,7 +59,7 @@ export function TrendingThemes({ themes }: { themes: Array<Record<string, unknow
       <SectionHeader
         eyebrow="Themes"
         title="Trending birthday themes"
-        kicker="Browse 9 themes River Region moms are using right now. Filter by what works for your kid."
+        kicker={`Browse 9 themes ${region} moms are using right now. Filter by what works for your kid.`}
       />
       <div className="flex items-center gap-1.5 flex-wrap mb-4">
         {([

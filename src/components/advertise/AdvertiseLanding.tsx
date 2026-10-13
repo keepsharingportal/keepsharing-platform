@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, BookOpen, Share2, Globe, Palette, Check, Quote } from 'lucide-react'
@@ -72,6 +73,12 @@ function TestimonialCard({ quote, name, title, avatarSrc }: { quote: string; nam
 
 // ── Main component ────────────────────────────────────────────────────────────
 export function AdvertiseLanding() {
+  const { displayName: brandName, regionLabel: region, regionPhrase, tenureClaim, ownsTestimonials, city, state, contactPhone } = useBrandCopy()
+  const stateName = state === 'AL' ? 'Alabama' : state === 'FL' ? 'Florida' : state
+  // A tenure claim this brand has not earned is a false claim in a sales
+  // pitch, so each clause below reads correctly with or without one.
+  const tenure = tenureClaim
+  const RegionPhrase = regionPhrase.replace(/^the /, 'The ')
   const formRef = useRef<HTMLDivElement>(null)
   useScrollReveal()
 
@@ -93,7 +100,7 @@ export function AdvertiseLanding() {
             <Image src="/images/advertise/rrp-logo.png" alt="RRP" fill style={{ objectFit: 'contain' }} sizes="36px" />
           </div>
           <div>
-            <p style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 15, fontWeight: 700, color: NAVY, lineHeight: 1 }}>River Region Parents</p>
+            <p style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 15, fontWeight: 700, color: NAVY, lineHeight: 1 }}>{brandName}</p>
             <p style={{ fontSize: 11, color: '#888', marginTop: 2 }}>We Help Your Future Customers Find You.</p>
           </div>
         </div>
@@ -107,17 +114,17 @@ export function AdvertiseLanding() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="reveal">
             <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: TERRA, marginBottom: 16 }}>
-              River Region&apos;s Premier Family Media Network
+              {region}&apos;s Premier Family Media Network
             </p>
             <h1 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(36px, 5.5vw, 60px)', fontWeight: 900, color: NAVY, lineHeight: 1.08, letterSpacing: '-0.02em', marginBottom: 20 }}>
               Get More Local Families Choosing Your Business
             </h1>
             <p style={{ fontSize: 18, color: '#5a4a3e', lineHeight: 1.7, marginBottom: 18 }}>
-              Stop guessing about marketing. River Region Parents does what we&apos;ve done for 30 years — connect family businesses to the parents who become your customers.
+              Stop guessing about marketing. {brandName} does what we do best{tenure ? `, and have done for ${tenure}` : ''} — connect family businesses to the parents who become your customers.
             </p>
             <div style={{ padding: '16px 20px', borderRadius: 12, backgroundColor: 'rgba(196,98,45,0.08)', border: '1px solid rgba(196,98,45,0.18)', marginBottom: 32 }}>
               <p style={{ fontSize: 14, fontWeight: 600, color: '#7a3010', lineHeight: 1.6 }}>
-                We don&apos;t sell ads. We build winning systems. We are the biggest community influencer for parents in the River Region — and we put that influence to work for our Partners.
+                We don&apos;t sell ads. We build winning systems. We are the biggest community influencer for parents in {regionPhrase} — and we put that influence to work for our Partners.
               </p>
             </div>
             <button onClick={scrollToForm} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', borderRadius: 12, fontSize: 15, fontWeight: 800, backgroundColor: TERRA, color: 'white', border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(196,98,45,0.35)' }}>
@@ -129,7 +136,7 @@ export function AdvertiseLanding() {
           <div className="reveal hidden md:block" style={{ position: 'relative', paddingBottom: 32, paddingRight: 32 }}>
             <div style={{ position: 'absolute', bottom: 0, right: 0, width: '88%', height: '88%', backgroundColor: 'rgba(196,98,45,0.12)', borderRadius: 20 }} />
             <div style={{ position: 'relative', borderRadius: 20, overflow: 'hidden', aspectRatio: '4/3', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
-              <Image src="/images/advertise/hero.png" alt="Local family business owner meeting with River Region Parents team" fill style={{ objectFit: 'cover', objectPosition: 'center' }} sizes="540px" />
+              <Image src="/images/advertise/hero.png" alt={`Local family business owner meeting with ${brandName} team`} fill style={{ objectFit: 'cover', objectPosition: 'center' }} sizes="540px" />
             </div>
           </div>
         </div>
@@ -144,13 +151,13 @@ export function AdvertiseLanding() {
           </p>
           <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 16, textAlign: 'left', maxWidth: 640, margin: '0 auto 32px' }}>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', lineHeight: 1.8 }}>
-              In the River Region, <strong style={{ color: 'white' }}>moms control 85% of household purchasing decisions</strong> for healthcare, education, food, activities, and services. If they don&apos;t know you exist, you don&apos;t exist to their family.
+              In {regionPhrase}, <strong style={{ color: 'white' }}>moms control 85% of household purchasing decisions</strong> for healthcare, education, food, activities, and services. If they don&apos;t know you exist, you don&apos;t exist to their family.
             </p>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', lineHeight: 1.8 }}>
               Running your own social ads? Hoping Google reviews will carry you? Waiting for word-of-mouth? That&apos;s not a strategy. That&apos;s hoping. And hoping doesn&apos;t fill your schedule.
             </p>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', lineHeight: 1.8 }}>
-              River Region Parents has been the community&apos;s most trusted source for family recommendations for over 30 years. Our Partners don&apos;t hope to be found. <strong style={{ color: 'white' }}>They&apos;re discovered by the exact families who need what they offer.</strong>
+              {brandName} is the community&apos;s most trusted source for family recommendations{tenure ? `, and has been for ${tenure}` : ''}. Our Partners don&apos;t hope to be found. <strong style={{ color: 'white' }}>They&apos;re discovered by the exact families who need what they offer.</strong>
             </p>
           </div>
           <p className="reveal" style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 17, fontStyle: 'italic', color: '#f0a070', letterSpacing: '0.01em' }}>
@@ -221,7 +228,7 @@ export function AdvertiseLanding() {
                 Most business owners know they should be marketing better. They just don&apos;t have the time, the expertise, or the energy to figure out what &ldquo;better&rdquo; even looks like.
               </p>
               <p style={{ fontSize: 15, color: '#5a4a3e', lineHeight: 1.75, marginBottom: 14 }}>
-                That&apos;s where we come in. We&apos;ve been doing this for 30 years. We know what makes a River Region mom notice something, trust something, and act on something. We turn that knowledge into a system that runs for your business.
+                That&apos;s where we come in.{tenure ? ` We&apos;ve been doing this for ${tenure}.` : ''} We know what makes a {region} mom notice something, trust something, and act on something. We turn that knowledge into a system that runs for your business.
               </p>
               <p style={{ fontSize: 15, color: '#5a4a3e', lineHeight: 1.75 }}>
                 Our Partners don&apos;t need to understand Facebook algorithms or write ad copy or design anything. They show up to serve their customers. We show up to find them more.
@@ -258,7 +265,7 @@ export function AdvertiseLanding() {
             <span style={{ color: '#f0a070', fontStyle: 'italic' }}>Ours Gets Remembered.</span>
           </h2>
           <p className="reveal" style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.75, marginBottom: 14 }}>
-            River Region Parents isn&apos;t a billboard or a social media account. It&apos;s the thing moms forward to each other. The guide they come back to. The source they trust because it&apos;s been reliable for over 30 years.
+            {brandName} isn&apos;t a billboard or a social media account. It&apos;s the thing moms forward to each other. The guide they come back to. The source they trust because it&apos;s reliable{tenure ? `, and has been for ${tenure}` : ''}.
           </p>
           <p className="reveal" style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.75 }}>
             When your business is part of this platform, you&apos;re not running an ad. You&apos;re being <em>recommended</em> by the community&apos;s most trusted voice for families.
@@ -267,6 +274,7 @@ export function AdvertiseLanding() {
       </section>
 
       {/* ── Testimonials ─────────────────────────────────────────────────────── */}
+      {ownsTestimonials && (
       <section style={{ backgroundColor: CREAM, padding: '88px 24px' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 52 }}>
@@ -283,7 +291,7 @@ export function AdvertiseLanding() {
               avatarSrc="/images/advertise/avatar-porcia.png"
             />
             <TestimonialCard
-              quote="I've advertised in a lot of places over 20 years of business. River Region Parents is the only one where I can actually trace new customers back to the platform. The ROI is real and it's consistent."
+              quote={`I've advertised in a lot of places over 20 years of business. ${brandName} is the only one where I can actually trace new customers back to the platform. The ROI is real and it's consistent.`}
               name="Tommy McKinnon"
               title="Family Restaurant Owner, Prattville"
               avatarSrc="/images/advertise/avatar-tommy.png"
@@ -297,6 +305,7 @@ export function AdvertiseLanding() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── Who This Is For ───────────────────────────────────────────────────── */}
       <section style={{ backgroundColor: 'white', padding: '80px 24px' }}>
@@ -306,7 +315,7 @@ export function AdvertiseLanding() {
             <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 700, color: NAVY, lineHeight: 1.2, marginBottom: 10 }}>
               This Is For You If...
             </h2>
-            <p style={{ fontSize: 15, color: '#666' }}>You serve families, parents, or children anywhere in the River Region.</p>
+            <p style={{ fontSize: 15, color: '#666' }}>You serve families, parents, or children anywhere in {regionPhrase}.</p>
           </div>
           <div className="reveal grid grid-cols-1 md:grid-cols-2 gap-x-12">
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -325,7 +334,7 @@ export function AdvertiseLanding() {
             </ul>
           </div>
           <p className="reveal" style={{ fontSize: 14, color: '#888', textAlign: 'center', fontStyle: 'italic', marginTop: 28 }}>
-            If your business serves families in the River Region, we have a way to help you grow.
+            If your business serves families in {regionPhrase}, we have a way to help you grow.
           </p>
         </div>
       </section>
@@ -336,13 +345,13 @@ export function AdvertiseLanding() {
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <p className="reveal" style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.13em', textTransform: 'uppercase', color: TERRA, marginBottom: 14 }}>Why It Works</p>
             <h2 className="reveal" style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 700, color: NAVY, lineHeight: 1.2 }}>
-              Three Things That Make River Region Parents Partners Different
+              Three Things That Make {brandName} Partners Different
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { num: '01', title: 'Stay Consistently Visible', desc: 'Most businesses disappear between campaigns. RRP Partners are present every month — magazine, digital, email, social. Families see you before they need you, so when they do need you, you&apos;re already trusted.' },
-              { num: '02', title: 'Build Trust Faster', desc: 'When RRP recommends you, it carries 30 years of community credibility. That trust transfers immediately. New leads arrive warmer and convert faster than any cold advertising can deliver.' },
+              { num: '01', title: 'Stay Consistently Visible', desc: `Most businesses disappear between campaigns. ${brandName} Partners are present every month — magazine, digital, email, social. Families see you before they need you, so when they do need you, you&apos;re already trusted.` },
+              { num: '02', title: 'Build Trust Faster', desc: `When ${brandName} recommends you, it carries${tenure ? ` ${tenure} of` : ''} community credibility. That trust transfers immediately. New leads arrive warmer and convert faster than any cold advertising can deliver.` },
               { num: '03', title: 'Make Growth Easier', desc: 'A system that consistently delivers warm leads means you spend less time chasing business and more time serving it. Growth becomes predictable, not accidental.' },
             ].map(card => (
               <div key={card.num} className="reveal" style={{ backgroundColor: 'white', borderRadius: 20, padding: '28px 24px', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
@@ -353,7 +362,7 @@ export function AdvertiseLanding() {
             ))}
           </div>
           <p className="reveal" style={{ fontSize: 14, color: '#888', textAlign: 'center', fontStyle: 'italic', marginTop: 32 }}>
-            The River Region&apos;s most trusted family media network has been making this happen since 1994.
+            {RegionPhrase}&apos;s most trusted family media network has been making this happen since 1994.
           </p>
         </div>
       </section>
@@ -384,13 +393,13 @@ export function AdvertiseLanding() {
             Ready to Reach the Moms Who Make the Decisions?
           </h2>
           <p className="reveal" style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, marginBottom: 36 }}>
-            Tell us about your business and Jason will be in touch within 24 hours with a personalized look at what a River Region Parents partnership looks like for you.
+            Tell us about your business and Jason will be in touch within 24 hours with a personalized look at what a {brandName} partnership looks like for you.
           </p>
           <div className="reveal" style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={scrollToForm} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 28px', borderRadius: 12, fontSize: 15, fontWeight: 800, backgroundColor: TERRA, color: 'white', border: 'none', cursor: 'pointer' }}>
               Get Advertising Info <ArrowRight size={15} />
             </button>
-            <a href="tel:334-328-5189" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 28px', borderRadius: 12, fontSize: 15, fontWeight: 700, backgroundColor: 'rgba(255,255,255,0.12)', color: 'white', textDecoration: 'none', border: '1.5px solid rgba(255,255,255,0.3)' }}>
+            <a href={contactPhone ? `tel:${contactPhone.replace(/[^0-9+]/g, '')}` : undefined} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 28px', borderRadius: 12, fontSize: 15, fontWeight: 700, backgroundColor: 'rgba(255,255,255,0.12)', color: 'white', textDecoration: 'none', border: '1.5px solid rgba(255,255,255,0.3)' }}>
               Schedule a Quick Call
             </a>
           </div>
@@ -425,7 +434,7 @@ export function AdvertiseLanding() {
             That&apos;s completely normal. Here&apos;s a quick gut check:
           </p>
           <ul className="reveal" style={{ listStyle: 'none', padding: 0, margin: '0 auto 24px', display: 'inline-block', textAlign: 'left' }}>
-            <CheckItem>Your customers are families with children in the River Region</CheckItem>
+            <CheckItem>Your customers are families with children in {regionPhrase}</CheckItem>
             <CheckItem>You want more of them, not just different ones</CheckItem>
             <CheckItem>You&apos;re willing to invest in a system that compounds over time</CheckItem>
             <CheckItem>You want a partner who cares whether it actually works</CheckItem>
@@ -439,13 +448,13 @@ export function AdvertiseLanding() {
       {/* ── Footer ────────────────────────────────────────────────────────────── */}
       <footer style={{ backgroundColor: NAVY, padding: '40px 24px', textAlign: 'center' }}>
         <p style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 18, fontWeight: 700, color: 'white', marginBottom: 6 }}>
-          River Region Parents
+          {brandName}
         </p>
         <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>
           We Help Your Future Customers Find You.
         </p>
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 16 }}>
-          © {new Date().getFullYear()} KeepSharing LLC · River Region Parents · Montgomery, Alabama
+          © {new Date().getFullYear()} KeepSharing LLC · {brandName} · {city}, {stateName}
         </p>
       </footer>
 

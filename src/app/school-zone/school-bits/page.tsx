@@ -4,6 +4,9 @@
 // to localStorage so it's the default the next time they visit.
 
 import type { Metadata } from 'next'
+import type { MarketDef } from '@/lib/markets'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import { currentBrandSlug } from '@/lib/current-brand'
 import Link from 'next/link'
 import { permanentRedirect } from 'next/navigation'
@@ -20,7 +23,8 @@ import { getActiveAds } from '@/lib/get-active-ads'
 import { SponsorAdBanner } from '@/components/calendar/CalendarAds'
 
 const SITE_URL    = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
-const DEFAULT_DESC = 'Celebrating student achievements, awards, and school news across the River Region.'
+const defaultDesc = (market: MarketDef) =>
+  `Celebrating student achievements, awards, and school news across ${theRegion(market)}.`
 
 export const revalidate = 300  // 5-minute ISR
 
@@ -60,6 +64,9 @@ async function slugForFocusId(focusId: string): Promise<string | null> {
 }
 
 export async function generateMetadata({ searchParams }: PageParams): Promise<Metadata> {
+  const { market, publicOrigin } = await loadBrandContext()
+  const brandName    = market.displayName
+  const origin       = publicOrigin || SITE_URL
   const params  = await searchParams
   const focusId = typeof params.focus  === 'string' ? params.focus  : null
   const areaP   = typeof params.area   === 'string' ? params.area   : null
@@ -81,17 +88,17 @@ export async function generateMetadata({ searchParams }: PageParams): Promise<Me
       const title = normalizeUnicodeText(row.title)
       const blurb = normalizeUnicodeText(row.blurb).replace(/\s+/g, ' ').trim()
       const desc  = blurb.length > 200 ? blurb.slice(0, 197) + '…' : blurb
-      const url   = `${SITE_URL}/school-zone/school-bits?focus=${encodeURIComponent(focusId)}`
+      const url   = `${origin}/school-zone/school-bits?focus=${encodeURIComponent(focusId)}`
       const images = row.image_web_url ? [{ url: row.image_web_url }] : []
       return {
-        title:       `${title} — ${row.school_name} | River Region Parents`,
+        title:       `${title} — ${row.school_name} | ${brandName}`,
         description: desc,
         openGraph: {
           title:       title,
           description: `${row.school_name} — ${desc}`,
           url,
           type:        'article',
-          siteName:    'River Region Parents',
+          siteName:    brandName,
           images,
         },
         twitter: {
@@ -115,9 +122,10 @@ export async function generateMetadata({ searchParams }: PageParams): Promise<Me
     if (schoolRow) {
       const name = (schoolRow as { name: string }).name
       return baseMetadata({
-        title:       `School Bits at ${name} | River Region Parents`,
+        brandName,
+        title:       `School Bits at ${name} | ${brandName}`,
         description: `Award winners, achievements, and good news from ${name}.`,
-        canonical:   `${SITE_URL}/school-zone/school-bits?school=${encodeURIComponent(schoolP)}`,
+        canonical:   `${origin}/school-zone/school-bits?school=${encodeURIComponent(schoolP)}`,
         latestHero:  await fetchLatestHeroForSchool(supabase, schoolP),
       })
     }
@@ -130,9 +138,10 @@ export async function generateMetadata({ searchParams }: PageParams): Promise<Me
                 :                       null
     if (label) {
       return baseMetadata({
-        title:       `School Bits — ${label} | River Region Parents`,
+        brandName,
+        title:       `School Bits — ${label} | ${brandName}`,
         description: `Award winners, achievements, and good news from ${label}.`,
-        canonical:   `${SITE_URL}/school-zone/school-bits?area=${encodeURIComponent(areaP)}`,
+        canonical:   `${origin}/school-zone/school-bits?area=${encodeURIComponent(areaP)}`,
         latestHero:  await fetchLatestHero(supabase),
       })
     }
@@ -141,14 +150,16 @@ export async function generateMetadata({ searchParams }: PageParams): Promise<Me
   // 4. Default — latest bit's hero powers the OG card so the generic
   //    /school-zone/school-bits link always shares something photo-rich.
   return baseMetadata({
-    title:       'School Bits — River Region Parents',
-    description: DEFAULT_DESC,
-    canonical:   `${SITE_URL}/school-zone/school-bits`,
+        brandName,
+    title:       `School Bits — ${brandName}`,
+    description: defaultDesc(market),
+    canonical:   `${origin}/school-zone/school-bits`,
     latestHero:  await fetchLatestHero(supabase),
   })
 }
 
 function baseMetadata(opts: {
+  brandName:    string
   title:        string
   description:  string
   canonical:    string
@@ -163,7 +174,7 @@ function baseMetadata(opts: {
       description: opts.description,
       url:         opts.canonical,
       type:        'website',
-      siteName:    'River Region Parents',
+      siteName:    opts.brandName,
       images,
     },
     twitter: {
@@ -269,6 +280,10 @@ export interface InlineAd {
 }
 
 export default async function SchoolBitsPage(_props: PageParams) {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const { loadBrandContext: _sbLoadBrand } = await import('@/lib/brand-context')
+  const sbRegion = (await _sbLoadBrand()).market.regionLabel
   // ?focus=<uuid> was how a single bit used to be shared. Send those to the
   // bit's own page — the reader clicked one specific item, and landing them on
   // the whole feed makes them hunt for it again. Falls through to the feed when
@@ -452,7 +467,7 @@ export default async function SchoolBitsPage(_props: PageParams) {
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-foreground mb-3 leading-tight">School Bits</h1>
           <p className="text-base md:text-lg text-foreground/80 mb-6">
-            Award winners, achievements, ribbon cuttings, and good news from across the River Region.
+            Award winners, achievements, ribbon cuttings, and good news from across {regionPhrase}.
           </p>
 
           <Link
@@ -485,7 +500,7 @@ export default async function SchoolBitsPage(_props: PageParams) {
             as the calendar's top banner. Renders a placeholder when
             no advertiser is booked so the slot is always visible to
             potential buyers (and never collapses the layout). */}
-        <SponsorAdBanner placement="school-bits-top" variant="tan" ad={topBannerAd} />
+        <SponsorAdBanner placement="school-bits-top" variant="tan" ad={topBannerAd} region={sbRegion} />
 
         {bits.length === 0 ? (
           <div className="rounded-3xl border-2 border-dashed border-border bg-card p-12 text-center max-w-2xl mx-auto">
@@ -517,7 +532,7 @@ export default async function SchoolBitsPage(_props: PageParams) {
         {/* Bottom banner — wide sponsor ad after the feed. Coral
             variant to visually differ from the top banner so it reads
             as a separate slot to readers (and to ad-blockers' heuristics). */}
-        <SponsorAdBanner placement="school-bits-bottom" variant="coral" ad={bottomBannerAd} />
+        <SponsorAdBanner placement="school-bits-bottom" variant="coral" ad={bottomBannerAd} region={sbRegion} />
       </main>
 
       <PublicFooter />

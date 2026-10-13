@@ -3,11 +3,16 @@
 // provisioning the account. Webhook handles provisioning on success.
 
 import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 import { GetListedForm } from './GetListedForm'
 
-export const metadata: Metadata = {
-  title:       'Get featured on River Region Parents',
-  description: 'Become a featured partner in the River Region Parents directory — annual subscription, self-serve setup.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return {
+    title:       `Get featured on ${brandName}`,
+    description: `Become a featured partner in the ${brandName} directory — annual subscription, self-serve setup.`,
+  }
 }
 
 const GUIDE_OPTIONS = [

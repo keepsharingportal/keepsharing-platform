@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { theRegion } from '@/lib/brandify'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
@@ -15,13 +16,15 @@ import type { Metadata } from 'next'
 export const revalidate = 900
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       'Articles',
     description: 'Local family stories, monthly columns, and parenting resources — Mom to Mom, Teacher of the Month, Play Ball, Grands Are the Greatest, and more. Updated weekly.',
     path:        '/articles',
     type:        'website',
-    keywords:    ['River Region articles', 'parenting articles', 'local family stories', 'community columns'],
+    keywords:    [`${region} articles`, 'parenting articles', 'local family stories', 'community columns'],
   })
 }
 
@@ -124,6 +127,10 @@ interface PageProps {
 }
 
 export default async function ArticlesIndexPage({ searchParams }: PageProps) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   const { section: sParam, month: mParam } = await searchParams
   const activeSection = (SECTIONS.some(s => s.key === sParam) ? sParam : 'all') as SectionKey
   const activeMonth   = (ISSUE_MONTHS.some(m => m.key === mParam) ? mParam : 'all') as MonthKey
@@ -164,7 +171,7 @@ export default async function ArticlesIndexPage({ searchParams }: PageProps) {
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <BookOpen className="h-4 w-4 text-primary" />
-                <span className="text-xs font-bold uppercase tracking-widest text-primary">River Region Parents</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-primary">{brandName}</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-black text-foreground leading-tight">
                 {isFiltered
@@ -306,12 +313,12 @@ export default async function ArticlesIndexPage({ searchParams }: PageProps) {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {[
                 { label: 'School Zone',          href: '/school-zone',        desc: 'Student spotlights, teacher features, school news', emoji: '🎓' },
-                { label: 'School Bits',           href: '/school-bits',        desc: 'Roundup stories from schools across the River Region', emoji: '📚' },
+                { label: 'School Bits',           href: '/school-bits',        desc: `Roundup stories from schools across ${regionPhrase}`, emoji: '📚' },
                 // Summer Fun Guide tile hidden — content not ready yet.
                 // Restore the line when ready: { label: 'Summer Fun Guide', href: '/summer-fun-guide', desc: '...', emoji: '☀️' }
                 { label: 'Family Resource Guide', href: '/family-resource-guide', desc: 'Local services, health, childcare, and support',  emoji: '🏠' },
-                { label: 'Mom to Mom',            href: '/columns/mom-to-mom', desc: 'Real stories from River Region moms',                emoji: '❤️' },
-                { label: 'Events Calendar',       href: '/calendar',           desc: 'What\'s happening around the River Region',          emoji: '📅' },
+                { label: 'Mom to Mom',            href: '/columns/mom-to-mom', desc: `Real stories from ${region} moms`,                emoji: '❤️' },
+                { label: 'Events Calendar',       href: '/calendar',           desc: `What's happening around ${regionPhrase}`,          emoji: '📅' },
               ].map(s => (
                 <Link
                   key={s.href}

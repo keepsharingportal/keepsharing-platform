@@ -15,11 +15,14 @@ interface Props {
   pullQuotes?: string[]
   inlineAd?: ReactNode
   articleId: string
+  /** Brand region wording. A prop, not an awaited lookup: the admin
+   *  article editor is a client component and previews this template. */
+  region: string
 }
 
 export function TeacherOfMonthLayout({
   title, excerpt, heroImageUrl, authorName, publishedAt,
-  body, pullQuotes, inlineAd, articleId,
+  body, pullQuotes, inlineAd, articleId, region,
 }: Props) {
   const imgSrc = heroImageUrl || getFallback('person_woman', articleId)
   const dateLabel = publishedAt
@@ -80,7 +83,7 @@ export function TeacherOfMonthLayout({
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm text-amber-900">Know an Outstanding Educator?</p>
           <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
-            We celebrate one River Region teacher each month. Nominations are open year-round.
+            We celebrate one {region} teacher each month. Nominations are open year-round.
           </p>
         </div>
         <Link

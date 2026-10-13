@@ -6,6 +6,7 @@
 // detail; per-source tables at the bottom.
 
 import { DateRangeBar } from './DateRangeBar'
+import { loadBrandContext } from '@/lib/brand-context'
 import type { AdvertiserReportData } from '@/lib/advertiser-report/data'
 import { formatPctChange, type PeriodChange } from '@/lib/admin/period-compare'
 import {
@@ -20,7 +21,9 @@ function fmtPct(n: number | null | undefined): string {
   return `${n.toFixed(2)}%`
 }
 
-export function ReportShell({ data }: { data: AdvertiserReportData }) {
+export async function ReportShell({ data }: { data: AdvertiserReportData }) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const dateLabel = (s: string) => new Date(`${s}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   return (
@@ -28,7 +31,7 @@ export function ReportShell({ data }: { data: AdvertiserReportData }) {
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <header className="border-b border-slate-200 print:border-0">
         <div className="max-w-5xl mx-auto px-6 py-6">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">River Region Parents · Performance Report</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{brandName} · Performance Report</p>
           <h1 className="text-3xl font-bold mt-1 text-slate-900">{data.advertiser.business_name}</h1>
           <p className="text-sm text-slate-500 mt-1">
             {dateLabel(data.range.since)} – {dateLabel(data.range.until)} <span className="text-slate-400">· {data.range.days} day{data.range.days === 1 ? '' : 's'}</span>
@@ -180,7 +183,7 @@ export function ReportShell({ data }: { data: AdvertiserReportData }) {
         )}
 
         {data.details.inquiries.length > 0 && (
-          <DetailBlock title="Inquiries received" subtitle="Direct messages from interested readers (forwarded to your inbox by River Region Parents)">
+          <DetailBlock title="Inquiries received" subtitle={`Direct messages from interested readers (forwarded to your inbox by ${brandName})`}>
             <ul className="divide-y divide-slate-200">
               {data.details.inquiries.map(inq => (
                 <li key={inq.id} className="py-3">
@@ -264,7 +267,7 @@ export function ReportShell({ data }: { data: AdvertiserReportData }) {
 
       <footer className="max-w-5xl mx-auto px-6 py-8 border-t border-slate-200 text-xs text-slate-500 print:border-0">
         <p>Numbers update nightly. Questions? Reply to the email this link came from.</p>
-        <p className="mt-1 text-slate-400">River Region Parents · KeepSharing Publishing Platform</p>
+        <p className="mt-1 text-slate-400">{brandName} · KeepSharing Publishing Platform</p>
       </footer>
     </div>
   )

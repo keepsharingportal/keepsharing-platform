@@ -114,7 +114,7 @@ function mergeHeroTag(notes: string, isHero: boolean): string {
 // page, so what an editor sees is what readers will see (no drift over time).
 
 function ArticlePreview({
-  title, subtitle, heroUrl, body, columnSlug, excerpt, authorByline, articleId,
+  title, subtitle, heroUrl, body, columnSlug, excerpt, authorByline, articleId, region,
 }: {
   title: string
   subtitle: string
@@ -124,6 +124,8 @@ function ArticlePreview({
   excerpt: string
   authorByline: string
   articleId: string
+  /** Region wording for the preview, from the article's own brand. */
+  region: string
 }) {
   const isTeacher     = columnSlug === 'teacher-of-month'
   const isContributor = CONTRIBUTOR_COLUMNS.includes(columnSlug)
@@ -163,6 +165,7 @@ function ArticlePreview({
           body={body}
           pullQuotes={[]}
           articleId={articleId}
+          region={region}
         />
       ) : isContributor ? (
         <ContributorArticleLayout
@@ -174,6 +177,7 @@ function ArticlePreview({
           body={body}
           pullQuotes={[]}
           articleId={articleId}
+          region={region}
         />
       ) : (
         <>
@@ -752,6 +756,7 @@ export default function ArticleEditPage({ params }: Props) {
                         excerpt={form.excerpt}
                         authorByline={form.author_byline}
                         articleId={id}
+                        region={MARKETS.find(m => m.slug === brandSlug)?.regionLabel ?? 'River Region'}
                       />
                     )}
                   </div>

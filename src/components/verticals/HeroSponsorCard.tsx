@@ -21,6 +21,7 @@
 //   />
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import Image from 'next/image'
 import { Star, Trophy, ChevronRight } from 'lucide-react'
 import { ClaimSpotButton } from '@/components/ClaimSpotButton'
@@ -115,15 +116,20 @@ function CardInner({
   )
 }
 
-export function HeroSponsorCard({
+export async function HeroSponsorCard({
   sponsor,
   aboveLabel,
   sponsorLabel,
   verticalSlug,
   placeholderName     = 'Your Business Here',
-  placeholderTagline  = 'Be the only sponsor for this section — your business anchors every page River Region families see in this vertical.',
+  placeholderTagline,
   placeholderCtaLabel = 'Claim This Spot',
 }: Props) {
+  // The default tagline names the region, so it is resolved in the body —
+  // a default parameter value is evaluated before the brand can be awaited.
+  const { market } = await loadBrandContext()
+  const tagline = placeholderTagline
+    ?? `Be the only sponsor for this section — your business anchors every page ${market.regionLabel} families see in this vertical.`
   const labelText = aboveLabel ?? sponsorLabel ?? 'Sponsored By'
 
   // Card container classes — mirrors the homepage inline ad (YMCA
@@ -196,7 +202,7 @@ export function HeroSponsorCard({
             {placeholderName}
           </h3>
           <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 leading-snug">
-            {placeholderTagline}
+            {tagline}
           </p>
         </div>
 

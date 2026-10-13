@@ -5,6 +5,7 @@
 // circulating into the School Zone vertical.
 
 import Image from 'next/image'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowRight, GraduationCap } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
@@ -31,7 +32,9 @@ function fmtDate(iso: string | null) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function FromSchoolZone({ articles }: Props) {
+export async function FromSchoolZone({ articles }: Props) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   if (articles.length === 0) return null
 
   return (
@@ -43,7 +46,7 @@ export function FromSchoolZone({ articles }: Props) {
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-700">From the School Zone</span>
           </div>
           <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
-            What&apos;s happening in River Region schools
+            What&apos;s happening in {region} schools
           </h2>
         </div>
         <Link

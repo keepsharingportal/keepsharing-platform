@@ -12,6 +12,7 @@
 // touches it, and nothing here publishes anything.
 
 import Link from 'next/link'
+import { theRegion, brandifyCopy } from '@/lib/brandify'
 import { createClient } from '@supabase/supabase-js'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
@@ -21,7 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Store, ArrowRight, Sparkles } from 'lucide-react'
 import { INDUSTRIES, industryFromParam, type Industry } from '@/lib/business-spotlight/industries'
 import { articleHref } from '@/lib/articles/slug'
-import { loadBrandContext } from '@/lib/brand-context'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 import { itemListJsonLd, breadcrumbJsonLd, jsonLdScript } from '@/lib/seo/jsonld'
 import type { Metadata } from 'next'
@@ -42,6 +43,8 @@ function getSupabase() {
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { industry: industryParam } = await searchParams
   const industry = industryFromParam(industryParam)
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
@@ -51,14 +54,14 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       ? `${industry.label} — Business Spotlights`
       : 'Business Spotlights',
     description: industry
-      ? `${industry.blurb} Meet the ${industry.label.toLowerCase()} businesses River Region families rely on.`
-      : 'Meet the local businesses behind River Region families — real stories about the people who take care of your kids, feed your family, and keep your house standing.',
+      ? `${industry.blurb} Meet the ${industry.label.toLowerCase()} businesses ${region} families rely on.`
+      : `Meet the local businesses behind ${region} families — real stories about the people who take care of your kids, feed your family, and keep your house standing.`,
     // Canonical always points at the unfiltered hub. The filtered views are
     // the same stories in a different order; letting each one claim its own
     // canonical would split the page's ranking eight ways.
     path:     '/business-spotlight',
     type:     'website',
-    keywords: ['Montgomery local business', 'River Region businesses', 'business spotlight', 'local family businesses'],
+    keywords: [`${market.city} local business`, `${region} businesses`, 'business spotlight', 'local family businesses'],
   })
 }
 
@@ -76,6 +79,9 @@ type SpotlightRow = {
 const BASE_COLS = 'id, title, slug, excerpt, body, hero_image_url, author_name, published_at, column_slug'
 
 export default async function BusinessSpotlightHubPage({ searchParams }: Props) {
+  const { market, slug: brandSlug } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   const { industry: industryParam } = await searchParams
   const activeIndustry = industryFromParam(industryParam)
 
@@ -94,6 +100,7 @@ export default async function BusinessSpotlightHubPage({ searchParams }: Props) 
     .eq('column_slug', COLUMN_SLUG)
     .eq('published', true)
     .is('deleted_at', null)
+    .or(articleBrandFilter(brandSlug))
     .order('published_at', { ascending: false, nullsFirst: false })
 
   // Migration 231 may not be applied yet, and PostgREST fails the whole query
@@ -107,6 +114,7 @@ export default async function BusinessSpotlightHubPage({ searchParams }: Props) 
       .eq('column_slug', COLUMN_SLUG)
       .eq('published', true)
       .is('deleted_at', null)
+      .or(articleBrandFilter(brandSlug))
       .order('published_at', { ascending: false, nullsFirst: false })
     allStories = ((fallback ?? []) as Array<Omit<SpotlightRow, 'industry' | 'spotlight_featured'>>)
       .map(r => ({ ...r, industry: null, spotlight_featured: false }))
@@ -163,7 +171,7 @@ export default async function BusinessSpotlightHubPage({ searchParams }: Props) 
           card. The pitch lives once, at the bottom. */}
       <PageHeader
         title="The Businesses Behind Our Families"
-        subtitle="The dentist who is good with frightened four-year-olds. The shop that stayed open late. Real stories about the local people River Region families count on."
+        subtitle={`The dentist who is good with frightened four-year-olds. The shop that stayed open late. Real stories about the local people ${region} families count on.`}
         badge={{ text: 'Local Business Stories', variant: 'secondary' }}
         variant="cream"
         align="center"
@@ -185,7 +193,7 @@ export default async function BusinessSpotlightHubPage({ searchParams }: Props) 
             <Store className="h-12 w-12 text-primary/40 mx-auto mb-5" />
             <h2 className="text-2xl font-bold text-foreground mb-3">The first stories are being written</h2>
             <p className="text-muted-foreground mb-8 leading-relaxed">
-              We&apos;re sitting down with local businesses across the River Region right
+              We&apos;re sitting down with local businesses across {regionPhrase} right
               now. Check back soon — or, if you run one, tell us yours.
             </p>
             <Button asChild className="rounded-full">
@@ -226,7 +234,7 @@ export default async function BusinessSpotlightHubPage({ searchParams }: Props) 
                   active={activeIndustry}
                 />
                 {activeIndustry && (
-                  <p className="mt-4 text-sm text-muted-foreground">{activeIndustry.blurb}</p>
+                  <p className="mt-4 text-sm text-muted-foreground">{brandifyCopy(activeIndustry.blurb, market)}</p>
                 )}
               </section>
             )}

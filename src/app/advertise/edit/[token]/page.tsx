@@ -9,6 +9,8 @@
 // public API that re-verifies the token on every write.
 
 import type { Metadata } from 'next'
+import { BrandContactLink } from '@/components/BrandContactLink'
+import { loadBrandContext } from '@/lib/brand-context'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { schemaForGuide } from '@/lib/guides/schemas'
@@ -18,9 +20,13 @@ import { PublicSendLinkBanner } from './PublicSendLinkBanner'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title:  'Edit your listing | River Region Parents',
-  robots: { index: false, follow: false },
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return {
+    title:  `Edit your listing | ${brandName}`,
+    robots: { index: false, follow: false },
+  }
 }
 
 interface Props {
@@ -38,6 +44,8 @@ function sb() {
 }
 
 export default async function PublicWizardPage({ params, searchParams }: Props) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { token } = await params
   const { guide: guideParam } = await searchParams
   const guideSlug = guideParam ?? DEFAULT_GUIDE
@@ -86,7 +94,7 @@ export default async function PublicWizardPage({ params, searchParams }: Props) 
         <div className="bg-white border border-border rounded-lg p-8 text-center">
           <h3 className="text-lg font-bold text-foreground mb-2">No wizard for this guide yet</h3>
           <p className="text-sm text-muted-foreground">
-            Reach out to the River Region Parents team and we&apos;ll get you sorted.
+            Reach out to the {brandName} team and we&apos;ll get you sorted.
           </p>
         </div>
       </Shell>
@@ -109,14 +117,16 @@ export default async function PublicWizardPage({ params, searchParams }: Props) 
   )
 }
 
-function Shell({ businessName, children }: { businessName: string; children: React.ReactNode }) {
+async function Shell({ businessName, children }: { businessName: string; children: React.ReactNode }) {
+  const { market } = await loadBrandContext()
+  const brandName = market.displayName
   return (
     <div className="min-h-screen bg-portal-bg">
       <header className="bg-white border-b border-portal-border">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="text-[18px] font-bold text-portal-text">
-              <span className="text-portal-blue">River Region Parents</span>
+              <span className="text-portal-blue">{brandName}</span>
               <span className="text-portal-muted"> · Listing Editor</span>
             </div>
             <p className="text-[12px] text-portal-sub mt-0.5">
@@ -138,14 +148,16 @@ function Shell({ businessName, children }: { businessName: string; children: Rea
   )
 }
 
-function ExpiredView({ businessName }: { businessName: string }) {
+async function ExpiredView({ businessName }: { businessName: string }) {
+  const { market } = await loadBrandContext()
+  const brandName = market.displayName
   return (
     <Shell businessName={businessName}>
       <div className="bg-white border border-portal-border rounded-lg p-8 text-center max-w-md mx-auto">
         <h3 className="text-lg font-bold text-portal-text mb-2">This link has expired</h3>
         <p className="text-sm text-portal-sub leading-relaxed">
-          Reach out to the River Region Parents team at{' '}
-          <a href="mailto:hello@riverregionparents.com" className="text-portal-blue font-semibold hover:underline">hello@riverregionparents.com</a>{' '}
+          Reach out to the {brandName} team at{' '}
+          <BrandContactLink className="text-portal-blue font-semibold hover:underline" />{' '}
           and we&apos;ll send you a fresh editing link.
         </p>
       </div>

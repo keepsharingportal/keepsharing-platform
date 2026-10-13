@@ -9,6 +9,7 @@
 // featured pros / no active deal silently skips that slot.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { ArrowRight, Star, Tag, Sparkles } from 'lucide-react'
 import { BIRTHDAY_CATEGORY_BUCKETS, type CategoryBucket } from './BirthdayCategoryHubCards'
 
@@ -36,9 +37,11 @@ interface Props {
   deal?:               SidebarDeal | null    // shown if non-null
 }
 
-export function BirthdayCategorySidebar({
+export async function BirthdayCategorySidebar({
   currentBucketSlug, featuredSpotlights = [], deal,
 }: Props) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return (
     <aside className="lg:col-span-4 space-y-5 lg:sticky lg:top-24 lg:self-start">
 
@@ -85,7 +88,7 @@ export function BirthdayCategorySidebar({
           </span>
         </div>
         <div className="p-2">
-          {BIRTHDAY_CATEGORY_BUCKETS.map(b => {
+          {BIRTHDAY_CATEGORY_BUCKETS(market).map(b => {
             const isCurrent = b.slug === currentBucketSlug
             const Icon = b.Icon
             return (
@@ -156,7 +159,7 @@ export function BirthdayCategorySidebar({
         </div>
         <h4 className="text-lg font-black leading-tight mb-1">Get a Featured Profile</h4>
         <p className="text-[12px] text-white/90 leading-snug mb-3">
-          Photos, blurb, top-of-page placement, and direct contact tools. River Region parents see your business first.
+          Photos, blurb, top-of-page placement, and direct contact tools. {region} parents see your business first.
         </p>
         <span className="inline-flex items-center gap-1 text-[12px] font-bold text-white">
           See listing options <ArrowRight className="h-3 w-3" />

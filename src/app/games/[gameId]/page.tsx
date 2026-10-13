@@ -3,6 +3,7 @@
 // content from the pool, and renders the client GamePlayer with the data.
 
 import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
@@ -19,15 +20,18 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
   const { gameId } = await params
   const game = gameById(gameId)
-  if (!game) return { title: 'Brain Games — River Region Parents' }
+  if (!game) return { title: `Brain Games — ${brandName}` }
   return buildPageMetadata({
     title:       `${game.title} — Brain Games`,
     description: `${game.desc} Play free, beat your best time, win one of three $10 prizes every week.`,
     path:        `/games/${gameId}`,
     type:        'website',
-    keywords:    [game.title, 'family games', 'brain games', 'River Region'],
+    keywords:    [game.title, 'family games', 'brain games', `${region}`],
   })
 }
 

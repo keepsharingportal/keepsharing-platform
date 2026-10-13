@@ -2,14 +2,17 @@
 // pre-scoped to the birthday context. Lightweight bottom-of-page CTA.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { Send } from 'lucide-react'
 
-export function SubmitVendorTip() {
+export async function SubmitVendorTip() {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return (
     <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 sm:p-8 text-white">
       <div className="max-w-xl">
         <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#ff7a59] mb-2">Know a vendor we&apos;re missing?</div>
-        <h3 className="text-2xl sm:text-3xl font-bold leading-tight">Tell us about your favorite River Region party spot</h3>
+        <h3 className="text-2xl sm:text-3xl font-bold leading-tight">Tell us about your favorite {region} party spot</h3>
         <p className="text-[13px] text-slate-300 mt-3 leading-relaxed">
           We add vendors regularly. If your favorite cake artist, entertainer, or venue isn&apos;t on this list,
           let us know. We&apos;ll reach out, vet them, and add the listing.

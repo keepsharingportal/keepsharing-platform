@@ -9,6 +9,7 @@
 // On finish, shows WinScreen with the entry form that POSTs to GHL.
 
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { useBrandCopy } from '@/components/BrandCopyProvider'
 import { useRouter } from 'next/navigation'
 import { Trophy, CheckCircle2, ChevronRight, FastForward, Clock, Flame, Lightbulb, Sparkles } from 'lucide-react'
 import type {
@@ -24,7 +25,7 @@ interface PoolItem { id: string; payload: Record<string, unknown> }
 // ── Sharable branding ────────────────────────────────────────────────────────
 // Wordle-style identity. Every share card opens with this header so a stranger
 // scrolling Facebook sees the same recognizable signature week after week.
-const SHARE_BRAND_HEADER = '🧠 River Region Brain Games'
+const shareBrandHeader = (region: string) => `🧠 ${region} Brain Games`
 const SHARE_CTA          = 'Can you beat me?'
 
 // Per-game emoji prefix — pairs with the game title in the second line.
@@ -1302,13 +1303,14 @@ function SocialShare({
   durationSeconds: number
   newBest?:        boolean
 }) {
+  const { regionLabel } = useBrandCopy()
   const url     = typeof window !== 'undefined' ? `${window.location.origin}/games` : '/games'
   const gameEmoji = GAME_EMOJI[game.id] ?? '🎮'
 
   // Canonical 5-line card — identical structure across every game so it
   // becomes instantly recognizable in a feed (Wordle-style identity).
   const lines: string[] = [
-    `${SHARE_BRAND_HEADER} · Week ${isoWeek}`,
+    `${shareBrandHeader(regionLabel)} · Week ${isoWeek}`,
     `${gameEmoji} ${game.title} · ⏱ ${formatTime(durationSeconds)}${newBest ? ' · 🏆 New best!' : ''}`,
   ]
   if (shareGrid) lines.push(shareGrid)

@@ -10,11 +10,13 @@
 // generated but ask them to contact us).
 
 import { useState } from 'react'
+import { useBrandCopy } from '@/components/BrandCopyProvider'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 
 interface GuideOption { value: string; label: string }
 
 export function SignupForm({ guides }: { guides: GuideOption[] }) {
+  const { contactEmail: signupContact } = useBrandCopy()
   const [businessName, setBusinessName] = useState('')
   const [email, setEmail]               = useState('')
   const [guideSlug, setGuideSlug]       = useState(guides[0]?.value ?? 'birthday-party')
@@ -55,7 +57,7 @@ export function SignupForm({ guides }: { guides: GuideOption[] }) {
         <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
           {success.sent
             ? `We just sent a private editor link to ${email}. Open it and start filling out your listing — you can save & exit any time.`
-            : `Your account is created, but our email service didn't accept the send. Reach out to hello@riverregionparents.com with your business name and we'll get you the link.`}
+            : `Your account is created, but our email service didn't accept the send. Reach out to ${signupContact ?? 'our team'} with your business name and we'll get you the link.`}
         </p>
       </div>
     )

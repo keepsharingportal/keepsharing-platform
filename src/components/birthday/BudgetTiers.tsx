@@ -4,54 +4,58 @@
 // no tiers are set we render default copy so the page never looks empty.
 
 import { DollarSign, Users, ArrowRight } from 'lucide-react'
+import type { MarketDef } from '@/lib/markets'
 
-const DEFAULTS = [
-  {
-    tier_key:      'backyard',
-    name:          'The Backyard Birthday',
-    price_ceiling: 150,
-    guest_count:   '8-10 kids',
-    pitch:         'You + your backyard + a few smart picks. Stress-free, budget-light, surprisingly memorable.',
-    picks: [
-      { role: 'Venue',     note: 'Your backyard, a local park, or a community center room' },
-      { role: 'Cake',      note: 'Cakeology custom cake (~$45) or DIY Pillsbury' },
-      { role: 'Decor',     note: 'Party City basics + a balloon arch DIY ($35)' },
-      { role: 'Activity',  note: 'Scavenger hunt + lawn games (free, just print)' },
-      { role: 'Goody bags', note: 'One nicer take-home gift (sticker book or small toy)' },
-    ],
-    accent: '#84cc16',
-  },
-  {
-    tier_key:      'sweet-spot',
-    name:          'The Sweet Spot',
-    price_ceiling: 400,
-    guest_count:   '10-12 kids',
-    pitch:         'The plan most River Region moms land on. Real venue, custom cake, one big activity. Hosted but not exhausting.',
-    picks: [
-      { role: 'Venue',     note: 'Snapology, BAMA Lanes, Family Karate Center, or Newtopia' },
-      { role: 'Cake',      note: 'Bruster\'s ice cream cake or GiGi\'s Cupcakes' },
-      { role: 'Decor',     note: 'Theme-matched balloons + table covers ($40)' },
-      { role: 'Activity',  note: 'Venue includes — gymnastics, bowling, escape room, etc.' },
-      { role: 'Goody bags', note: 'Themed party favors from Party City ($25 total)' },
-    ],
-    accent: '#f59e0b',
-  },
-  {
-    tier_key:      'showstopper',
-    name:          'The Showstopper',
-    price_ceiling: 1000,
-    guest_count:   '15+ kids',
-    pitch:         'When you want the photos AND the bragging rights. Premium venue, custom everything, an entertainer. The full bash.',
-    picks: [
-      { role: 'Venue',     note: 'Skyzone, Launch Trampoline Park, Fun City Adventure Park' },
-      { role: 'Cake',      note: 'Custom Cakeology or JoZettie\'s cake + cupcakes' },
-      { role: 'Decor',     note: 'Arrow Rents or Brendle full theme package' },
-      { role: 'Entertainer', note: 'Dynamite Magic, Pretty & Pampered Spa Bus, or Big Green Bus' },
-      { role: 'Goody bags', note: 'Personalized goody bags + take-home gift' },
-    ],
-    accent: '#ff7a59',
-  },
-]
+const DEFAULTS = (market: MarketDef) => {
+  const region       = market.regionLabel
+  return [
+    {
+      tier_key:      'backyard',
+      name:          'The Backyard Birthday',
+      price_ceiling: 150,
+      guest_count:   '8-10 kids',
+      pitch:         'You + your backyard + a few smart picks. Stress-free, budget-light, surprisingly memorable.',
+      picks: [
+        { role: 'Venue',     note: 'Your backyard, a local park, or a community center room' },
+        { role: 'Cake',      note: 'Cakeology custom cake (~$45) or DIY Pillsbury' },
+        { role: 'Decor',     note: 'Party City basics + a balloon arch DIY ($35)' },
+        { role: 'Activity',  note: 'Scavenger hunt + lawn games (free, just print)' },
+        { role: 'Goody bags', note: 'One nicer take-home gift (sticker book or small toy)' },
+      ],
+      accent: '#84cc16',
+    },
+    {
+      tier_key:      'sweet-spot',
+      name:          'The Sweet Spot',
+      price_ceiling: 400,
+      guest_count:   '10-12 kids',
+      pitch:         `The plan most ${region} moms land on. Real venue, custom cake, one big activity. Hosted but not exhausting.`,
+      picks: [
+        { role: 'Venue',     note: 'Snapology, BAMA Lanes, Family Karate Center, or Newtopia' },
+        { role: 'Cake',      note: 'Bruster\'s ice cream cake or GiGi\'s Cupcakes' },
+        { role: 'Decor',     note: 'Theme-matched balloons + table covers ($40)' },
+        { role: 'Activity',  note: 'Venue includes — gymnastics, bowling, escape room, etc.' },
+        { role: 'Goody bags', note: 'Themed party favors from Party City ($25 total)' },
+      ],
+      accent: '#f59e0b',
+    },
+    {
+      tier_key:      'showstopper',
+      name:          'The Showstopper',
+      price_ceiling: 1000,
+      guest_count:   '15+ kids',
+      pitch:         'When you want the photos AND the bragging rights. Premium venue, custom everything, an entertainer. The full bash.',
+      picks: [
+        { role: 'Venue',     note: 'Skyzone, Launch Trampoline Park, Fun City Adventure Park' },
+        { role: 'Cake',      note: 'Custom Cakeology or JoZettie\'s cake + cupcakes' },
+        { role: 'Decor',     note: 'Arrow Rents or Brendle full theme package' },
+        { role: 'Entertainer', note: 'Dynamite Magic, Pretty & Pampered Spa Bus, or Big Green Bus' },
+        { role: 'Goody bags', note: 'Personalized goody bags + take-home gift' },
+      ],
+      accent: '#ff7a59',
+    },
+  ]
+}
 
 interface Tier {
   tier_key:     string
@@ -63,7 +67,7 @@ interface Tier {
   hero_image_url?: string | null
 }
 
-export function BudgetTiers({ tiers }: { tiers: Array<Record<string, unknown>> }) {
+export function BudgetTiers({ tiers, market }: { tiers: Array<Record<string, unknown>>; market: MarketDef }) {
   const useTiers: Tier[] = tiers.length > 0
     ? tiers.map(t => ({
         tier_key:      t.tier_key as string,
@@ -74,7 +78,7 @@ export function BudgetTiers({ tiers }: { tiers: Array<Record<string, unknown>> }
         picks:         (t.picks as Tier['picks']) ?? [],
         hero_image_url: (t.hero_image_url as string | null) ?? null,
       }))
-    : DEFAULTS
+    : DEFAULTS(market)
 
   return (
     <div>
@@ -85,7 +89,7 @@ export function BudgetTiers({ tiers }: { tiers: Array<Record<string, unknown>> }
       />
       <div className="grid lg:grid-cols-3 gap-4">
         {useTiers.map((tier, i) => {
-          const accent = (tier as { accent?: string }).accent ?? DEFAULTS[i]?.accent ?? '#ff7a59'
+          const accent = (tier as { accent?: string }).accent ?? DEFAULTS(market)[i]?.accent ?? '#ff7a59'
           return (
             <div key={tier.tier_key} className="bg-white rounded-2xl border border-black/5 shadow-sm overflow-hidden flex flex-col">
               <div className="px-5 py-4 text-white" style={{ background: `linear-gradient(135deg, ${accent}, ${shade(accent)})` }}>

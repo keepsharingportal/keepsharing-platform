@@ -4,6 +4,8 @@
 // filtered by town (once that's wired).
 
 import Image from 'next/image'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -31,6 +33,10 @@ interface TownProfile {
 const FALLBACK_HERO = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80&auto=format&fit=crop'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   const { slug } = await params
   const supabase = await createClient()
   const { data } = await supabase
@@ -40,19 +46,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('is_active', true)
     .maybeSingle()
 
-  if (!data) return { title: 'Town — River Region Parents' }
+  if (!data) return { title: `Town — ${brandName}` }
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       `${data.name} — Family Living Guide`,
-    description: (data.vibe_one_line?.trim() || null) || `Moving to ${data.name}? Schools, neighborhoods, things to do, and family resources in the River Region.`,
+    description: (data.vibe_one_line?.trim() || null) || `Moving to ${data.name}? Schools, neighborhoods, things to do, and family resources in ${regionPhrase}.`,
     path:        `/family-resource-guide/town/${slug}`,
     image:       (data.hero_image_url as string | null) ?? null,
     type:        'website',
-    keywords:    [data.name as string, 'River Region', 'schools', 'neighborhoods', 'moving guide'],
+    keywords:    [data.name as string, `${region}`, 'schools', 'neighborhoods', 'moving guide'],
   })
 }
 
 export default async function TownPage({ params }: Props) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { slug } = await params
   const supabase = await createClient()
 
@@ -117,7 +125,7 @@ export default async function TownPage({ params }: Props) {
             href="/family-resource-guide#towns"
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/85 hover:text-white mb-5"
           >
-            <ArrowLeft className="h-3 w-3" /> All River Region Towns
+            <ArrowLeft className="h-3 w-3" /> All {region} Towns
           </Link>
 
           <div className="max-w-2xl">
@@ -221,9 +229,9 @@ export default async function TownPage({ params }: Props) {
         {/* ── Sibling towns ── */}
         {siblingTowns.length > 0 && (
           <section className="border-t border-border/30 pt-10">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">More River Region Towns</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">More {region} Towns</p>
             <h2 className="text-xl md:text-2xl font-bold text-foreground mb-5" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
-              See where else River Region families live
+              See where else {region} families live
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {siblingTowns.map(s => {

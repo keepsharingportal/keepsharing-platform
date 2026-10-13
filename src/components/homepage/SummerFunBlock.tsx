@@ -2,6 +2,7 @@
 // No fake categories, no random Unsplash fallback.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { marketScope, scopeToMarket } from '@/lib/market-scope'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
@@ -87,6 +88,8 @@ async function getData(): Promise<{
 }
 
 export async function SummerFunBlock() {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { totalCount, topCategories, config } = await getData()
 
   const title    = config?.title    ?? 'Summer Fun Guide'
@@ -96,7 +99,7 @@ export async function SummerFunBlock() {
   const hero     = config?.homepage_image_url ?? config?.hero_image_url
 
   const sub = totalCount > 0
-    ? `${totalCount} River Region listings · ${topCategories.length || 16} categories`
+    ? `${totalCount} ${region} listings · ${topCategories.length || 16} categories`
     : subtitle
 
   return (

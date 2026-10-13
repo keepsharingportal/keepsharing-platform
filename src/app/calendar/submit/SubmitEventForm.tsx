@@ -13,6 +13,7 @@
 // status='pending'. Admins review at /admin/events/pending.
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import Link from 'next/link'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { EVENT_CATEGORIES } from '@/lib/calendar-taxonomy'
@@ -27,12 +28,15 @@ const WHAT_TO_INCLUDE = [
   { icon: Clock,        label: 'Cost (free vs. paid, registration required)' },
 ]
 
-const GUIDELINES = [
-  'Events must be family-friendly and open to the River Region community',
-  'Commercial events or ongoing promotions may not qualify for free listings',
-  'We reserve the right to edit submissions for clarity and space',
-  'Events are typically published within 2 business days of receipt',
-]
+const GUIDELINES = (c: BrandCopy) => {
+  const { regionLabel: region } = c
+  return [
+    `Events must be family-friendly and open to the ${region} community`,
+    'Commercial events or ongoing promotions may not qualify for free listings',
+    'We reserve the right to edit submissions for clarity and space',
+    'Events are typically published within 2 business days of receipt',
+  ]
+}
 
 const initialForm = {
   title:            '',
@@ -65,6 +69,8 @@ const initialForm = {
 type FormState = typeof initialForm
 
 export function SubmitEventForm() {
+  const copy = useBrandCopy()
+  const { regionLabel: region } = copy
   const [form, setForm]       = useState<FormState>(initialForm)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]     = useState<string | null>(null)
@@ -156,7 +162,7 @@ export function SubmitEventForm() {
                 Submit an Event
               </h1>
               <p className="text-base text-muted-foreground leading-relaxed max-w-lg">
-                Share your family-friendly event with thousands of River Region families. Community events are free to submit.
+                Share your family-friendly event with thousands of {region} families. Community events are free to submit.
               </p>
             </div>
 
@@ -168,7 +174,7 @@ export function SubmitEventForm() {
 
                 <div>
                   <label className={lbl}>Event title <span className="text-red-500">*</span></label>
-                  <input required className={inp} value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. River Region Family Festival" />
+                  <input required className={inp} value={form.title} onChange={e => set('title', e.target.value)} placeholder={`e.g. ${region} Family Festival`} />
                 </div>
 
                 <div>
@@ -228,7 +234,7 @@ export function SubmitEventForm() {
                   </div>
                   <div>
                     <label className={lbl}>City</label>
-                    <input className={inp} value={form.city} onChange={e => set('city', e.target.value)} placeholder="Montgomery" />
+                    <input className={inp} value={form.city} onChange={e => set('city', e.target.value)} placeholder={copy.city} />
                   </div>
                 </div>
               </section>
@@ -368,7 +374,7 @@ export function SubmitEventForm() {
             <div className="bg-muted/30 border border-border/40 rounded-2xl p-5">
               <h2 className="font-bold text-base text-foreground mb-3">Submission Guidelines</h2>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {GUIDELINES.map((item, i) => (
+                {GUIDELINES(copy).map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <CheckCircle className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
                     {item}

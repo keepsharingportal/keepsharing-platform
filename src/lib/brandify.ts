@@ -31,7 +31,36 @@ export function brandifyCopy(text: string, market: MarketDef): string {
   if (market.slug === 'rrp') return text
   return text
     .replace(/River Region Parents/g, market.displayName)
+    // "the River Region" is one noun phrase. Substituting regionLabel alone
+    // left "across the Greater Pensacola", so the article is replaced with
+    // the region together and dropped for brands that don't take one.
+    .replace(/\bthe River Region\b/g, theRegion(market))
+    .replace(/\bThe River Region\b/g, theRegion(market, true))
     .replace(/River Region/g,         market.regionLabel)
+}
+
+/** The region as a noun phrase, with its article when the brand takes one:
+ *  "the River Region", "the Eastern Shore", "Greater Pensacola".
+ *
+ *  `capitalize` is for sentence-initial use — it capitalizes the article,
+ *  not the label, so "The River Region" and "Greater Pensacola" both read
+ *  correctly at the start of a sentence. */
+export function theRegion(market: MarketDef, capitalize = false): string {
+  if (!market.regionTakesArticle) return market.regionLabel
+  return `${capitalize ? 'The' : 'the'} ${market.regionLabel}`
+}
+
+/** The brand's towns as a prose list — "Montgomery, Prattville, Wetumpka and
+ *  Pike Road" — for body copy that names the coverage area instead of using
+ *  the insider region phrase.
+ *
+ *  A brand with no serviceArea returns regionLabel. It does NOT borrow
+ *  another brand's towns: naming the wrong towns is worse than naming none. */
+export function townPhrase(market: MarketDef): string {
+  const t = market.serviceArea
+  if (!t.length)      return market.regionLabel
+  if (t.length === 1) return t[0]
+  return `${t.slice(0, -1).join(', ')} and ${t[t.length - 1]}`
 }
 
 /** Same, for named string fields on a config object.

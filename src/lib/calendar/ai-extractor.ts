@@ -8,6 +8,7 @@
 // each one before saving to the calendar.
 
 import Anthropic from '@anthropic-ai/sdk'
+import { loadBrandContext } from '@/lib/brand-context'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

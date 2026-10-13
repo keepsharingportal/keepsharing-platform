@@ -147,6 +147,8 @@ interface Props {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = true, preview = false }: Props) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const supabase = getSupabase()
 
   // Step 1 — advertiser account (needed for all other queries).
@@ -1097,7 +1099,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
               </div>
               <h4 className="font-bold text-lg mb-2">Get Your Business Listed</h4>
               <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                Reach thousands of River Region families. See listing options and get started today.
+                Reach thousands of {region} families. See listing options and get started today.
               </p>
               <span className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-primary text-primary text-sm font-bold group-hover:bg-primary/5 transition-colors">
                 See Listing Options

@@ -6,6 +6,7 @@
 // guide_listings table, joined with advertiser_accounts.
 
 import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import { ArrowLeft, Search } from 'lucide-react'
@@ -20,12 +21,19 @@ function sb() {
   )
 }
 
-export const metadata: Metadata = {
-  title: 'Party Finder — The Big Birthday Bash | River Region Parents',
-  description: 'Filter 89 vetted River Region birthday vendors by age, party type, indoor/outdoor, and neighborhood. Find the right venue, entertainer, cake artist, or party rental in minutes.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
+  return {
+    title: `Party Finder — The Big Birthday Bash | ${brandName}`,
+    description: `Filter 89 vetted ${region} birthday vendors by age, party type, indoor/outdoor, and neighborhood. Find the right venue, entertainer, cake artist, or party rental in minutes.`,
+  }
 }
 
 export default async function PartyFinderPage() {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const supabase = sb()
 
   // Pull every published birthday listing with its joined advertiser.
@@ -101,7 +109,7 @@ export default async function PartyFinderPage() {
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Party Finder</h1>
           </div>
           <p className="text-[13px] text-slate-600 mt-1">
-            Filter {rows.length} vetted River Region birthday vendors by age, type, location, and more. Booking-ready in minutes.
+            Filter {rows.length} vetted {region} birthday vendors by age, type, location, and more. Booking-ready in minutes.
           </p>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import Link from 'next/link'
 import { CheckCircle2, RefreshCw, ArrowRight, Sparkles } from 'lucide-react'
 
@@ -27,6 +28,7 @@ const CATEGORY_OPTIONS = [
 ] as const
 
 export function BestOfSuggestForm() {
+  const { regionLabel: region } = useBrandCopy()
   const [category,         setCategory]         = useState('')
   const [otherCategory,    setOtherCategory]    = useState('')
   const [nomineeName,      setNomineeName]      = useState('')
@@ -181,7 +183,7 @@ export function BestOfSuggestForm() {
         <textarea
           value={reason}
           onChange={e => setReason(e.target.value)}
-          placeholder="What makes it stand out for River Region families?"
+          placeholder={`What makes it stand out for ${region} families?`}
           className={`${inp} resize-y min-h-[100px]`}
           maxLength={2000}
         />

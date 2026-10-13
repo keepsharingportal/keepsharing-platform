@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useBrandCopy } from '@/components/BrandCopyProvider'
 import { Star, Camera, ChevronRight, Check } from 'lucide-react'
 
 const TIERS = [
@@ -52,6 +53,7 @@ interface FormData {
 }
 
 export function BirthdaySpotlightForm() {
+  const { displayName: brandName, city } = useBrandCopy()
   const [form, setForm] = useState<FormData>({
     childName: '', childAge: '', birthdayDate: '',
     parentName: '', parentEmail: '', parentPhone: '',
@@ -140,7 +142,7 @@ export function BirthdaySpotlightForm() {
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Birthday Spotlight</h1>
         <p className="text-gray-600 max-w-md mx-auto">
-          Celebrate your child's special day in River Region Parents magazine — seen by thousands of Montgomery families.
+          Celebrate your child&apos;s special day in {brandName} magazine — seen by thousands of {city} families.
         </p>
       </div>
 

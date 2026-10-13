@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import { brandSender } from '@/lib/email/brand-sender'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
@@ -177,6 +178,7 @@ async function provisionFeaturedListing(input: {
   customerId:     string | null
   subscriptionId: string | null
 }): Promise<void> {
+  const brandName = (await loadBrandContext()).market.displayName
   const { randomUUID } = await import('node:crypto')
   const { Resend } = await import('resend')
   const { slugifyForUrl } = await import('@/lib/articles/slug')
@@ -282,7 +284,7 @@ async function provisionFeaturedListing(input: {
       subject: `Welcome aboard — your featured ${input.business_name} listing is ready`,
       html: `
         <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-          <h1 style="font-size:22px;color:#1a1a1a;margin:0 0 16px;">Welcome to River Region Parents!</h1>
+          <h1 style="font-size:22px;color:#1a1a1a;margin:0 0 16px;">Welcome to ${brandName}!</h1>
           <p style="font-size:15px;color:#444;line-height:1.6;margin:0 0 16px;">Your payment is confirmed — <strong>${input.business_name}</strong> is set up as a Featured Partner. Use the button below to open your private listing editor.</p>
           <p style="font-size:15px;color:#444;line-height:1.6;margin:0 0 24px;">Fill out as many sections as you like; everything auto-saves. Come back any time using this same link.</p>
           <p style="text-align:center;margin:0 0 24px;">
@@ -290,7 +292,7 @@ async function provisionFeaturedListing(input: {
           </p>
           <p style="font-size:13px;color:#666;line-height:1.6;margin:0 0 8px;">Or paste this URL into your browser:</p>
           <p style="font-size:12px;color:#888;word-break:break-all;background:#f7f7f7;padding:10px 12px;border-radius:6px;margin:0 0 24px;">${wizardUrl}</p>
-          <p style="font-size:13px;color:#666;line-height:1.6;margin:0;">— River Region Parents</p>
+          <p style="font-size:13px;color:#666;line-height:1.6;margin:0;">— ${brandName}</p>
         </div>
       `,
     })

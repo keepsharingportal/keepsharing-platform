@@ -1,6 +1,12 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 
-export const metadata = { title: 'Enhanced Listing Confirmed — River Region Parents' }
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return { title: `Enhanced Listing Confirmed — ${brandName}` }
+}
 
 export default function UpgradeSuccessPage() {
   return (

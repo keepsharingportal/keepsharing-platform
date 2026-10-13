@@ -1,61 +1,65 @@
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 'use client'
 
-const STEPS = [
-  {
-    num: '01',
-    icon: '📰',
-    label: 'Reach',
-    headline: '15,000+ families',
-    detail: 'Magazine, website, email, social — every month',
-    color: 'var(--fg-navy)',
-    lightColor: '#e8f0fc',
-  },
-  {
-    num: '02',
-    icon: '🔍',
-    label: 'Discover',
-    headline: 'They find you',
-    detail: 'Family Guide listing or your dedicated Partner Page',
-    color: 'var(--fg-sky)',
-    lightColor: 'var(--fg-sky-light)',
-  },
-  {
-    num: '03',
-    icon: '✉️',
-    label: 'Request',
-    headline: 'Form submitted',
-    detail: 'Consult booking, giveaway entry, or free resource',
-    color: 'var(--fg-sage)',
-    lightColor: 'var(--fg-sage-light)',
-  },
-  {
-    num: '04',
-    icon: '📱',
-    label: 'Speed-to-Lead',
-    headline: 'SMS in 60 seconds',
-    detail: 'Lead gets a text from River Region Parents immediately',
-    color: 'var(--fg-terra)',
-    lightColor: 'var(--fg-terra-light)',
-  },
-  {
-    num: '05',
-    icon: '🔔',
-    label: 'You\'re Notified',
-    headline: 'Instant email to you',
-    detail: 'Full lead info, what they want, and how to follow up',
-    color: 'var(--fg-gold)',
-    lightColor: 'var(--fg-gold-light)',
-  },
-  {
-    num: '06',
-    icon: '🌱',
-    label: 'Nurture',
-    headline: '14-day sequence',
-    detail: 'Automated follow-ups keep your name top of mind',
-    color: 'var(--fg-sage)',
-    lightColor: 'var(--fg-sage-light)',
-  },
-]
+const STEPS = (c: BrandCopy) => {
+  const { displayName: brandName } = c
+  return [
+    {
+      num: '01',
+      icon: '📰',
+      label: 'Reach',
+      headline: '15,000+ families',
+      detail: 'Magazine, website, email, social — every month',
+      color: 'var(--fg-navy)',
+      lightColor: '#e8f0fc',
+    },
+    {
+      num: '02',
+      icon: '🔍',
+      label: 'Discover',
+      headline: 'They find you',
+      detail: 'Family Guide listing or your dedicated Partner Page',
+      color: 'var(--fg-sky)',
+      lightColor: 'var(--fg-sky-light)',
+    },
+    {
+      num: '03',
+      icon: '✉️',
+      label: 'Request',
+      headline: 'Form submitted',
+      detail: 'Consult booking, giveaway entry, or free resource',
+      color: 'var(--fg-sage)',
+      lightColor: 'var(--fg-sage-light)',
+    },
+    {
+      num: '04',
+      icon: '📱',
+      label: 'Speed-to-Lead',
+      headline: 'SMS in 60 seconds',
+      detail: `Lead gets a text from ${brandName} immediately`,
+      color: 'var(--fg-terra)',
+      lightColor: 'var(--fg-terra-light)',
+    },
+    {
+      num: '05',
+      icon: '🔔',
+      label: 'You\'re Notified',
+      headline: 'Instant email to you',
+      detail: 'Full lead info, what they want, and how to follow up',
+      color: 'var(--fg-gold)',
+      lightColor: 'var(--fg-gold-light)',
+    },
+    {
+      num: '06',
+      icon: '🌱',
+      label: 'Nurture',
+      headline: '14-day sequence',
+      detail: 'Automated follow-ups keep your name top of mind',
+      color: 'var(--fg-sage)',
+      lightColor: 'var(--fg-sage-light)',
+    },
+  ]
+}
 
 function Arrow() {
   return (
@@ -69,6 +73,7 @@ function Arrow() {
 }
 
 export function CustomerAcquisitionSystemGraphic() {
+  const copy = useBrandCopy()
   return (
     <div style={{ padding: '0 0 8px' }}>
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
@@ -86,7 +91,7 @@ export function CustomerAcquisitionSystemGraphic() {
 
       {/* Desktop: horizontal scroll */}
       <div className="hidden md:flex" style={{ alignItems: 'flex-start', gap: 0, overflowX: 'auto', paddingBottom: 8 }}>
-        {STEPS.map((step, i) => (
+        {STEPS(copy).map((step, i) => (
           <div key={step.num} style={{ display: 'flex', alignItems: 'flex-start', gap: 0 }}>
             <div style={{
               backgroundColor: 'white',
@@ -119,14 +124,14 @@ export function CustomerAcquisitionSystemGraphic() {
                 {step.detail}
               </p>
             </div>
-            {i < STEPS.length - 1 && <Arrow />}
+            {i < STEPS(copy).length - 1 && <Arrow />}
           </div>
         ))}
       </div>
 
       {/* Mobile: vertical list */}
       <div className="md:hidden" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {STEPS.map((step, i) => (
+        {STEPS(copy).map((step, i) => (
           <div key={step.num}>
             <div style={{
               backgroundColor: 'white',
@@ -146,7 +151,7 @@ export function CustomerAcquisitionSystemGraphic() {
                 <p style={{ fontSize: 12, color: 'var(--fg-dim)', lineHeight: 1.5 }}>{step.detail}</p>
               </div>
             </div>
-            {i < STEPS.length - 1 && (
+            {i < STEPS(copy).length - 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
                 <svg width="16" height="20" viewBox="0 0 16 20" fill="none">
                   <path d="M8 0 V14" stroke="rgba(26,39,68,0.2)" strokeWidth="1.5" strokeDasharray="3 3" />

@@ -1,3 +1,9 @@
 import { ParentPollForm } from '@/components/rrp/ParentPollForm'
-export const metadata = { title: 'Parent Poll — River Region Parents' }
+import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  return { title: `Parent Poll — ${brandName}` }
+}
 export default function ParentPollPage() { return <ParentPollForm /> }

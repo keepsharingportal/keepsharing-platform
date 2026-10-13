@@ -54,7 +54,7 @@ const PHASES = [
   },
 ]
 
-export function PlanningTimeline({ brandSlug }: { brandSlug: string }) {
+export function PlanningTimeline({ brandSlug, region }: { brandSlug: string; region: string }) {
   const [done,       setDone]       = useState<Set<string>>(new Set())
   const [email,      setEmail]      = useState('')
   const [parentName, setParentName] = useState('')
@@ -107,7 +107,7 @@ export function PlanningTimeline({ brandSlug }: { brandSlug: string }) {
           <h2 className="text-[16px] font-bold">Your Planning Timeline</h2>
         </div>
         <p className="text-[12px] text-white/90 mt-1">
-          The checklist every River Region mom needs. Check off as you go — and grab the printable PDF below.
+          The checklist every {region} mom needs. Check off as you go — and grab the printable PDF below.
         </p>
       </div>
 

@@ -7,10 +7,19 @@ import type { Metadata }   from 'next'
 import Link                 from 'next/link'
 import { createClient }     from '@/lib/supabase/server'
 import { FF_GROUPS, FF_ANNUAL_CALENDAR, PHASE_CONFIG, type FFPhase } from '@/lib/family-favorites'
+import { loadBrandContext } from '@/lib/brand-context'
+import type { MarketDef } from '@/lib/markets'
+import { brandifyCopy, theRegion } from '@/lib/brandify'
 
-export const metadata: Metadata = {
-  title: 'Family Favorites — River Region Parents',
-  description: 'River Region\'s annual family-voted recognition program. Nominate and celebrate the local businesses that make family life in the River Region extraordinary.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Family Favorites',
+    description: `${market.regionLabel}'s annual family-voted recognition program. Nominate and celebrate the local businesses that make family life in ${market.regionLabel} extraordinary.`,
+    path:        '/family-favorites',
+    type:        'website',
+  })
 }
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -33,20 +42,23 @@ interface Season {
 }
 
 // ── Phase-adaptive CTA config ─────────────────────────────────────────────────
-function phaseCTA(phase: FFPhase, year: number): { headline: string; sub: string; cta: string; ctaUrl: string; ctaSecondary?: string; ctaSecondaryUrl?: string } {
+function phaseCTA(phase: FFPhase, year: number, market: MarketDef): { headline: string; sub: string; cta: string; ctaUrl: string; ctaSecondary?: string; ctaSecondaryUrl?: string } {
+  const region       = market.regionLabel
+  const brandName    = market.displayName
+  const RegionPhrase = theRegion(market, true)
   switch (phase) {
     case 'nominations':
-      return { headline: `Nominate Your ${year} River Region Favorites`, sub: 'Tell us which local businesses have made your family life extraordinary. Nominations close soon.', cta: 'Nominate Now', ctaUrl: '/family-favorites/nominate', ctaSecondary: 'See categories', ctaSecondaryUrl: '#categories' }
+      return { headline: `Nominate Your ${year} ${region} Favorites`, sub: 'Tell us which local businesses have made your family life extraordinary. Nominations close soon.', cta: 'Nominate Now', ctaUrl: '/family-favorites/nominate', ctaSecondary: 'See categories', ctaSecondaryUrl: '#categories' }
     case 'finalist-review':
-      return { headline: 'Finalists Are Being Chosen', sub: 'The River Region Parents editorial team is reviewing nominations. Finalists will be announced soon — stay tuned.', cta: 'Get Notified', ctaUrl: '#notify' }
+      return { headline: 'Finalists Are Being Chosen', sub: `The ${brandName} editorial team is reviewing nominations. Finalists will be announced soon — stay tuned.`, cta: 'Get Notified', ctaUrl: '#notify' }
     case 'voting':
-      return { headline: `Vote for Your ${year} Family Favorites`, sub: 'The finalists have been chosen. Now it\'s time to vote. Every River Region family gets one vote per category.', cta: 'Vote Now', ctaUrl: '/family-favorites/vote', ctaSecondary: 'See finalists', ctaSecondaryUrl: '#categories' }
+      return { headline: `Vote for Your ${year} Family Favorites`, sub: `The finalists have been chosen. Now it's time to vote. Every ${region} family gets one vote per category.`, cta: 'Vote Now', ctaUrl: '/family-favorites/vote', ctaSecondary: 'See finalists', ctaSecondaryUrl: '#categories' }
     case 'announcing':
-      return { headline: `The ${year} Family Favorites Winners Are Here`, sub: 'River Region has spoken. Congratulations to this year\'s most celebrated local businesses.', cta: 'See the Winners', ctaUrl: '/family-favorites/winners' }
+      return { headline: `The ${year} Family Favorites Winners Are Here`, sub: `${region} has spoken. Congratulations to this year's most celebrated local businesses.`, cta: 'See the Winners', ctaUrl: '/family-favorites/winners' }
     case 'complete':
-      return { headline: `${year} Family Favorites Winners`, sub: 'Chosen by River Region families. Recognized across the ecosystem.', cta: 'See All Winners', ctaUrl: '/family-favorites/winners', ctaSecondary: 'Nominate for next year', ctaSecondaryUrl: '#notify' }
+      return { headline: `${year} Family Favorites Winners`, sub: `Chosen by ${region} families. Recognized across the ecosystem.`, cta: 'See All Winners', ctaUrl: '/family-favorites/winners', ctaSecondary: 'Nominate for next year', ctaSecondaryUrl: '#notify' }
     default: // planning — pre-launch
-      return { headline: 'Family Favorites Is Coming.', sub: 'The River Region\'s annual celebration of the local businesses that make family life extraordinary. Nominations open soon.', cta: 'Get Notified', ctaUrl: '#notify', ctaSecondary: 'See categories', ctaSecondaryUrl: '#categories' }
+      return { headline: 'Family Favorites Is Coming.', sub: `${RegionPhrase}'s annual celebration of the local businesses that make family life extraordinary. Nominations open soon.`, cta: 'Get Notified', ctaUrl: '#notify', ctaSecondary: 'See categories', ctaSecondaryUrl: '#categories' }
   }
 }
 
@@ -54,6 +66,11 @@ function phaseCTA(phase: FFPhase, year: number): { headline: string; sub: string
 
 export default async function FamilyFavoritesPage() {
   const supabase = await createClient()
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
+  const RegionPhrase = theRegion(market, true)
+  const region = market.regionLabel
 
   // Load active season (if any)
   const { data: seasonData } = await supabase
@@ -65,7 +82,7 @@ export default async function FamilyFavoritesPage() {
   const season = seasonData as Season | null
   const phase  = (season?.status ?? 'planning') as FFPhase
   const year   = season?.year ?? new Date().getFullYear() + 1
-  const cta    = phaseCTA(phase, year)
+  const cta    = phaseCTA(phase, year, market)
   const phaseInfo = PHASE_CONFIG[phase]
 
   const isPreLaunch = !season || phase === 'planning'
@@ -100,7 +117,7 @@ export default async function FamilyFavoritesPage() {
           </h1>
 
           <p style={{ fontFamily: serif, fontSize: 18, fontStyle: 'italic', color: '#d4a843', marginBottom: 16 }}>
-            {season?.tagline ?? 'Nominated by the community. Trusted by River Region families.'}
+            {season?.tagline ?? `Nominated by the community. Trusted by ${region} families.`}
           </p>
 
           <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.68)', lineHeight: 1.8, maxWidth: 560, margin: '0 auto 40px' }}>
@@ -134,13 +151,13 @@ export default async function FamilyFavoritesPage() {
               <div>
                 <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: T, marginBottom: 14 }}>What Is Family Favorites</p>
                 <h2 style={{ fontFamily: serif, fontSize: 'clamp(24px, 4vw, 40px)', fontWeight: 900, color: N, lineHeight: 1.1, marginBottom: 20 }}>
-                  River Region&apos;s Most Trusted Local Recognition.
+                  {region}&apos;s Most Trusted Local Recognition.
                 </h2>
                 <p style={{ fontSize: 15, color: '#5a4a3e', lineHeight: 1.85, marginBottom: 20 }}>
-                  Family Favorites is not a click contest. It is the River Region&apos;s annual celebration of the local businesses that River Region <em>families</em> actually trust, use, and love.
+                  Family Favorites is not a click contest. It is {regionPhrase}&apos;s annual celebration of the local businesses that {region} <em>families</em> actually trust, use, and love.
                 </p>
                 <p style={{ fontSize: 15, color: '#5a4a3e', lineHeight: 1.85, marginBottom: 20 }}>
-                  Nominated by the community. Reviewed by our editorial team. Voted on by families across the River Region. Recognized in print, digital, and across the entire River Region Parents ecosystem.
+                  Nominated by the community. Reviewed by our editorial team. Voted on by families across {regionPhrase}. Recognized in print, digital, and across the entire {brandName} ecosystem.
                 </p>
                 <div style={{ padding: '18px 20px', backgroundColor: C, border: `1px solid rgba(184,134,11,0.25)`, borderRadius: 14 }}>
                   <p style={{ fontFamily: serif, fontSize: 15, fontWeight: 700, color: N, fontStyle: 'italic', lineHeight: 1.65 }}>
@@ -150,9 +167,9 @@ export default async function FamilyFavoritesPage() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
-                  { icon: '🏘️', title: 'Community-Nominated', desc: 'Every nomination comes from a River Region family — not a committee, not paid placement, not algorithmic selection.' },
+                  { icon: '🏘️', title: 'Community-Nominated', desc: `Every nomination comes from a ${region} family — not a committee, not paid placement, not algorithmic selection.` },
                   { icon: '✍️', title: 'Editorially Reviewed', desc: 'Our team curates the finalists from all nominations, ensuring quality and fairness before voting opens.' },
-                  { icon: '🗳️', title: 'Community-Voted', desc: 'Finalists are voted on by the River Region community — one vote per family per category.' },
+                  { icon: '🗳️', title: 'Community-Voted', desc: `Finalists are voted on by the ${region} community — one vote per family per category.` },
                   { icon: '🎖️', title: 'Recognized All Year', desc: 'Winners carry the Family Favorites badge across listings, print, social, and the entire RRP ecosystem.' },
                 ].map(item => (
                   <div key={item.title} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
@@ -182,7 +199,7 @@ export default async function FamilyFavoritesPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
             {[
-              { step: '01', icon: '⭐', month: 'November',     label: 'Nominate',          desc: 'River Region families nominate their favorite local businesses.' },
+              { step: '01', icon: '⭐', month: 'November',     label: 'Nominate',          desc: `${region} families nominate their favorite local businesses.` },
               { step: '02', icon: '🔍', month: 'December',     label: 'We Review',         desc: 'Our editorial team curates 5 finalists per category.' },
               { step: '03', icon: '📣', month: 'January',      label: 'Finalists Named',   desc: 'Finalists are announced — a meaningful moment for every nominee.' },
               { step: '04', icon: '🗳️', month: 'January',     label: 'Community Votes',   desc: 'Families vote across the region. One vote per family per category.' },
@@ -211,7 +228,7 @@ export default async function FamilyFavoritesPage() {
             <p style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.8, maxWidth: 520, margin: '0 auto' }}>
               {isPreLaunch
                 ? 'Nominations will be open in November. Browse the categories and think about who deserves recognition in your community.'
-                : 'Browse all categories. Every River Region business that families love is eligible.'}
+                : `Browse all categories. Every ${region} business that families love is eligible.`}
             </p>
           </div>
 
@@ -231,7 +248,7 @@ export default async function FamilyFavoritesPage() {
                     <div key={cat.slug} style={{ backgroundColor: C, border: '1px solid rgba(0,0,0,0.07)', borderRadius: 14, padding: '18px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <div>
                         <p style={{ fontFamily: serif, fontSize: 14, fontWeight: 800, color: N, marginBottom: 6, lineHeight: 1.3 }}>{cat.name}</p>
-                        <p style={{ fontSize: 12, color: '#888', lineHeight: 1.55 }}>{cat.description}</p>
+                        <p style={{ fontSize: 12, color: '#888', lineHeight: 1.55 }}>{brandifyCopy(cat.description, market)}</p>
                       </div>
                       {phase === 'nominations' ? (
                         <Link href={`/family-favorites/nominate/${cat.slug}`} style={{ fontSize: 12, fontWeight: 700, color: GOLD, textDecoration: 'none', marginTop: 'auto' }}>
@@ -285,7 +302,7 @@ export default async function FamilyFavoritesPage() {
               </button>
             </form>
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 14 }}>
-              By signing up you&apos;re joining the River Region Parents newsletter. Unsubscribe anytime.
+              By signing up you&apos;re joining the {brandName} newsletter. Unsubscribe anytime.
             </p>
           </div>
         </section>
@@ -299,7 +316,7 @@ export default async function FamilyFavoritesPage() {
             Real Recognition. Real Community.
           </h2>
           <p style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.8, maxWidth: 540, margin: '0 auto 48px' }}>
-            Family Favorites is not purchased, not algorithmic, and not decided by a committee. It is the voice of River Region families — organized, celebrated, and amplified.
+            Family Favorites is not purchased, not algorithmic, and not decided by a committee. It is the voice of {region} families — organized, celebrated, and amplified.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
             {[
@@ -326,14 +343,14 @@ export default async function FamilyFavoritesPage() {
             A Family Favorites Win Means Something.
           </h2>
           <p style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.8, maxWidth: 540, margin: '0 auto 44px' }}>
-            When River Region families vote for your business, they&apos;re saying: we trust you, we love you, and we want everyone else to know it.
+            When {region} families vote for your business, they&apos;re saying: we trust you, we love you, and we want everyone else to know it.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, textAlign: 'left' }}>
             {[
-              { label: 'Digital Winner Badge', desc: 'Display on your website, social profiles, and email signature. Recognized by River Region families.' },
-              { label: 'Guide Listing Boost', desc: 'Winner status is highlighted on your River Region Parents guide listing for the full year.' },
+              { label: 'Digital Winner Badge', desc: `Display on your website, social profiles, and email signature. Recognized by ${region} families.` },
+              { label: 'Guide Listing Boost', desc: `Winner status is highlighted on your ${brandName} guide listing for the full year.` },
               { label: 'Print Recognition', desc: 'Featured in the annual Family Favorites print issue — the most-saved issue of the year.' },
-              { label: 'Social Celebration', desc: 'Your win is announced to 10,000+ River Region moms across social media and the newsletter.' },
+              { label: 'Social Celebration', desc: `Your win is announced to 10,000+ ${region} moms across social media and the newsletter.` },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '16px 18px', backgroundColor: C, border: '1px solid rgba(0,0,0,0.07)', borderRadius: 14 }}>
                 <span style={{ fontSize: 20, flexShrink: 0 }}>🎖️</span>

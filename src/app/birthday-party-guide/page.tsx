@@ -10,6 +10,8 @@
 // articles + listings + ad placements come from existing infrastructure.
 
 import type { Metadata } from 'next'
+import { guideScope, scoped } from '@/lib/guides/brand-scope'
+import { theRegion } from '@/lib/brandify'
 import { createClient } from '@supabase/supabase-js'
 import { loadBrandContext } from '@/lib/brand-context'
 
@@ -50,23 +52,30 @@ function normalizeBuzz(rows: Array<Record<string, unknown>>): Array<Record<strin
 }
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
-    title:       'The Big Birthday Bash — River Region Birthday Planning Portal',
-    description: 'Every venue, vendor, theme, freebie and tip for planning a kid\'s birthday in the River Region. Local moms have tested every one. Budget tiers, printables, real parties, and 89 vetted vendors in one place.',
+    title:       `The Big Birthday Bash — ${region} Birthday Planning Portal`,
+    description: `Every venue, vendor, theme, freebie and tip for planning a kid's birthday in ${regionPhrase}. Local moms have tested every one. Budget tiers, printables, real parties, and 89 vetted vendors in one place.`,
     path:        '/birthday-party-guide',
     type:        'website',
     keywords:    [
-      'River Region birthday', 'Montgomery kids birthday', 'birthday party Montgomery AL',
-      'birthday venues Montgomery', 'kids birthday cakes Montgomery', 'birthday freebies Montgomery',
+      `${region} birthday`, `${market.city} kids birthday`, `birthday party ${market.city} ${market.state}`,
+      `birthday venues ${market.city}`, `kids birthday cakes ${market.city}`, `birthday freebies ${market.city}`,
     ],
   })
 }
 
 export default async function BirthdayPartyGuidePage() {
+  // Client components below cannot await the brand, so the page resolves the
+  // region wording once and passes it down.
+  const pageRegion = (await loadBrandContext()).market.regionLabel
   const ctx       = await loadBrandContext()
   const brandSlug = ctx.market.slug
   const supabase  = sb()
+  const bdayScope = await guideScope(supabase)
 
   // Editor-managed hero from the verticals table — pattern matches the
   // FRG / Mom Knows Best heroes. Falls back to defaults when the row
@@ -111,11 +120,11 @@ export default async function BirthdayPartyGuidePage() {
     // extra_categories lets a single vendor row appear in multiple
     // buckets (e.g. Escapology under both Entertainment and Places to
     // Party — Misc) — one CRM record, cross-listed in the UI.
-    supabase.from('guide_listings')
+    scoped(supabase.from('guide_listings')
       .select('category, extra_categories, advertiser_accounts(id)')
       .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
       .eq('is_published', true)
-      .limit(500),
+      .limit(500), bdayScope),
     // Active section sponsor for the page (sponsorship slot)
     supabase.from('ad_placements')
       .select('id, ad_headline, ad_description, ad_link, ad_image_url, advertiser:advertiser_accounts(business_name, slug)')
@@ -220,7 +229,7 @@ export default async function BirthdayPartyGuidePage() {
             </section>
 
             <section id="timeline">
-              <PlanningTimeline brandSlug={brandSlug} />
+              <PlanningTimeline brandSlug={brandSlug} region={pageRegion} />
             </section>
 
             <section id="articles">
@@ -243,7 +252,7 @@ export default async function BirthdayPartyGuidePage() {
 
             <BirthdayMap />
 
-            <BirthdayInsiderSignup brandSlug={brandSlug} />
+            <BirthdayInsiderSignup brandSlug={brandSlug} region={pageRegion} />
           </aside>
         </div>
       </div>

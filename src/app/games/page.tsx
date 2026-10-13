@@ -4,6 +4,7 @@
 // every ISO week.
 
 import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 import { currentBrandSlug } from '@/lib/current-brand'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
@@ -23,12 +24,14 @@ import { GAMES_PRIZE, prizeAmount, prizeHeadline, prizeShortLine, prizeWinnersLa
 import { isDrawArmed } from '@/lib/games/draw'
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return buildPageMetadata({
     title:       'Family Brain Games',
     description: 'New brain games every day — scramble, trivia, match, emoji decode, carpool math, and family connect. Play, submit your score, and win one of three $10 prizes every week.',
     path:        '/games',
     type:        'website',
-    keywords:    ['family games', 'brain games', 'trivia', 'word scramble', 'River Region'],
+    keywords:    ['family games', 'brain games', 'trivia', 'word scramble', `${region}`],
   })
 }
 export const revalidate = 900

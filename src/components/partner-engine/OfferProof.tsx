@@ -1,4 +1,6 @@
 import type { PartnerPageData } from './types'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import { hexWithOpacity } from '@/lib/brand-colors'
 
 function StarRating({ rating }: { rating: number }) {
@@ -9,7 +11,10 @@ function StarRating({ rating }: { rating: number }) {
   )
 }
 
-export function OfferProof({ data }: { data: PartnerPageData }) {
+export async function OfferProof({ data }: { data: PartnerPageData }) {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   const { testimonials, trustSignals, offer, account, brand } = data
 
   if (!testimonials.length && !trustSignals.length) return null
@@ -37,7 +42,7 @@ export function OfferProof({ data }: { data: PartnerPageData }) {
             </div>
             <div>
               <div style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 48, fontWeight: 900, color: brand.primary, lineHeight: 1 }}>30+</div>
-              <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>years in the River Region</div>
+              <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>years in {regionPhrase}</div>
             </div>
           </div>
         )}
@@ -62,7 +67,7 @@ export function OfferProof({ data }: { data: PartnerPageData }) {
         {testimonials.length > 0 && (
           <>
             <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 700, color: '#1a1a1a', textAlign: 'center', marginBottom: 32 }}>
-              What River Region families say
+              What {region} families say
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
               {testimonials.slice(0, 4).map(t => (

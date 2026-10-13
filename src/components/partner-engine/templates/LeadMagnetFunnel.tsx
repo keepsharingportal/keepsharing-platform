@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy } from '@/components/BrandCopyProvider'
 import Image from 'next/image'
 import Link from 'next/link'
 import { CheckCircle2, Layers, TrendingUp, Calculator, FileText, Star, ArrowRight, RefreshCw, Check } from 'lucide-react'
@@ -135,11 +136,12 @@ function LMForm({ props, scheme, formId }: { props: LeadMagnetFunnelProps; schem
 }
 
 export function LeadMagnetFunnel(props: LeadMagnetFunnelProps) {
+  const { regionPhrase, displayName: brandName } = useBrandCopy()
   const scheme = getColorScheme(props.color_scheme)
   const formId = 'lm-form'
 
   const trustStrip = props.trust_strip ?? [
-    { label: '30 Years in the River Region' },
+    { label: `Trusted across ${regionPhrase}` },
     { label: '800+ Family Businesses Served' },
     { label: '100K+ Monthly Reach' },
   ]
@@ -279,7 +281,7 @@ export function LeadMagnetFunnel(props: LeadMagnetFunnelProps) {
 
       <footer style={{ backgroundColor: scheme.foreground, padding: '24px', textAlign: 'center' }}>
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontStyle: 'italic' }}>
-          {props.business_name} · Powered by River Region Parents · Built by KeepSharing
+          {props.business_name} · Powered by {brandName} · Built by KeepSharing
         </p>
       </footer>
     </div>

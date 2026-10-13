@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { ArrowRight, Crown, Zap } from 'lucide-react'
 import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 
@@ -7,7 +8,9 @@ interface Props {
   guideUrlSlug: string
 }
 
-export function SectionSponsorBanner({ guideName }: Props) {
+export async function SectionSponsorBanner({ guideName }: Props) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return (
     <div className="relative overflow-hidden rounded-2xl border border-accent/40 bg-gradient-to-r from-accent/18 via-accent/8 to-primary/8">
       {/* Subtle decorative glow */}
@@ -31,7 +34,7 @@ export function SectionSponsorBanner({ guideName }: Props) {
               Own the {guideName} — be the only sponsor, every search
             </p>
             <p className="text-sm text-muted-foreground mt-1 max-w-lg leading-relaxed">
-              Your business anchors every result River Region families see in this guide.
+              Your business anchors every result {region} families see in this guide.
               One sponsor per guide, per year. First come, first served.
             </p>
           </div>

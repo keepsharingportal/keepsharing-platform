@@ -30,11 +30,14 @@ interface Props {
   pullQuotes?: string[]
   inlineAd?: ReactNode
   articleId: string
+  /** Brand region wording. A prop, not an awaited lookup: the admin article
+   *  editor is a client component and previews this template. */
+  region: string
 }
 
 export function ContributorArticleLayout({
   title, subtitle, heroImageUrl, authorName,
-  columnSlug, body, pullQuotes, inlineAd, articleId,
+  columnSlug, body, pullQuotes, inlineAd, articleId, region,
 }: Props) {
   const columnLabel = COLUMN_LABEL[columnSlug] ?? 'Contributor Column'
   const imgSrc      = heroImageUrl || getFallbackByContext(columnSlug, articleId)
@@ -74,7 +77,7 @@ export function ContributorArticleLayout({
           <div>
             <p className="font-bold text-sm text-foreground">Enjoyed this column?</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Get new stories from {authorName ?? 'our contributors'} and more River Region families every Thursday.
+              Get new stories from {authorName ?? 'our contributors'} and more {region} families every Thursday.
             </p>
           </div>
         </div>

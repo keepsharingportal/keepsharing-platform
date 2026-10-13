@@ -4,16 +4,24 @@
 // list ideas the readers ask for.
 
 import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { BestOfSuggestForm } from './BestOfSuggestForm'
 
-export const metadata: Metadata = {
-  title:       'Suggest a Best Of — River Region Parents',
-  description: 'Tell us what River Region families should put on the next Best Of list.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
+  return {
+    title:       `Suggest a Best Of — ${brandName}`,
+    description: `Tell us what ${region} families should put on the next Best Of list.`,
+  }
 }
 
-export default function BestOfSuggestPage() {
+export default async function BestOfSuggestPage() {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
@@ -27,7 +35,7 @@ export default function BestOfSuggestPage() {
             BEST <span className="font-light italic text-muted-foreground text-2xl sm:text-3xl align-baseline">of</span>
           </h1>
           <p className="text-base md:text-lg font-bold tracking-wide italic mt-0.5 mb-4">
-            <span className="text-foreground">for River Region </span>
+            <span className="text-foreground">for {region} </span>
             <span className="text-primary not-italic">Families</span>
           </p>
           <h2 className="text-2xl md:text-3xl font-black text-foreground leading-tight mb-2">

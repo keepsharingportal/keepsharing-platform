@@ -1,5 +1,6 @@
 import { notFound, permanentRedirect } from 'next/navigation'
 import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
+import { brandifyCopy, theRegion } from '@/lib/brandify'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -73,6 +74,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
     .eq('slug', column)
     .maybeSingle()
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  const { market: metaBrand } = await loadBrandContext()
   if (!data) {
     // Even unknown columns get proper metadata — synthesize a title
     // from the slug so we never ship a "Column — River Region Parents"
@@ -80,18 +82,18 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
     const synthTitle = column.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
     return buildPageMetadata({
       title:       synthTitle,
-      description: `${synthTitle} stories from River Region Parents — locally reported, family-friendly, updated weekly.`,
+      description: `${synthTitle} stories from ${metaBrand.displayName} — locally reported, family-friendly, updated weekly.`,
       path:        `/columns/${column}`,
       type:        'website',
     })
   }
   return buildPageMetadata({
     title:       data.display_name as string,
-    description: (data.description as string | null) ?? `${data.display_name} stories from River Region Parents — locally reported, family-friendly, updated weekly.`,
+    description: brandifyCopy((data.description as string | null) ?? `${data.display_name} stories from ${metaBrand.displayName} — locally reported, family-friendly, updated weekly.`, metaBrand),
     path:        `/columns/${column}`,
     image:       (data.hero_image_url as string | null) ?? null,
     type:        'website',
-    keywords:    [data.display_name as string, 'River Region', 'parenting'],
+    keywords:    [data.display_name as string, metaBrand.regionLabel, 'parenting'],
   })
 }
 
@@ -270,6 +272,7 @@ export default async function ColumnLandingPage({ params }: PageParams) {
   const { loadBrandContext: _colLoadBrand } = await import('@/lib/brand-context')
   const { itemListJsonLd: _itemListLd, breadcrumbJsonLd: _crumbsLd, jsonLdScript: _jsonLdScript } = await import('@/lib/seo/jsonld')
   const colCtx = await _colLoadBrand()
+  const colMarket = colCtx.market
   const colUrl = `${colCtx.publicOrigin}/columns/${column}`
   const colItemListLd = _itemListLd({
     name: columnData.display_name as string,
@@ -405,7 +408,7 @@ export default async function ColumnLandingPage({ params }: PageParams) {
                 New {columnData.display_name} articles coming soon
               </p>
               <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                {columnData.description ?? `Fresh ${columnData.display_name.toLowerCase()} content is on its way. Check back soon for new stories from the River Region.`}
+                {brandifyCopy(columnData.description ?? `Fresh ${columnData.display_name.toLowerCase()} content is on its way. Check back soon for new stories from ${theRegion(colMarket)}.`, colMarket)}
               </p>
               <Link
                 href={cta.href}

@@ -39,6 +39,25 @@ export interface MarketDef {
    *
    *  Empty array renders nothing. Sibling brands: fill these in. */
   serviceArea: string[]
+  /** The tenure claim this brand has actually earned, as it appears in sales
+   *  copy ("over 30 years"). Undefined for a brand that cannot make one.
+   *
+   *  Why it is per-brand: the advertise and partners funnels said "we've been
+   *  doing this for 30 years" in shared copy. That is River Region's history.
+   *  Rendered on a brand that launched later it is simply false, and a false
+   *  tenure claim in a sales pitch is the kind of thing a publisher gets
+   *  called on. Brands without a claim omit the clause entirely rather than
+   *  inherit someone else's. */
+  tenureClaim?: string
+  /** Whether regionLabel reads naturally after "the": copy says "families
+   *  across THE River Region" and "on THE Eastern Shore", but "families
+   *  across Greater Pensacola" and "across Auburn Opelika" take no article.
+   *
+   *  Body copy was written in River Region's voice, so the article was baked
+   *  into the sentence. Substituting regionLabel alone produced "across the
+   *  Greater Pensacola". Read it through theRegion() in brandify.ts, not
+   *  directly. */
+  regionTakesArticle: boolean
   /** Full replacement for the footer's "Serving …" line, rendered verbatim.
    *
    *  Exists because not every brand defines itself by a town list. Mobile Bay
@@ -56,17 +75,17 @@ export const MARKETS: MarketDef[] = [
   // the only brand configured this way — the other four serve on the apex, and
   // their entries below are correct as-is. If RRP's Vercel domain is ever
   // flipped to apex-primary to match them, change this back.
-  { slug: 'rrp',      short: 'RRP',  displayName: 'River Region Parents',      city: 'Montgomery', state: 'AL', family: 'parents',    publicHost: 'www.riverregionparents.com', regionLabel: 'River Region',     serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
+  { slug: 'rrp',      short: 'RRP',  displayName: 'River Region Parents',      city: 'Montgomery', state: 'AL', family: 'parents',    publicHost: 'www.riverregionparents.com', regionLabel: 'River Region',     tenureClaim: 'over 30 years', regionTakesArticle: true, serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
   // Fifty-plus brands. River Region 50+ was previously slugged 'boom' (the
   // "BOOM" brand) — migration 169 renames it and all user data references.
   // Future markets follow the same xx50plus pattern (mb50plus, es50plus,
   // ao50plus, gp50plus). Domains write out "plus" because URL-encoding
   // turns "+" into "%2B" which is ugly + breaks share links.
-  { slug: 'rr50plus', short: 'R50+', displayName: 'River Region 50+',          city: 'Montgomery', state: 'AL', family: 'fifty-plus', publicHost: 'riverregion50plus.com',      regionLabel: 'River Region',      serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
-  { slug: 'aop',      short: 'AOP',  displayName: 'Auburn Opelika Parents',    city: 'Auburn',     state: 'AL', family: 'parents',    publicHost: 'auburnopelikaparents.com',   regionLabel: 'Auburn Opelika',    serviceArea: [], serviceAreaLine: 'Serving families across Lee County.' },
-  { slug: 'mbp',      short: 'MBP',  displayName: 'Mobile Bay Parents',        city: 'Mobile',     state: 'AL', family: 'parents',    publicHost: 'mobilebayparents.com',       regionLabel: 'Mobile Bay',        serviceArea: [], serviceAreaLine: 'Serving the families of the Greater Mobile area!' },
-  { slug: 'esp',      short: 'ESP',  displayName: 'Eastern Shore Parents',     city: 'Daphne',     state: 'AL', family: 'parents',    publicHost: 'easternshoreparents.com',    regionLabel: 'Eastern Shore',     serviceArea: ['Fairhope', 'Daphne', 'Spanish Fort', 'Montrose', 'Foley'] },
-  { slug: 'gpp',      short: 'GPP',  displayName: 'Greater Pensacola Parents', city: 'Pensacola',  state: 'FL', family: 'parents',    publicHost: 'greaterpensacolaparents.com', regionLabel: 'Greater Pensacola', serviceArea: ['Pensacola', 'Gulf Breeze', 'Pace', 'Milton'] },
+  { slug: 'rr50plus', short: 'R50+', displayName: 'River Region 50+',          city: 'Montgomery', state: 'AL', family: 'fifty-plus', publicHost: 'riverregion50plus.com',      regionLabel: 'River Region',      regionTakesArticle: true, serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
+  { slug: 'aop',      short: 'AOP',  displayName: 'Auburn Opelika Parents',    city: 'Auburn',     state: 'AL', family: 'parents',    publicHost: 'auburnopelikaparents.com',   regionLabel: 'Auburn Opelika',    regionTakesArticle: false, serviceArea: [], serviceAreaLine: 'Serving families across Lee County.' },
+  { slug: 'mbp',      short: 'MBP',  displayName: 'Mobile Bay Parents',        city: 'Mobile',     state: 'AL', family: 'parents',    publicHost: 'mobilebayparents.com',       regionLabel: 'Mobile Bay',        regionTakesArticle: false, serviceArea: [], serviceAreaLine: 'Serving the families of the Greater Mobile area!' },
+  { slug: 'esp',      short: 'ESP',  displayName: 'Eastern Shore Parents',     city: 'Daphne',     state: 'AL', family: 'parents',    publicHost: 'easternshoreparents.com',    regionLabel: 'Eastern Shore',     regionTakesArticle: true, serviceArea: ['Fairhope', 'Daphne', 'Spanish Fort', 'Montrose', 'Foley'] },
+  { slug: 'gpp',      short: 'GPP',  displayName: 'Greater Pensacola Parents', city: 'Pensacola',  state: 'FL', family: 'parents',    publicHost: 'greaterpensacolaparents.com', regionLabel: 'Greater Pensacola', regionTakesArticle: false, serviceArea: ['Pensacola', 'Gulf Breeze', 'Pace', 'Milton'] },
 ]
 
 export const ALL_MARKET_SLUGS: string[] = MARKETS.map(m => m.slug)

@@ -27,6 +27,7 @@
 // while a reader scrolls through About + Location + Organizer.
 
 import { notFound } from 'next/navigation'
+import { theRegion } from '@/lib/brandify'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
@@ -105,9 +106,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // and description through <head> on a page whose body 404s.
   if (!data || data.status !== 'published') return { title: 'Event Not Found' }
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  const { loadBrandContext: _metaLoadBrand } = await import('@/lib/brand-context')
+  const metaRegion = theRegion((await _metaLoadBrand()).market)
   return buildPageMetadata({
     title:       data.title,
-    description: (data.description?.trim() ? data.description.slice(0, 200) : null) || `Family event in the River Region — ${data.title}.`,
+    description: (data.description?.trim() ? data.description.slice(0, 200) : null) || `Family event in ${metaRegion} — ${data.title}.`,
     path:        `/calendar/events/${slug}`,
     image:       data.hero_image_url,
     type:        'article',
@@ -222,6 +225,9 @@ export default async function EventDetailPage({ params }: Props) {
   // mirrors the visible breadcrumb trail.
   const { eventJsonLd, breadcrumbJsonLd, jsonLdScript } = await import('@/lib/seo/jsonld')
   const { loadBrandContext: _loadBrand } = await import('@/lib/brand-context')
+  const { market: evMarket } = await _loadBrand()
+  const evRegion    = theRegion(evMarket)
+  const evBrandName = evMarket.displayName
   const _seoCtx = await _loadBrand()
   const startIso = `${ev.start_date}${ev.start_time ? `T${ev.start_time}` : ''}`
   const endIso   = ev.end_date
@@ -229,7 +235,7 @@ export default async function EventDetailPage({ params }: Props) {
     : undefined
   const eventLd = eventJsonLd({
     name:            ev.title,
-    description:     (ev.description?.trim() || null) || `Family event in the River Region — ${ev.title}.`,
+    description:     (ev.description?.trim() || null) || `Family event in ${evRegion} — ${ev.title}.`,
     url:             `${_seoCtx.publicOrigin}/calendar/events/${slug}`,
     startDate:       startIso,
     endDate:         endIso,
@@ -636,7 +642,7 @@ export default async function EventDetailPage({ params }: Props) {
                 <Send className="h-4 w-4 text-primary" /> Have an Event to Share?
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                River Region Parents reaches thousands of local families every week. Submit your community event and we&apos;ll get it in front of the right audience.
+                {evBrandName} reaches thousands of local families every week. Submit your community event and we&apos;ll get it in front of the right audience.
               </p>
               <Link
                 href="/calendar/submit"

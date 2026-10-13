@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { theRegion } from '@/lib/brandify'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
@@ -7,13 +8,22 @@ import { SponsorPlaceholder } from '@/components/ads/ContextualSponsorCard'
 import { GraduationCap, ArrowRight } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
 import { articleHref } from '@/lib/articles/slug'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'School Bits — River Region Parents',
-  description: 'Student spotlights, teacher recognitions, and classroom stories from schools across the River Region.',
+// Static `export const metadata` cannot await the request's brand, so this
+// page shipped "River Region Parents" in every brand's <title>.
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'School Bits',
+    description: `Student spotlights, teacher recognitions, and classroom stories from schools across ${theRegion(market)}.`,
+    path:        '/school-bits',
+    type:        'website',
+  })
 }
 
 // ── Region config ─────────────────────────────────────────────────────────────
@@ -78,6 +88,9 @@ export default async function SchoolBitsPage({ searchParams }: PageProps) {
   const { region: regionParam } = await searchParams
   const activeRegion = regionParam && REGIONS.some(r => r.slug === regionParam) ? regionParam : 'all'
   const supabase = getSupabase()
+  const { slug: brandSlug, market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
 
   // Surface both the monthly roundups (school-bits) AND individual
   // student spotlights (student-spotlights). The new school_region
@@ -88,6 +101,9 @@ export default async function SchoolBitsPage({ searchParams }: PageProps) {
     .select('id, slug, title, excerpt, hero_image_url, published_at, editorial_notes, column_slug, school_name, school_region')
     .in('column_slug', ['school-bits', 'student-spotlights'])
     .eq('published', true)
+    // This route had no brand filter at all, so every brand's School Bits
+    // page served River Region's stories.
+    .or(articleBrandFilter(brandSlug))
     .order('published_at', { ascending: false, nullsFirst: false })
     .limit(24)
 
@@ -96,7 +112,24 @@ export default async function SchoolBitsPage({ searchParams }: PageProps) {
   }
 
   const { data: articles } = await query
-  const activeLabel = REGIONS.find(r => r.slug === activeRegion)?.label ?? 'All Stories'
+
+  // REGIONS are River Region counties. Offer only the ones this brand has
+  // schools in; a brand with none shows just "All Stories" (never Pike Road).
+  const { data: brandSchools } = await supabase
+    .from('schools')
+    .select('area, is_private')
+    .eq('market', brandSlug)
+  const brandRegionSlugs = new Set<string | null>(
+    (brandSchools ?? []).map(sc =>
+      sc.is_private       ? 'private-schools'
+      : sc.area === 'montgomery'                      ? 'montgomery-county'
+      : sc.area === 'autauga' || sc.area === 'elmore'  ? 'autauga-prattville'
+      : sc.area === 'pike-road'                       ? 'pike-road'
+      : null),
+  )
+  const regions = REGIONS.filter(r => r.slug === 'all' || brandRegionSlugs.has(r.slug))
+
+  const activeLabel = regions.find(r => r.slug === activeRegion)?.label ?? 'All Stories'
   const count = articles?.length ?? 0
 
   return (
@@ -110,11 +143,11 @@ export default async function SchoolBitsPage({ searchParams }: PageProps) {
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <GraduationCap className="h-4 w-4 text-primary" />
-                <span className="text-xs font-bold uppercase tracking-widest text-primary">River Region Parents</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-primary">{market.displayName}</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-black text-foreground leading-tight">School Bits</h1>
               <p className="text-sm text-muted-foreground mt-1 max-w-lg">
-                Student spotlights, teacher recognitions, and classroom stories from across the River Region.
+                Student spotlights, teacher recognitions, and classroom stories from across {theRegion(market)}.
                 {count > 0 && <span className="ml-2 font-semibold text-primary">{count} stories</span>}
               </p>
             </div>
@@ -132,7 +165,7 @@ export default async function SchoolBitsPage({ searchParams }: PageProps) {
       <div className="border-b border-border/50 bg-background/95 backdrop-blur-sm sticky top-[69px] z-40">
         <div className="container">
           <div className="flex items-center gap-1 overflow-x-auto py-2.5" style={{ scrollbarWidth: 'none' }}>
-            {REGIONS.map(r => (
+            {regions.map(r => (
               <Link
                 key={r.slug}
                 href={r.slug === 'all' ? '/school-bits' : `/school-bits?region=${r.slug}`}
@@ -164,7 +197,7 @@ export default async function SchoolBitsPage({ searchParams }: PageProps) {
             <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
               {activeRegion !== 'all'
                 ? 'Stories for this area will appear here as they\'re published. Browse all stories or share one!'
-                : 'School Bits stories from across the River Region are being reviewed and will appear here soon.'}
+                : `School Bits stories from across ${regionPhrase} are being reviewed and will appear here soon.`}
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               {activeRegion !== 'all' && (
@@ -282,7 +315,7 @@ export default async function SchoolBitsPage({ searchParams }: PageProps) {
             Know a student or teacher who deserves recognition?
           </h3>
           <p className="text-sm text-muted-foreground mb-5 max-w-lg mx-auto leading-relaxed">
-            We celebrate River Region schools every month. Nominate a teacher, share a student achievement, or tip us off to a great classroom story.
+            We celebrate {region} schools every month. Nominate a teacher, share a student achievement, or tip us off to a great classroom story.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link href="/nominate" className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors">

@@ -12,6 +12,8 @@
 //   5. Webhook handler activates the placement + captures their email.
 
 import type { Metadata } from 'next'
+import { BrandContactLink } from '@/components/BrandContactLink'
+import { loadBrandContext } from '@/lib/brand-context'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { ClaimSpotButton } from './ClaimSpotButton'
@@ -51,6 +53,8 @@ interface ProductRow {
 }
 
 export default async function ClaimSpotPage({ params, searchParams }: Props) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { placementId } = await params
   const { success: successFlag } = await searchParams
   const sb = supabaseAdmin()
@@ -83,9 +87,7 @@ export default async function ClaimSpotPage({ params, searchParams }: Props) {
           Someone beat you to it. Reach out and we&apos;ll find you another spot that fits.
         </p>
         <p className="mt-4">
-          <a href="mailto:hello@riverregionparents.com" className="text-portal-blue hover:underline font-bold">
-            hello@riverregionparents.com
-          </a>
+          <BrandContactLink className="text-portal-blue hover:underline font-bold" />
         </p>
       </Shell>
     )
@@ -107,9 +109,7 @@ export default async function ClaimSpotPage({ params, searchParams }: Props) {
           We&apos;re still wiring this spot up. Drop us a line and we&apos;ll get it activated for you.
         </p>
         <p className="mt-4">
-          <a href="mailto:hello@riverregionparents.com" className="text-portal-blue hover:underline font-bold">
-            hello@riverregionparents.com
-          </a>
+          <BrandContactLink className="text-portal-blue hover:underline font-bold" />
         </p>
       </Shell>
     )
@@ -117,7 +117,7 @@ export default async function ClaimSpotPage({ params, searchParams }: Props) {
 
   return (
     <Shell>
-      <p className="text-[11px] uppercase tracking-widest text-portal-blue font-bold mb-2">River Region Parents · Available spot</p>
+      <p className="text-[11px] uppercase tracking-widest text-portal-blue font-bold mb-2">{brandName} · Available spot</p>
       <h1 className="text-3xl sm:text-4xl font-bold text-portal-text leading-tight">{product.display_name}</h1>
       {product.display_description && (
         <p className="text-portal-sub text-base mt-3 leading-relaxed">{product.display_description}</p>
@@ -154,10 +154,12 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 import { ClaimSuccessPoller } from './ClaimSuccessPoller'
 
-function SuccessLanding({ placementId, alreadyClaimed }: { placementId: string; alreadyClaimed: boolean }) {
+async function SuccessLanding({ placementId, alreadyClaimed }: { placementId: string; alreadyClaimed: boolean }) {
+  const { market } = await loadBrandContext()
+  const brandName = market.displayName
   return (
     <Shell>
-      <p className="text-[11px] uppercase tracking-widest text-portal-green font-bold mb-2">River Region Parents</p>
+      <p className="text-[11px] uppercase tracking-widest text-portal-green font-bold mb-2">{brandName}</p>
       <h1 className="text-3xl sm:text-4xl font-bold text-portal-text leading-tight">Thanks — your payment came through.</h1>
       <p className="text-portal-sub text-base mt-3 leading-relaxed">
         We&apos;re activating your spot now. You&apos;ll see it live within a few minutes. We&apos;ll email you with next steps
@@ -168,7 +170,7 @@ function SuccessLanding({ placementId, alreadyClaimed }: { placementId: string; 
           shows claimed_at, the page is in a stable state. */}
       {!alreadyClaimed && <ClaimSuccessPoller placementId={placementId} />}
       <p className="mt-6 text-[11px] text-portal-muted">
-        Need help right now? <a href="mailto:hello@riverregionparents.com" className="text-portal-blue hover:underline">hello@riverregionparents.com</a>
+        Need help right now? <BrandContactLink className="text-portal-blue hover:underline" />
       </p>
     </Shell>
   )

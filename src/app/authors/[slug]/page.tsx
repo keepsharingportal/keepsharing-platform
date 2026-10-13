@@ -11,13 +11,14 @@
 // articles by that author + emits Person JSON-LD.
 
 import type { Metadata } from 'next'
+import { currentBrandSlug } from '@/lib/current-brand'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
-import { loadBrandContext } from '@/lib/brand-context'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 import { personJsonLd, breadcrumbJsonLd, jsonLdScript } from '@/lib/seo/jsonld'
 import { authorNameToSlug, slugToAuthorTitleCase } from '@/lib/seo/author-slug'
@@ -54,6 +55,7 @@ interface ArticleRow {
  *  or null if no articles match. */
 async function loadByAuthorSlug(slug: string): Promise<{ name: string; articles: ArticleRow[] } | null> {
   const sb = supabase()
+  const brandSlug = (await currentBrandSlug()) ?? 'rrp'
   // We can't filter author_name → slug in SQL cleanly without a stored
   // generated column, so we pull a sensible window of articles and
   // filter client-side. With <2000 published articles this is fine;
@@ -63,6 +65,7 @@ async function loadByAuthorSlug(slug: string): Promise<{ name: string; articles:
     .from('guide_articles')
     .select('id, title, slug, column_slug, excerpt, dek, hero_image_url, author_name, published_at')
     .eq('published', true)
+    .or(articleBrandFilter(brandSlug))
     .not('author_name', 'is', null)
     .order('published_at', { ascending: false })
     .limit(2000)
@@ -85,6 +88,8 @@ async function loadByAuthorSlug(slug: string): Promise<{ name: string; articles:
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { slug } = await params
   const found = await loadByAuthorSlug(slug)
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
@@ -98,10 +103,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   return buildPageMetadata({
     title:       `${found.name} — Author`,
-    description: `Stories by ${found.name} for River Region families — local profiles, columns, and community features.`,
+    description: `Stories by ${found.name} for ${region} families — local profiles, columns, and community features.`,
     path:        `/authors/${slug}`,
     type:        'website',
-    keywords:    [found.name, 'River Region writer', 'local author'],
+    keywords:    [found.name, `${region} writer`, 'local author'],
   })
 }
 

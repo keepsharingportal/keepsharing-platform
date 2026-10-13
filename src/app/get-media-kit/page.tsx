@@ -1,4 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+import type { MarketDef } from '@/lib/markets'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import type { Metadata } from 'next'
 import { LeadMagnetFunnel } from '@/components/partner-engine/templates/LeadMagnetFunnel'
 import type { LeadMagnetFunnelProps } from '@/components/partner-engine/templates/LeadMagnetFunnel'
@@ -6,43 +9,53 @@ import { mapToLeadMagnetProps } from '@/lib/template-prop-mapper'
 import type { PartnerPageData } from '@/components/partner-engine/types'
 import { DEFAULT_BRAND, getContrastTextColor, lightenColor } from '@/lib/brand-colors'
 
-export const metadata: Metadata = {
-  title: 'Get the 2026 RRP Media Kit — River Region Parents',
-  description: 'See how local family businesses are growing through the biggest community influencer for parents in the River Region. Print. Social. Website. Email. All in one customer acquisition system.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
+  return {
+    title: `Get the 2026 RRP Media Kit — ${brandName}`,
+    description: `See how local family businesses are growing through the biggest community influencer for parents in ${regionPhrase}. Print. Social. Website. Email. All in one customer acquisition system.`,
+  }
 }
 
-const STATIC_FALLBACK_PROPS: LeadMagnetFunnelProps = {
-  business_name:          'River Region Parents',
-  display_logo_emoji:     '📰',
-  hero_badge:             'Free Resource',
-  hero_headline:          'Get the 2026',
-  hero_headline_emphasis: 'RRP Media Kit',
-  hero_description:       'See how local family businesses are growing through the biggest community influencer for parents in the River Region. Print magazine. Social media. Website. Email newsletter. All built into one customer acquisition system.',
-  hero_benefits: [
-    'Full breakdown of all 4 Partner tiers — from $125/mo to $1,500/mo',
-    'The complete customer acquisition system explained',
-    'Real ROI math from existing RRP partners',
-  ],
-  form_headline:          'Drop Your Email',
-  form_subheadline:       'We will send you the full kit instantly — no call required.',
-  form_button_label:      'Send Me the Media Kit',
-  form_extra_fields:      'category-interest',
-  whats_inside_headline:  'What Is Inside the Kit',
-  whats_inside_features: [
-    { icon: 'Layers',     title: '4 Partner Tiers',           description: 'Compare every tier from Featured Listing at $125/mo to The KeepSharing Partner Engine at $1,500/mo. Real deliverables, real pricing, no fluff.' },
-    { icon: 'TrendingUp', title: 'The System That Works',     description: 'Print, social, website, email, and the offer page that converts. See how the customer acquisition system delivers results.' },
-    { icon: 'Calculator', title: 'ROI That Surprises Most',   description: 'The math behind why this works for businesses serving families. Real numbers from real partners.' },
-  ],
-  final_cta_headline:     'Ready to See How',
-  final_cta_emphasis:     'Local Family Businesses Win',
-  final_cta_button_label: 'Send Me the Media Kit',
-  redirect_after_submit:  '/advertise?utm_source=media-kit&utm_campaign=media-kit',
-  partner_id:             'rrp-system',
-  offer_id:               'media-kit-static',
-  color_scheme:           'sky-terra',
+const STATIC_FALLBACK_PROPS = (market: MarketDef): LeadMagnetFunnelProps => {
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
+  return {
+    business_name:          `${brandName}`,
+    display_logo_emoji:     '📰',
+    hero_badge:             'Free Resource',
+    hero_headline:          'Get the 2026',
+    hero_headline_emphasis: 'RRP Media Kit',
+    hero_description:       `See how local family businesses are growing through the biggest community influencer for parents in ${regionPhrase}. Print magazine. Social media. Website. Email newsletter. All built into one customer acquisition system.`,
+    hero_benefits: [
+      'Full breakdown of all 4 Partner tiers — from $125/mo to $1,500/mo',
+      'The complete customer acquisition system explained',
+      'Real ROI math from existing RRP partners',
+    ],
+    form_headline:          'Drop Your Email',
+    form_subheadline:       'We will send you the full kit instantly — no call required.',
+    form_button_label:      'Send Me the Media Kit',
+    form_extra_fields:      'category-interest',
+    whats_inside_headline:  'What Is Inside the Kit',
+    whats_inside_features: [
+      { icon: 'Layers',     title: '4 Partner Tiers',           description: 'Compare every tier from Featured Listing at $125/mo to The KeepSharing Partner Engine at $1,500/mo. Real deliverables, real pricing, no fluff.' },
+      { icon: 'TrendingUp', title: 'The System That Works',     description: 'Print, social, website, email, and the offer page that converts. See how the customer acquisition system delivers results.' },
+      { icon: 'Calculator', title: 'ROI That Surprises Most',   description: 'The math behind why this works for businesses serving families. Real numbers from real partners.' },
+    ],
+    final_cta_headline:     'Ready to See How',
+    final_cta_emphasis:     'Local Family Businesses Win',
+    final_cta_button_label: 'Send Me the Media Kit',
+    redirect_after_submit:  '/advertise?utm_source=media-kit&utm_campaign=media-kit',
+    partner_id:             'rrp-system',
+    offer_id:               'media-kit-static',
+    color_scheme:           'sky-terra',
+  }
 }
 
 async function getMediaKitProps(): Promise<LeadMagnetFunnelProps> {
+  const { market } = await loadBrandContext()
   try {
     const supabase = await createClient()
 
@@ -52,7 +65,7 @@ async function getMediaKitProps(): Promise<LeadMagnetFunnelProps> {
       .eq('slug', 'river-region-parents-system')
       .maybeSingle()
 
-    if (!account) return STATIC_FALLBACK_PROPS
+    if (!account) return STATIC_FALLBACK_PROPS(market)
 
     const { data: offer } = await supabase
       .from('partner_offers')
@@ -64,7 +77,7 @@ async function getMediaKitProps(): Promise<LeadMagnetFunnelProps> {
       .limit(1)
       .maybeSingle()
 
-    if (!offer) return STATIC_FALLBACK_PROPS
+    if (!offer) return STATIC_FALLBACK_PROPS(market)
 
     const brand = {
       primary:      account.brand_color_primary ?? DEFAULT_BRAND.primary,
@@ -83,7 +96,7 @@ async function getMediaKitProps(): Promise<LeadMagnetFunnelProps> {
 
     return mapToLeadMagnetProps(data)
   } catch {
-    return STATIC_FALLBACK_PROPS
+    return STATIC_FALLBACK_PROPS(market)
   }
 }
 

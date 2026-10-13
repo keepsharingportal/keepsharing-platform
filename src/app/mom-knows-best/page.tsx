@@ -3,6 +3,8 @@
 // bloggers + their latest posts.
 
 import Link from 'next/link'
+import { chromeForBrand } from '@/lib/brands'
+import { brandifyCopy } from '@/lib/brandify'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { articleBrandFilter, loadBrandContext } from '@/lib/brand-context'
 import Image from 'next/image'
@@ -19,13 +21,15 @@ import type { Metadata } from 'next'
 export const revalidate = 600
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       'Mom Knows Best',
-    description: 'Real River Region moms writing about real River Region life — honest, funny, in-the-trenches blog posts from local mom bloggers. New posts every week.',
+    description: `Real ${region} moms writing about real ${region} life — honest, funny, in-the-trenches blog posts from local mom bloggers. New posts every week.`,
     path:        '/mom-knows-best',
     type:        'website',
-    keywords:    ['mom blogs', 'River Region moms', 'parenting blog', 'local moms', 'Montgomery moms'],
+    keywords:    ['mom blogs', `${region} moms`, 'parenting blog', 'local moms', `${market.city} moms`],
   })
 }
 
@@ -62,7 +66,10 @@ interface Post {
 export default async function MomKnowsBestPage() {
   // Region phrase for the visible copy — 'River Region' on RRP, so the live
   // site reads exactly as before.
-  const region = (await loadBrandContext()).market.regionLabel
+  const mkbCtx    = await loadBrandContext()
+  const mkbMarket = mkbCtx.market
+  const mkbContact = chromeForBrand(mkbCtx.brand).contactEmail
+  const region    = mkbMarket.regionLabel
 
   const supabase = getSupabase()
 
@@ -127,7 +134,7 @@ export default async function MomKnowsBestPage() {
     : null
 
   const heroTitle    = vertical?.display_name  || 'Mom Knows Best'
-  const heroSubtitle = vertical?.subtitle      || `Real ${region} moms writing about real ${region} life — favorite spots, hard-won lessons, family routines, and the chaos in between.`
+  const heroSubtitle = brandifyCopy(vertical?.subtitle ?? '', mkbMarket) || `Real ${region} moms writing about real ${region} life — favorite spots, hard-won lessons, family routines, and the chaos in between.`
   const heroImage    = vertical?.hero_image_url || null
   const sponsorLabel = vertical?.sponsor_label || 'Proudly Presented By'
 
@@ -258,7 +265,7 @@ export default async function MomKnowsBestPage() {
             If you&apos;re a {region} mom who loves writing about local family life, we&apos;d love to talk. Real voices, real recommendations, real reach.
           </p>
           <Link
-            href="mailto:hello@riverregionparents.com?subject=Mom%20Knows%20Best%20%E2%80%94%20I%27d%20like%20to%20write"
+            href={`mailto:${mkbContact}?subject=Mom%20Knows%20Best%20%E2%80%94%20I%27d%20like%20to%20write`}
             className="inline-flex items-center gap-1.5 px-6 py-3 bg-primary text-primary-foreground rounded-full text-sm font-bold hover:bg-primary/90 transition-colors"
           >
             Get in Touch <ArrowRight className="h-4 w-4" />

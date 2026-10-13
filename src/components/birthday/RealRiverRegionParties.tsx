@@ -3,6 +3,7 @@
 // from /admin/birthday/real-parties before they land here.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { SectionHeader } from './BudgetTiers'
 import { Camera, Upload } from 'lucide-react'
 
@@ -20,7 +21,9 @@ interface Party {
   submitter_name?: string | null
 }
 
-export function RealRiverRegionParties({ parties }: { parties: Array<Record<string, unknown>> }) {
+export async function RealRiverRegionParties({ parties }: { parties: Array<Record<string, unknown>> }) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const useParties: Party[] = parties.map(p => ({
     id:              p.id as string,
     child_name:      p.child_name as string | null,
@@ -39,7 +42,7 @@ export function RealRiverRegionParties({ parties }: { parties: Array<Record<stri
     <div>
       <SectionHeader
         eyebrow="The moat"
-        title="Real River Region parties"
+        title={`Real ${region} parties`}
         kicker="Photos and stories from real local moms. Tested in the wild, not staged for a magazine."
       />
 
@@ -91,7 +94,7 @@ export function RealRiverRegionParties({ parties }: { parties: Array<Record<stri
         <div className="flex-1">
           <h3 className="text-[15px] font-bold text-slate-900">Share your kid&apos;s last birthday</h3>
           <p className="text-[12px] text-slate-700 mt-0.5">
-            Help other River Region moms see what real parties cost, look like, and feel like.
+            Help other {region} moms see what real parties cost, look like, and feel like.
             We&apos;ll feature submissions with photo + 2-3 sentences about how it went.
           </p>
         </div>
@@ -106,13 +109,15 @@ export function RealRiverRegionParties({ parties }: { parties: Array<Record<stri
   )
 }
 
-function EmptyState() {
+async function EmptyState() {
+  const { market } = await loadBrandContext()
+  const region = market.regionLabel
   return (
     <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center">
       <Camera size={28} className="text-slate-300 mx-auto mb-2" />
       <h3 className="text-[15px] font-bold text-slate-900">Be the first to share</h3>
       <p className="text-[12px] text-slate-600 mt-1 max-w-md mx-auto">
-        We&apos;re building a wall of real River Region birthdays. Your photo could be the one that gives another mom the confidence to host hers.
+        We&apos;re building a wall of real {region} birthdays. Your photo could be the one that gives another mom the confidence to host hers.
       </p>
     </div>
   )

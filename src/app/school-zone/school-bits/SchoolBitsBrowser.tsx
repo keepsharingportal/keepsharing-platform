@@ -6,6 +6,7 @@
 // when the reader arrives from a card click on FRG / discovery panel.
 
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { useBrandCopy } from '@/components/BrandCopyProvider'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
@@ -416,6 +417,7 @@ function BitCard({ bit, onOpen, highlight = false, shareUrl }: {
    *  icons in the card footer. */
   shareUrl?: string
 }) {
+  const { displayName } = useBrandCopy()
   const paragraphs = splitBlurbParagraphs(bit.blurb)
   const hasMultiplePhotos = bit.image_count > 1
   // Rough proxy for "long enough that line-clamp is doing something" — we
@@ -539,7 +541,7 @@ function BitCard({ bit, onOpen, highlight = false, shareUrl }: {
             <ShareRow
               url={shareUrl}
               title={normalizedTitle}
-              text={`${bit.school_name} — on River Region Parents`}
+              text={`${bit.school_name} — on ${displayName}`}
               size="compact"
               tone="tan"
             />

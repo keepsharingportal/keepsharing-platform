@@ -1,10 +1,17 @@
 import type { Metadata } from 'next'
+import { chromeForBrand } from '@/lib/brands'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, Star, Globe, Phone, Lock } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'What Families See — Visibility Comparison | River Region Parents',
-  description: 'See exactly how your business appears to River Region families at every level of ecosystem presence — from no listing to Category Sponsor.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
+  return {
+    title: `What Families See — Visibility Comparison | ${brandName}`,
+    description: `See exactly how your business appears to ${region} families at every level of ecosystem presence — from no listing to Category Sponsor.`,
+  }
 }
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -198,6 +205,7 @@ function CategoryBeforeAfter({
   featuredImg,
   emptyLabel,
   sponsoredLabel,
+  cityState,
 }: {
   groupName: string
   description: string
@@ -205,6 +213,9 @@ function CategoryBeforeAfter({
   featuredImg: string
   emptyLabel: string
   sponsoredLabel: string
+  /** The viewing brand's "City, ST" — the mock cards are illustrative, so
+   *  they should not name River Region towns on another brand's site. */
+  cityState: string
 }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start' }}>
@@ -222,7 +233,7 @@ function CategoryBeforeAfter({
           <MockSectionHeader groupName={groupName} description={description} sponsorName="Your Business" listingCount={3} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <MockFeaturedListing name={sponsorLabel} blurb="The editorial description our team writes for you — specific, credible, and written in the voice families trust." phone="334-555-0100" imgSrc={featuredImg} />
-            <MockEnhancedListing name="Competitor A" city="Montgomery, AL" blurb="Accepting new patients." badge="Guide Partner" imgSrc={IMG_THUMB} />
+            <MockEnhancedListing name="Competitor A" city={cityState} blurb="Accepting new patients." badge="Guide Partner" imgSrc={IMG_THUMB} />
           </div>
         </div>
         <p style={{ textAlign: 'center', fontSize: 12, color: T, marginTop: 10, fontWeight: 700 }}>{sponsoredLabel}</p>
@@ -256,7 +267,16 @@ function CatBadge({ name, open }: { name: string; open: boolean }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function CompareVisibilityPage() {
+export default async function CompareVisibilityPage() {
+  // The rep strip: this brand's own line and inbox, or nothing.
+  const compareChrome = chromeForBrand((await loadBrandContext()).brand)
+  const comparePhone  = compareChrome.contactPhone
+  const compareEmail  = compareChrome.contactEmail
+  const { market } = await loadBrandContext()
+  // Illustrative mock listings name the viewing brand's city.
+  const cityState = `${market.city}, ${market.state}`
+  const brandName    = market.displayName
+  const region       = market.regionLabel
   return (
     <div style={{ backgroundColor: C, color: '#3a2c1e', fontFamily: sans }}>
 
@@ -265,14 +285,14 @@ export default function CompareVisibilityPage() {
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(ellipse at 75% 35%, rgba(196,98,45,0.14) 0%, transparent 55%), radial-gradient(ellipse at 20% 80%, rgba(184,134,11,0.06) 0%, transparent 45%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <div style={{ display: 'inline-block', backgroundColor: 'rgba(196,98,45,0.18)', border: '1px solid rgba(196,98,45,0.35)', borderRadius: 100, padding: '5px 18px', fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#f5c4a4', marginBottom: 32 }}>
-            Visibility Comparison · River Region Parents
+            Visibility Comparison · {brandName}
           </div>
           <h1 style={{ fontFamily: serif, fontSize: 'clamp(36px, 6vw, 62px)', fontWeight: 900, color: W, lineHeight: 1.06, letterSpacing: '-0.02em', marginBottom: 24 }}>
             What Families See<br />
             <span style={{ color: '#f0a070', fontStyle: 'italic' }}>Changes Everything.</span>
           </h1>
           <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.68)', lineHeight: 1.75, maxWidth: 560, margin: '0 auto 40px' }}>
-            This is exactly how your business appears to River Region families
+            This is exactly how your business appears to {region} families
             at each level of presence — from invisible to undeniable.
           </p>
 
@@ -311,7 +331,7 @@ export default function CompareVisibilityPage() {
               The Same Category.<br />Two Different Realities.
             </h2>
             <p style={{ fontSize: 16, color: '#666', lineHeight: 1.75, maxWidth: 560, margin: '0 auto' }}>
-              When a parent opens the River Region Parents Family Resource Guide,
+              When a parent opens the {brandName} Family Resource Guide,
               this is the difference between your business being there — and not.
             </p>
           </div>
@@ -333,25 +353,25 @@ export default function CompareVisibilityPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            <CategoryBeforeAfter
+            <CategoryBeforeAfter cityState={`${market.city}, ${market.state}`}
               groupName="Pediatric & Family Healthcare"
               description="Doctors, dentists, urgent care, and family health providers."
-              sponsorLabel="River Region Pediatrics"
+              sponsorLabel={`${region} Pediatrics`}
               featuredImg={IMG_PEDIATRIC}
               emptyLabel="Families see a gap. A competitor fills it."
               sponsoredLabel="Families see you first. Every time."
             />
             <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} />
-            <CategoryBeforeAfter
+            <CategoryBeforeAfter cityState={`${market.city}, ${market.state}`}
               groupName="Childcare & Early Learning"
               description="Daycare, preschool, pre-K, and early childhood programs."
-              sponsorLabel="Bright Horizons Montgomery"
+              sponsorLabel={`Bright Horizons ${market.city}`}
               featuredImg={IMG_CHILDCARE}
               emptyLabel="Parents who needed you chose someone else."
               sponsoredLabel="You're the first name they trust."
             />
             <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} />
-            <CategoryBeforeAfter
+            <CategoryBeforeAfter cityState={`${market.city}, ${market.state}`}
               groupName="Sports & Recreation"
               description="Youth sports leagues, swim teams, gymnastics, and outdoor activities."
               sponsorLabel="Capital City Athletics"
@@ -403,9 +423,9 @@ export default function CompareVisibilityPage() {
                 <div style={{ border: '1.5px solid rgba(0,0,0,0.07)', borderRadius: 20, padding: '20px', backgroundColor: '#fafafa' }}>
                   <MockSectionHeader groupName="Sports & Recreation" listingCount={3} />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <MockFreeListing name="Your Business Name" city="Montgomery, AL" phone="334-555-0000" />
-                    <MockFreeListing name="River Region YMCA" city="Montgomery, AL" phone="334-555-0100" />
-                    <MockFreeListing name="Capital City Soccer League" city="Prattville, AL" />
+                    <MockFreeListing name="Your Business Name" city={cityState} phone="334-555-0000" />
+                    <MockFreeListing name={`${region} YMCA`} city={cityState} phone="334-555-0100" />
+                    <MockFreeListing name="Capital City Soccer League" city={cityState} />
                   </div>
                 </div>
                 <p style={{ fontSize: 12, color: '#bbb', textAlign: 'center', marginTop: 12, fontStyle: 'italic' }}>Present — but not prominent.</p>
@@ -432,7 +452,7 @@ export default function CompareVisibilityPage() {
                     <span style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '0.1em' }}>✍️ Editorial Blurb — Written By RRP</span>
                   </div>
                   <p style={{ fontSize: 13, color: '#444', lineHeight: 1.7, fontStyle: 'italic', margin: 0 }}>
-                    &ldquo;The sports program River Region families have trusted since 2009. Small-group instruction, flexible scheduling, and coaches who know every kid by name.&rdquo;
+                    &ldquo;The sports program {region} families have trusted since 2009. Small-group instruction, flexible scheduling, and coaches who know every kid by name.&rdquo;
                   </p>
                 </div>
 
@@ -451,15 +471,15 @@ export default function CompareVisibilityPage() {
                       <Ann n={2} />
                       <MockEnhancedListing
                         name="Your Business Name"
-                        city="Montgomery, AL"
-                        blurb="The sports program River Region families have trusted since 2009. Small-group instruction, flexible scheduling, coaches who know every kid by name."
+                        city={cityState}
+                        blurb={`The sports program ${region} families have trusted since 2009. Small-group instruction, flexible scheduling, coaches who know every kid by name.`}
                         phone="334-555-0000"
                         imgSrc={IMG_THUMB}
                         badge="Guide Partner"
                       />
                     </div>
-                    <MockFreeListing name="River Region YMCA" city="Montgomery, AL" phone="334-555-0100" />
-                    <MockFreeListing name="Capital City Soccer League" city="Prattville, AL" />
+                    <MockFreeListing name={`${region} YMCA`} city={cityState} phone="334-555-0100" />
+                    <MockFreeListing name="Capital City Soccer League" city={cityState} />
                   </div>
                 </div>
                 <p style={{ fontSize: 12, color: '#888', textAlign: 'center', marginTop: 12, fontStyle: 'italic' }}>Families can discover, evaluate, and contact you.</p>
@@ -497,27 +517,27 @@ export default function CompareVisibilityPage() {
                       <Ann n={1} />
                       <MockFeaturedListing
                         name="Your Business Name"
-                        blurb="The description our editorial team crafts — written to resonate with River Region moms and drive real inquiries."
+                        blurb={`The description our editorial team crafts — written to resonate with ${region} moms and drive real inquiries.`}
                         phone="334-555-0000"
                         imgSrc={IMG_SPORTS}
                       />
                     </div>
                     <MockEnhancedListing
-                      name="River Region YMCA"
-                      city="Montgomery, AL"
+                      name={`${region} YMCA`}
+                      city={cityState}
                       blurb="Youth programs and after-school care."
                       imgSrc={IMG_THUMB}
                       badge="Guide Partner"
                     />
-                    <MockFreeListing name="Capital City Soccer League" city="Prattville, AL" />
+                    <MockFreeListing name="Capital City Soccer League" city={cityState} />
                   </div>
                 </div>
                 {/* Multi-surface grid */}
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#bbb', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>+ Across the full ecosystem</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <SurfaceCard icon="📖" label="Print Magazine" detail="Quarter-page ad in the River Region Parents print edition, distributed to 14,000+ households." accent />
+                  <SurfaceCard icon="📖" label="Print Magazine" detail={`Quarter-page ad in the ${brandName} print edition, distributed to 14,000+ households.`} accent />
                   <SurfaceCard icon="📧" label="Newsletter" detail="Monthly feature reaching 4,800+ subscribers who open every issue." />
-                  <SurfaceCard icon="📱" label="Social Media" detail="Paid reach to 10,000+ River Region moms/month across Facebook and Instagram." />
+                  <SurfaceCard icon="📱" label="Social Media" detail={`Paid reach to 10,000+ ${region} moms/month across Facebook and Instagram.`} />
                   <SurfaceCard icon="✍️" label="Editorial Coverage" detail="Priority for inclusion in editorial articles and seasonal resource lists." accent />
                 </div>
                 <p style={{ fontSize: 12, color: T, textAlign: 'center', fontWeight: 700 }}>You are first. You are prominent. You are everywhere.</p>
@@ -618,19 +638,19 @@ export default function CompareVisibilityPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                       <MockEnhancedListing
                         name="Capital City Pediatrics"
-                        city="Montgomery, AL"
+                        city={cityState}
                         blurb="Accepting new patients."
                         imgSrc={IMG_THUMB}
                         badge="Guide Partner"
                       />
                       <MockEnhancedListing
                         name="River Oaks Family Care"
-                        city="Prattville, AL"
+                        city={cityState}
                         blurb="Family-centered care."
                         badge="Guide Partner"
                       />
                     </div>
-                    <MockFreeListing name="Montgomery Pediatric Associates" city="Montgomery, AL" phone="334-555-0400" />
+                    <MockFreeListing name={`${market.city} Pediatric Associates`} city={cityState} phone="334-555-0400" />
                   </div>
                 </div>
               </div>
@@ -652,7 +672,7 @@ export default function CompareVisibilityPage() {
               One Family. Seven Encounters.<br />One Phone Call.
             </h2>
             <p style={{ fontSize: 16, color: '#666', lineHeight: 1.75, maxWidth: 500, margin: '0 auto' }}>
-              This is how a River Region mom goes from never having heard of your business to calling you — without you ever running a cold ad.
+              This is how a {region} mom goes from never having heard of your business to calling you — without you ever running a cold ad.
             </p>
           </div>
 
@@ -661,7 +681,7 @@ export default function CompareVisibilityPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {[
-                { icon: '📖', surface: 'Print Magazine', timing: 'First touch', detail: 'She picks up River Region Parents at her pediatrician\'s office. She sees your business in the guide section. First impression — no search required.', highlight: false },
+                { icon: '📖', surface: 'Print Magazine', timing: 'First touch', detail: `She picks up ${brandName} at her pediatrician's office. She sees your business in the guide section. First impression — no search required.`, highlight: false },
                 { icon: '🗺️', surface: 'Family Resource Guide', timing: 'Active search', detail: 'She searches for providers in your category. The guide appears. Your listing is featured at the top of the section, with photo and editorial description.', highlight: false },
                 { icon: '✍️', surface: 'Editorial Article', timing: 'Trust signal', detail: 'She finds an RRP article about choosing a provider. Your business is linked as a trusted local resource. Editorial placement reads like a recommendation — because it is.', highlight: false },
                 { icon: '📱', surface: 'Social Media', timing: 'Brand recall', detail: 'She scrolls Instagram. An RRP post features your business. Her friend comments "we love them." She screenshots it.', highlight: false },
@@ -736,12 +756,12 @@ export default function CompareVisibilityPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 700, color: N, margin: 0 }}>Jason Watson</p>
-                <p style={{ fontSize: 11, color: '#aaa', margin: '2px 0 0' }}>River Region Parents · Owner &amp; Publisher</p>
+                <p style={{ fontSize: 11, color: '#aaa', margin: '2px 0 0' }}>{brandName} · Owner &amp; Publisher</p>
               </div>
               <div style={{ width: 1, height: 32, backgroundColor: '#e0e0e0' }} />
               <div>
-                <p style={{ fontSize: 12, color: '#888', margin: 0 }}>(334) 328-5189</p>
-                <p style={{ fontSize: 12, color: '#888', margin: '2px 0 0' }}>jason@riverregionparents.com</p>
+                <p style={{ fontSize: 12, color: '#888', margin: 0 }}>{comparePhone}</p>
+                <p style={{ fontSize: 12, color: '#888', margin: '2px 0 0' }}>{compareEmail}</p>
               </div>
               <div style={{ width: 1, height: 32, backgroundColor: '#e0e0e0' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>

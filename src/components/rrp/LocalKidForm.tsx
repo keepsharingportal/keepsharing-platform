@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { RefreshCw, CheckCircle2 } from 'lucide-react'
 import { RRPFormShell, rrpInput, rrpLabel, rrpTa } from './RRPFormShell'
 
 export function LocalKidForm() {
+  const { displayName: brandName, regionPhrase, towns } = useBrandCopy()
   const [form, setForm] = useState({
     kidName: '', age: '', school: '', neighborhood: '',
     activity: '', whatTheyDo: '', whyRemarkable: '',
@@ -56,7 +58,7 @@ export function LocalKidForm() {
   return (
     <RRPFormShell
       title="Local Kid Doing Cool Things"
-      subtitle="Know a kid in the River Region with an extraordinary hobby, skill, passion, or achievement? We'd love to feature them in an upcoming issue."
+      subtitle={`Know a kid in ${regionPhrase} with an extraordinary hobby, skill, passion, or achievement? We'd love to feature them in an upcoming issue.`}
       department="Local Kid Cool Things"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,7 +66,7 @@ export function LocalKidForm() {
           <div><label className={rrpLabel}>Kid's Name *</label><input required value={form.kidName} onChange={set('kidName')} className={rrpInput} placeholder="First and last name" /></div>
           <div><label className={rrpLabel}>Age</label><input value={form.age} onChange={set('age')} className={rrpInput} placeholder="e.g. 10" /></div>
           <div><label className={rrpLabel}>School</label><input value={form.school} onChange={set('school')} className={rrpInput} placeholder="School name" /></div>
-          <div><label className={rrpLabel}>Neighborhood</label><input value={form.neighborhood} onChange={set('neighborhood')} className={rrpInput} placeholder="e.g. Millbrook, Pike Road" /></div>
+          <div><label className={rrpLabel}>Neighborhood</label><input value={form.neighborhood} onChange={set('neighborhood')} className={rrpInput} placeholder={towns.length ? `e.g. ${towns.slice(0, 2).join(', ')}` : 'Your neighborhood'} /></div>
         </div>
 
         <div>
@@ -79,7 +81,7 @@ export function LocalKidForm() {
 
         <div>
           <label className={rrpLabel}>Why is this worth sharing? *</label>
-          <textarea required rows={3} value={form.whyRemarkable} onChange={set('whyRemarkable')} className={rrpTa} placeholder="What makes this kid stand out? What should River Region Parents know about them?" />
+          <textarea required rows={3} value={form.whyRemarkable} onChange={set('whyRemarkable')} className={rrpTa} placeholder={`What makes this kid stand out? What should ${brandName} know about them?`} />
         </div>
 
         <div className="border-t border-gray-100 pt-4 grid grid-cols-2 gap-3">

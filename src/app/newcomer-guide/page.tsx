@@ -1,4 +1,8 @@
 import Image from 'next/image'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { guideScope, scoped } from '@/lib/guides/brand-scope'
+import { theRegion, townPhrase } from '@/lib/brandify'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowRight, ChevronRight, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
@@ -12,9 +16,13 @@ import { GuideDirectory } from './GuideDirectory'
 import { NewsletterSignup } from '@/components/newsletter/NewsletterSignup'
 import { NewsletterPopupTrigger } from '@/components/newsletter/NewsletterPopupTrigger'
 
-export const metadata: Metadata = {
-  title: 'River Region Family Resource Guide',
-  description: 'Your trusted resource for raising kids in Montgomery, Prattville, Wetumpka, Pike Road, Millbrook, and Eastchase. Schools, pediatricians, childcare, activities, and more.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
+  return {
+    title: `${region} Family Resource Guide`,
+    description: `Your trusted resource for raising kids in ${townPhrase(market)}. Schools, pediatricians, childcare, activities, and more.`,
+  }
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -29,10 +37,12 @@ async function getGuideData(): Promise<{
 }> {
   try {
     const supabase = await createClient()
+    const ngScope = await guideScope(supabase)
+    const ngBrandSlug = (await currentBrandSlug()) ?? 'rrp'
     const [{ data: cats }, { data: listings }, { data: arts }] = await Promise.all([
       supabase.from('guide_categories').select('*').eq('guide_slug', 'newcomer-guide').order('display_order'),
-      supabase.from('guide_listings').select('*').eq('needs_research', false).order('listing_tier').order('display_order'),
-      supabase.from('guide_articles').select('*').eq('guide_slug', 'newcomer-guide').eq('published', true).order('display_order'),
+      scoped(supabase.from('guide_listings').select('*').eq('needs_research', false).order('listing_tier').order('display_order'), ngScope),
+      supabase.from('guide_articles').select('*').eq('guide_slug', 'newcomer-guide').eq('published', true).or(articleBrandFilter(ngBrandSlug)).order('display_order'),
     ])
 
     const sortedListings = (listings ?? []).sort((a: GuideListing, b: GuideListing) => {
@@ -206,6 +216,9 @@ function CategorySection({ category, limit }: { category: CategoryWithListings; 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function NewcomerGuidePage() {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
   const { grouped, articles, totalListings } = await getGuideData()
   const artMap = Object.fromEntries(articles.map(a => [a.slug, a]))
 
@@ -238,7 +251,7 @@ export default async function NewcomerGuidePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 18 }}>
             <MapPin size={12} color="var(--fg-gold)" />
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-gold)' }}>
-              River Region Parents · Family Resource Guide
+              {brandName} · Family Resource Guide
             </span>
           </div>
           {/* H1 */}
@@ -255,7 +268,7 @@ export default async function NewcomerGuidePage() {
             Your Guide to<br />Raising a Family Here
           </h1>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, maxWidth: 520, marginBottom: 8 }}>
-            Montgomery, Prattville, Wetumpka, Pike Road, Millbrook, and Eastchase —
+            {townPhrase(market)} —
             everything your family needs, in one place.
           </p>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontStyle: 'italic', marginBottom: 36 }}>
@@ -301,7 +314,7 @@ export default async function NewcomerGuidePage() {
             </h2>
           </div>
           <p style={{ fontSize: 14, color: 'var(--fg-mid)', marginBottom: 24 }}>
-            New to the River Region? These three reads will orient your whole family.
+            New to {regionPhrase}? These three reads will orient your whole family.
           </p>
 
           {startHereArticles.length > 0 ? (
@@ -312,9 +325,9 @@ export default async function NewcomerGuidePage() {
             /* Fallback if articles not yet seeded — gradient placeholder cards, no emoji */
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
               {[
-                { title: 'Your First 30 Days in the River Region', href: '#first-30-days', desc: 'The practical checklist — week by week, nothing missed.', grad: 'linear-gradient(135deg, var(--fg-cream) 0%, var(--fg-sage-light) 100%)' },
-                { title: 'Choosing a School in the River Region', href: '/newcomer-guide/articles/choosing-the-right-school-district', desc: 'Six public districts, dozens of private options. How to decide.', grad: 'linear-gradient(135deg, var(--fg-sky-light) 0%, #d4e8f8 100%)' },
-                { title: 'Where to Find Your People', href: '/newcomer-guide/articles/where-to-find-your-people', desc: 'The fastest ways to find your community in the River Region.', grad: 'linear-gradient(135deg, var(--fg-terra-light) 0%, #fde8d8 100%)' },
+                { title: `Your First 30 Days in ${regionPhrase}`, href: '#first-30-days', desc: 'The practical checklist — week by week, nothing missed.', grad: 'linear-gradient(135deg, var(--fg-cream) 0%, var(--fg-sage-light) 100%)' },
+                { title: `Choosing a School in ${regionPhrase}`, href: '/newcomer-guide/articles/choosing-the-right-school-district', desc: 'Six public districts, dozens of private options. How to decide.', grad: 'linear-gradient(135deg, var(--fg-sky-light) 0%, #d4e8f8 100%)' },
+                { title: 'Where to Find Your People', href: '/newcomer-guide/articles/where-to-find-your-people', desc: `The fastest ways to find your community in ${regionPhrase}.`, grad: 'linear-gradient(135deg, var(--fg-terra-light) 0%, #fde8d8 100%)' },
               ].map(card => (
                 <Link key={card.title} href={card.href}
                   className="group block rounded-2xl overflow-hidden"
@@ -418,7 +431,7 @@ export default async function NewcomerGuidePage() {
           }}>
             <div style={{ padding: '18px 24px 16px', borderBottom: '1px solid rgba(196,98,45,0.12)', background: 'var(--fg-terra-light)' }}>
               <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 20, fontWeight: 700, color: 'var(--fg-navy)', marginBottom: 4 }}>
-                📋 Your First 30 Days in the River Region
+                📋 Your First 30 Days in {regionPhrase}
               </h2>
               <p style={{ fontSize: 13, color: 'var(--fg-mid)' }}>A practical checklist for every family new to the area.</p>
             </div>
@@ -426,7 +439,7 @@ export default async function NewcomerGuidePage() {
               {[
                 { period: 'Week 1', items: ['Register your child with school district or contact admissions', 'Establish a pediatrician — most practices have wait times', 'Update your driver\'s license (Alabama 30-day rule)', 'Get utilities transferred', 'Find your nearest urgent care that sees kids'] },
                 { period: 'Month 1', items: ['Visit local libraries — huge family resource often missed', 'Attend one community event — farmer\'s market, park day', 'Identify a faith community if relevant', 'Sign kids up for a sports league or activity', 'Find a restaurant where you\'d take grandparents'] },
-                { period: 'Months 2–3', items: ['Connect with a parent group or church small group', 'Try at least 3 family activities you\'ve never done', 'Establish a dentist (kids + adult)', 'Visit 2 neighborhoods you didn\'t move into', 'Subscribe to River Region Parents'] },
+                { period: 'Months 2–3', items: ['Connect with a parent group or church small group', 'Try at least 3 family activities you\'ve never done', 'Establish a dentist (kids + adult)', 'Visit 2 neighborhoods you didn\'t move into', `Subscribe to ${brandName}`] },
               ].map(({ period, items }) => (
                 <div key={period}>
                   <div style={{ fontFamily: 'var(--font-fraunces, serif)', fontWeight: 700, fontSize: 14, color: 'var(--fg-terra)', marginBottom: 12 }}>
@@ -508,7 +521,7 @@ export default async function NewcomerGuidePage() {
               Be the First Name Families See
             </h2>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, maxWidth: 460, margin: '0 auto 8px' }}>
-              A Featured Listing puts your business in front of every family new to the River Region — year-round.
+              A Featured Listing puts your business in front of every family new to {regionPhrase} — year-round.
             </p>
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic', marginBottom: 32 }}>
               &quot;When a newcomer family chooses their child&apos;s first doctor, they see your name first.&quot;

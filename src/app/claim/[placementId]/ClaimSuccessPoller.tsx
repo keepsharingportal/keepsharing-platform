@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { BrandContactLink } from '@/components/BrandContactLink'
 
 /** After Stripe redirects with ?success=1, the webhook that flips the
  *  placement to "claimed" may be a few seconds behind. Polling the page
@@ -40,7 +41,7 @@ export function ClaimSuccessPoller({ placementId }: { placementId: string }) {
     return (
       <p className="text-sm text-portal-amber mt-4">
         Taking longer than expected. Your payment is safe — we&apos;ll activate your spot manually within an hour.
-        If you don&apos;t hear from us, email <a href="mailto:hello@riverregionparents.com" className="text-portal-blue hover:underline">hello@riverregionparents.com</a>.
+        If you don&apos;t hear from us, email <BrandContactLink className="text-portal-blue hover:underline" />.
       </p>
     )
   }

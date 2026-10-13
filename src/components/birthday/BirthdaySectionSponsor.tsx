@@ -3,6 +3,7 @@
 // reinforces the sidebar sponsor offer.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { Sparkles, ArrowRight } from 'lucide-react'
 
 interface SponsorRow {
@@ -14,7 +15,9 @@ interface SponsorRow {
   advertiser?:    { business_name?: string | null; slug?: string | null } | null
 }
 
-export function BirthdaySectionSponsor({ sponsor }: { sponsor: Record<string, unknown> | null }) {
+export async function BirthdaySectionSponsor({ sponsor }: { sponsor: Record<string, unknown> | null }) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   if (sponsor) {
     const s = sponsor as unknown as SponsorRow
     return (
@@ -43,7 +46,7 @@ export function BirthdaySectionSponsor({ sponsor }: { sponsor: Record<string, un
       </div>
       <div className="flex-1 min-w-[200px]">
         <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#ff7a59]">Exclusive sponsorship available · 1 spot</div>
-        <div className="text-[14px] font-bold text-slate-900">Be the sponsor of every River Region birthday plan</div>
+        <div className="text-[14px] font-bold text-slate-900">Be the sponsor of every {region} birthday plan</div>
       </div>
       <Link
         href="/advertise?placement=birthday-bash"

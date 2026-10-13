@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 
@@ -10,6 +11,8 @@ function supabaseAdmin() {
 }
 
 export async function POST(req: NextRequest) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   try {
     const { email, slug } = await req.json()
 
@@ -31,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (account.contact_email?.toLowerCase() !== email.toLowerCase()) {
-      return NextResponse.json({ error: 'Email not recognized for this account. Contact River Region Parents if you need help.' }, { status: 403 })
+      return NextResponse.json({ error: `Email not recognized for this account. Contact ${brandName} if you need help.` }, { status: 403 })
     }
 
     // Generate token

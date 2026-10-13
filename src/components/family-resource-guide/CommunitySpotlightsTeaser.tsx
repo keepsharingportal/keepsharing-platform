@@ -10,6 +10,8 @@
 //   variant="sidebar" — single-column stack tuned for a 4-col sidebar
 
 import Link from 'next/link'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import { Users, ArrowRight } from 'lucide-react'
 import { columnBadgeStyle, columnTintStyle, columnLabel } from '@/lib/content-taxonomy'
 import { getFallback } from '@/lib/image-fallbacks'
@@ -38,7 +40,10 @@ interface Props {
   variant?:   'main' | 'sidebar'
 }
 
-export function CommunitySpotlightsTeaser({ spotlights, variant = 'main' }: Props) {
+export async function CommunitySpotlightsTeaser({ spotlights, variant = 'main' }: Props) {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   const isSidebar = variant === 'sidebar'
 
   return (
@@ -49,7 +54,7 @@ export function CommunitySpotlightsTeaser({ spotlights, variant = 'main' }: Prop
         <div className="flex items-center gap-2 mb-4">
           <Users className="h-4 w-4 text-secondary" />
           <h3 className="text-base font-bold text-foreground leading-tight">
-            The Faces of the River Region
+            The Faces of {regionPhrase}
           </h3>
         </div>
       ) : (
@@ -60,7 +65,7 @@ export function CommunitySpotlightsTeaser({ spotlights, variant = 'main' }: Prop
               Community Spotlights
             </div>
             <h2 className="text-2xl md:text-3xl font-black text-foreground leading-tight">
-              The Faces of the River Region
+              The Faces of {regionPhrase}
             </h2>
           </div>
           <p className="text-sm text-muted-foreground max-w-xs">
@@ -120,7 +125,7 @@ export function CommunitySpotlightsTeaser({ spotlights, variant = 'main' }: Prop
         // earns its space when no spotlights have been published yet.
         <div className={isSidebar ? 'flex flex-col gap-2' : 'grid sm:grid-cols-2 gap-3'}>
           {[
-            { emoji: '🏆', label: 'Teacher of the Month',     desc: 'Nominate an outstanding River Region educator' },
+            { emoji: '🏆', label: 'Teacher of the Month',     desc: `Nominate an outstanding ${region} educator` },
             { emoji: '⭐', label: 'Student Achievement',       desc: 'Celebrate a student making a difference'       },
             { emoji: '❤️', label: 'Grands are the Greatest',  desc: 'Honor a grandparent who shapes your family'    },
             { emoji: '💬', label: 'Mom to Mom',                desc: 'Share a story from one local mom to another'   },

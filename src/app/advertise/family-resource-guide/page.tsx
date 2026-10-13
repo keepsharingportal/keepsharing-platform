@@ -1,13 +1,22 @@
 import type { Metadata } from 'next'
+import { chromeForBrand } from '@/lib/brands'
+import { theRegion, townPhrase } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowRight, Check, BookOpen, Heart, Sparkles, MapPin, Users, ShoppingBag, Star } from 'lucide-react'
 import { LeadCaptureForm } from '@/components/advertise/LeadCaptureForm'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 
-export const metadata: Metadata = {
-  title: 'Get Listed in the Family Resource Guide — River Region Parents',
-  description: 'Reach thousands of River Region families every month. Get your business listed in the Family Resource Guide — the trusted local directory for parents in Montgomery, Prattville, Pike Road, and the River Region.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
+  return {
+    title: `Get Listed in the Family Resource Guide — ${brandName}`,
+    description: `Reach thousands of ${region} families every month. Get your business listed in the Family Resource Guide — the trusted local directory for parents in ${townPhrase(market)}.`,
+  }
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -94,7 +103,12 @@ const TIERS = [
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function FRGAdvertisePage() {
+export default async function FRGAdvertisePage() {
+  const frgPhone = chromeForBrand((await loadBrandContext()).brand).contactPhone
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   return (
     <div style={{ backgroundColor: cream, minHeight: '100vh', fontFamily: 'var(--font-dm-sans, sans-serif)' }}>
 
@@ -116,13 +130,13 @@ export default function FRGAdvertisePage() {
       <div style={{ backgroundColor: navy, color: 'white', padding: '72px 24px 64px' }}>
         <div style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ display: 'inline-block', backgroundColor: 'rgba(196,98,45,0.25)', border: '1px solid rgba(196,98,45,0.4)', borderRadius: 100, padding: '6px 18px', fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#f5c4a4', marginBottom: 28 }}>
-            River Region Parents · Family Resource Guide
+            {brandName} · Family Resource Guide
           </div>
           <h1 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 20 }}>
             Reach the Families<br />Who Are Looking for You
           </h1>
           <p style={{ fontSize: 18, lineHeight: 1.7, color: 'rgba(255,255,255,0.75)', marginBottom: 36, maxWidth: 580, margin: '0 auto 36px' }}>
-            The Family Resource Guide is how River Region parents find schools, childcare, doctors, activities, and local businesses they can trust. Get your business in front of them.
+            The Family Resource Guide is how {region} parents find schools, childcare, doctors, activities, and local businesses they can trust. Get your business in front of them.
           </p>
           <a
             href="#get-listed"
@@ -139,7 +153,7 @@ export default function FRGAdvertisePage() {
         <div style={{ padding: '64px 0 0' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
             {[
-              { number: '15,000+', label: 'Monthly readers across the River Region' },
+              { number: '15,000+', label: `Monthly readers across ${regionPhrase}` },
               { number: '11',      label: 'Directory categories covering family life' },
               { number: 'Year-round', label: 'Digital discovery — not just one issue' },
               { number: 'Print + Digital', label: 'Combined reach for maximum visibility' },
@@ -212,7 +226,7 @@ export default function FRGAdvertisePage() {
               Year-Round Discovery, Not Just a One-Time Ad
             </h2>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, maxWidth: 560 }}>
-              The Family Resource Guide lives online 365 days a year — searchable, browsable, and updated continuously. Featured and Enhanced listings also appear in our annual print edition, distributed to thousands of River Region families through schools, pediatric offices, and community hubs.
+              The Family Resource Guide lives online 365 days a year — searchable, browsable, and updated continuously. Featured and Enhanced listings also appear in our annual print edition, distributed to thousands of {region} families through schools, pediatric offices, and community hubs.
             </p>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[
@@ -258,7 +272,7 @@ export default function FRGAdvertisePage() {
                   Prefer to talk first?
                 </p>
                 <p style={{ fontSize: 14, color: navy, fontWeight: 600 }}>Jason Watson</p>
-                <p style={{ fontSize: 13, color: muted }}>River Region Parents · (334) 328-5189</p>
+                <p style={{ fontSize: 13, color: muted }}>{brandName}{frgPhone ? ` · ${frgPhone}` : ''}</p>
               </div>
             </div>
 

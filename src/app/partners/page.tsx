@@ -1,16 +1,23 @@
 import type { Metadata } from 'next'
+import { chromeForBrand } from '@/lib/brands'
+import type { MarketDef } from '@/lib/markets'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { LeadCaptureForm } from '@/components/advertise/LeadCaptureForm'
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const region       = market.regionLabel
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       'Partner With Us — Family Discovery Ecosystem',
-    description: 'River Region Parents is the trusted family discovery ecosystem — print magazine, digital guides, editorial features, events, social, and email. Reach parents actively planning the next thing for their families.',
+    description: `${brandName} is the trusted family discovery ecosystem — print magazine, digital guides, editorial features, events, social, and email. Reach parents actively planning the next thing for their families.`,
     path:        '/partners',
     type:        'website',
-    keywords:    ['advertise River Region', 'family marketing Montgomery', 'parent advertising', 'local business sponsorship'],
+    keywords:    [`advertise ${region}`, `family marketing ${market.city}`, 'parent advertising', 'local business sponsorship'],
   })
 }
 
@@ -25,88 +32,111 @@ const sans  = 'var(--font-dm-sans, sans-serif)'
 
 // ── Static data ───────────────────────────────────────────────────────────────
 
-const GUIDES = [
-  { emoji: '🏡', name: 'Family Resource Guide',  slug: 'family-resource-guide',  desc: 'The anchor guide — schools, childcare, health, activities, and services for River Region families.' },
-  { emoji: '📚', name: 'Private School Guide',    slug: 'private-school-guide',   desc: 'Every private and parochial K–12 option in the region. Families research here before they tour.' },
-  { emoji: '⛺', name: 'Summer Camp Guide',       slug: 'summer-camp-guide',      desc: 'Day camps, overnight camps, and specialty programs. Registration decisions happen here.' },
-  { emoji: '🧸', name: 'Childcare Guide',         slug: 'childcare-guide',        desc: 'Licensed centers, home care, and preschool programs. Waitlists start here.' },
-  { emoji: '🩺', name: 'Healthy Kids Guide',      slug: 'healthy-kids-guide',     desc: 'Pediatricians, dentists, specialists, and family health providers.' },
-  { emoji: '☀️', name: 'Summer Fun Guide',        slug: 'summer-fun-guide',       desc: 'Activities, splash pads, festivals, and adventures. The summer planning resource.' },
-  { emoji: '🎂', name: 'Birthday Party Guide',    slug: 'birthday-party-guide',   desc: 'Venues, entertainers, cakes, and rentals. Booked months in advance by local moms.' },
-  { emoji: '🎨', name: 'After-School Guide',      slug: 'afterschool-guide',      desc: 'Programs that fill weekday afternoons with art, sports, music, and learning.' },
-  { emoji: '💙', name: 'Special Needs Guide',     slug: 'special-needs-guide',    desc: 'Resources, providers, and organizations supporting families navigating special needs.' },
-]
+const GUIDES = (market: MarketDef) => {
+  const region       = market.regionLabel
+  return [
+    { emoji: '🏡', name: 'Family Resource Guide',  slug: 'family-resource-guide',  desc: `The anchor guide — schools, childcare, health, activities, and services for ${region} families.` },
+    { emoji: '📚', name: 'Private School Guide',    slug: 'private-school-guide',   desc: 'Every private and parochial K–12 option in the region. Families research here before they tour.' },
+    { emoji: '⛺', name: 'Summer Camp Guide',       slug: 'summer-camp-guide',      desc: 'Day camps, overnight camps, and specialty programs. Registration decisions happen here.' },
+    { emoji: '🧸', name: 'Childcare Guide',         slug: 'childcare-guide',        desc: 'Licensed centers, home care, and preschool programs. Waitlists start here.' },
+    { emoji: '🩺', name: 'Healthy Kids Guide',      slug: 'healthy-kids-guide',     desc: 'Pediatricians, dentists, specialists, and family health providers.' },
+    { emoji: '☀️', name: 'Summer Fun Guide',        slug: 'summer-fun-guide',       desc: 'Activities, splash pads, festivals, and adventures. The summer planning resource.' },
+    { emoji: '🎂', name: 'Birthday Party Guide',    slug: 'birthday-party-guide',   desc: 'Venues, entertainers, cakes, and rentals. Booked months in advance by local moms.' },
+    { emoji: '🎨', name: 'After-School Guide',      slug: 'afterschool-guide',      desc: 'Programs that fill weekday afternoons with art, sports, music, and learning.' },
+    { emoji: '💙', name: 'Special Needs Guide',     slug: 'special-needs-guide',    desc: 'Resources, providers, and organizations supporting families navigating special needs.' },
+  ]
+}
 
-const JOURNEY = [
-  { step: '01', surface: 'Print Magazine', action: 'A mom picks up the River Region Parents magazine at her pediatrician\'s office. She sees your business name in the guide section — the first impression, in a context she already trusts.' },
-  { step: '02', surface: 'Digital Guide', action: 'Three weeks later, she\'s actively searching for options in your category. She opens the digital guide. Your listing is featured at the top. She reads your editorial description.' },
-  { step: '03', surface: 'Editorial Article', action: 'She finds a River Region Parents article on exactly what you offer. Your business is mentioned or linked. The editorial context signals credibility — this is a recommendation, not an ad.' },
-  { step: '04', surface: 'Social Media', action: 'She sees a River Region Parents post featuring your business on Instagram. Her friend comments "we love them." She screenshots it. She already knows your name.' },
-  { step: '05', surface: 'Newsletter', action: 'Tuesday morning — she gets the River Region Parents newsletter in her inbox. Your category is featured. She clicks through. She bookmarks your listing page.' },
-  { step: '06', surface: 'She Calls', action: 'She\'s ready. She\'s not cold. She\'s not a stranger. She\'s a River Region mom who has encountered your business five times across platforms she already trusts. She calls — and she already knows she wants you.' },
-]
+const JOURNEY = (market: MarketDef) => {
+  const brandName    = market.displayName
+  const region       = market.regionLabel
+  return [
+    { step: '01', surface: 'Print Magazine', action: `A mom picks up the ${brandName} magazine at her pediatrician's office. She sees your business name in the guide section — the first impression, in a context she already trusts.` },
+    { step: '02', surface: 'Digital Guide', action: 'Three weeks later, she\'s actively searching for options in your category. She opens the digital guide. Your listing is featured at the top. She reads your editorial description.' },
+    { step: '03', surface: 'Editorial Article', action: `She finds a ${brandName} article on exactly what you offer. Your business is mentioned or linked. The editorial context signals credibility — this is a recommendation, not an ad.` },
+    { step: '04', surface: 'Social Media', action: `She sees a ${brandName} post featuring your business on Instagram. Her friend comments "we love them." She screenshots it. She already knows your name.` },
+    { step: '05', surface: 'Newsletter', action: `Tuesday morning — she gets the ${brandName} newsletter in her inbox. Your category is featured. She clicks through. She bookmarks your listing page.` },
+    { step: '06', surface: 'She Calls', action: `She's ready. She's not cold. She's not a stranger. She's a ${region} mom who has encountered your business five times across platforms she already trusts. She calls — and she already knows she wants you.` },
+  ]
+}
 
-const LADDER = [
-  {
-    tier: 'Directory Listing',
-    tagline: 'Be found when families search.',
-    features: ['Name, phone, website, category', 'Listed across relevant guides', 'Entry into the trusted ecosystem'],
-    accent: '#888',
-    bg: '#f7f7f7',
-    border: 'rgba(0,0,0,0.08)',
-  },
-  {
-    tier: 'Guide Partner',
-    tagline: 'A real presence. A real impression.',
-    features: ['Hero photo + editorial description written by our team', 'Featured placement in your guide category', 'Send-a-message form — leads delivered to your inbox', 'River Region Parents Partner badge for your website', 'Year-round digital presence across guide ecosystems'],
-    accent: N,
-    bg: W,
-    border: 'rgba(26,39,68,0.15)',
-  },
-  {
-    tier: 'Ecosystem Partner',
-    tagline: 'Consistent. Everywhere. Trusted.',
-    features: ['Everything in Guide Partner', 'Quarter-page print ad in 12 issues', 'Targeted social distribution to 10,000+ River Region moms monthly', 'Monthly newsletter feature mention', 'Local lead capture with email auto-response', 'Ad design fully handled by our team', 'Quarterly performance report'],
-    accent: T,
-    bg: '#fff8f5',
-    border: 'rgba(196,98,45,0.2)',
-    highlight: true,
-  },
-  {
-    tier: 'Category Sponsor',
-    tagline: 'Own your section. No competitors above you.',
-    features: ['"Presented By" credit in your guide category section header', 'Top placement — always above all other listings', 'Featured in guide hero when applicable', 'Category exclusivity — no competitor featured above you while you hold the position', 'Priority editorial inclusion for your category', 'One position available per category'],
-    accent: '#b8860b',
-    bg: N,
-    border: 'transparent',
-    dark: true,
-  },
-]
+const LADDER = (market: MarketDef) => {
+  const brandName    = market.displayName
+  const region       = market.regionLabel
+  return [
+    {
+      tier: 'Directory Listing',
+      tagline: 'Be found when families search.',
+      features: ['Name, phone, website, category', 'Listed across relevant guides', 'Entry into the trusted ecosystem'],
+      accent: '#888',
+      bg: '#f7f7f7',
+      border: 'rgba(0,0,0,0.08)',
+    },
+    {
+      tier: 'Guide Partner',
+      tagline: 'A real presence. A real impression.',
+      features: ['Hero photo + editorial description written by our team', 'Featured placement in your guide category', 'Send-a-message form — leads delivered to your inbox', `${brandName} Partner badge for your website`, 'Year-round digital presence across guide ecosystems'],
+      accent: N,
+      bg: W,
+      border: 'rgba(26,39,68,0.15)',
+    },
+    {
+      tier: 'Ecosystem Partner',
+      tagline: 'Consistent. Everywhere. Trusted.',
+      features: ['Everything in Guide Partner', 'Quarter-page print ad in 12 issues', `Targeted social distribution to 10,000+ ${region} moms monthly`, 'Monthly newsletter feature mention', 'Local lead capture with email auto-response', 'Ad design fully handled by our team', 'Quarterly performance report'],
+      accent: T,
+      bg: '#fff8f5',
+      border: 'rgba(196,98,45,0.2)',
+      highlight: true,
+    },
+    {
+      tier: 'Category Sponsor',
+      tagline: 'Own your section. No competitors above you.',
+      features: ['"Presented By" credit in your guide category section header', 'Top placement — always above all other listings', 'Featured in guide hero when applicable', 'Category exclusivity — no competitor featured above you while you hold the position', 'Priority editorial inclusion for your category', 'One position available per category'],
+      accent: '#b8860b',
+      bg: N,
+      border: 'transparent',
+      dark: true,
+    },
+  ]
+}
 
-const STATS = [
-  { number: '30+',   label: 'Years trusted in the River Region',  note: 'Since 1994' },
-  { number: '8,000+', label: 'Email subscribers every Tuesday',   note: 'River Region families' },
-  { number: '12,000+', label: 'Social media followers',           note: 'Facebook + Instagram' },
-  { number: '9',     label: 'Active guide ecosystems',            note: 'More launching in 2026' },
-]
+const STATS = (market: MarketDef) => {
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
+  return [
+    { number: '30+',   label: `Years trusted in ${regionPhrase}`,  note: 'Since 1994' },
+    { number: '8,000+', label: 'Email subscribers every Tuesday',   note: `${region} families` },
+    { number: '12,000+', label: 'Social media followers',           note: 'Facebook + Instagram' },
+    { number: '9',     label: 'Active guide ecosystems',            note: 'More launching in 2026' },
+  ]
+}
 
-const TESTIMONIALS = [
-  {
-    quote: 'We doubled our new patient inquiries in the first quarter. What surprised me most was how warm the leads were — these were moms who already trusted RRP, and that trust transferred to us immediately.',
-    name: 'Dr. Porcia Bradford Love',
-    title: 'Pediatric Healthcare, Montgomery',
-  },
-  {
-    quote: 'I\'ve advertised in a lot of places over 20 years of business. River Region Parents is the only one where I can actually trace new customers back to the platform. The ROI is real and it\'s consistent.',
-    name: 'Tommy McKinnon',
-    title: 'Family Restaurant Owner, Prattville',
-  },
-  {
-    quote: 'What I didn\'t expect was how much they helped me shape the offer itself. My original idea was generic. They pushed me to make it specific, and it completely changed how many people responded.',
-    name: 'Michael Chen',
-    title: 'Children\'s Fitness Studio, Pike Road',
-  },
-]
+const TESTIMONIALS = (market: MarketDef) => {
+  const brandName    = market.displayName
+  // These are River Region advertisers, by name and by town. Showing them on a
+  // sibling brand presents real people as endorsing a product they have never
+  // used, and swapping the town in would invent the quote outright. A brand
+  // without its own testimonials shows none.
+  if (market.slug !== 'rrp') return []
+  return [
+    {
+      quote: 'We doubled our new patient inquiries in the first quarter. What surprised me most was how warm the leads were — these were moms who already trusted RRP, and that trust transferred to us immediately.',
+      name: 'Dr. Porcia Bradford Love',
+      title: 'Pediatric Healthcare, Montgomery',
+    },
+    {
+      quote: `I've advertised in a lot of places over 20 years of business. ${brandName} is the only one where I can actually trace new customers back to the platform. The ROI is real and it's consistent.`,
+      name: 'Tommy McKinnon',
+      title: 'Family Restaurant Owner, Prattville',
+    },
+    {
+      quote: 'What I didn\'t expect was how much they helped me shape the offer itself. My original idea was generic. They pushed me to make it specific, and it completely changed how many people responded.',
+      name: 'Michael Chen',
+      title: 'Children\'s Fitness Studio, Pike Road',
+    },
+  ]
+}
 
 const OPEN_CATEGORIES = [
   'Pediatricians', 'Mom Wellness', 'Sports & Recreation', 'Shopping', 'Family Services',
@@ -115,7 +145,13 @@ const OPEN_CATEGORIES = [
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function PartnersPage() {
+export default async function PartnersPage() {
+  const partnersPhone = chromeForBrand((await loadBrandContext()).brand).contactPhone
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
+  const RegionPhrase = theRegion(market, true)
+  const region       = market.regionLabel
   return (
     <div style={{ backgroundColor: C, color: '#3a2c1e', fontFamily: sans }}>
 
@@ -126,7 +162,7 @@ export default function PartnersPage() {
 
         <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <div style={{ display: 'inline-block', backgroundColor: 'rgba(196,98,45,0.2)', border: '1px solid rgba(196,98,45,0.4)', borderRadius: 100, padding: '6px 20px', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#f5c4a4', marginBottom: 32 }}>
-            River Region Parents · Partner Overview
+            {brandName} · Partner Overview
           </div>
 
           <h1 style={{ fontFamily: serif, fontSize: 'clamp(36px, 6vw, 68px)', fontWeight: 900, color: W, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: 28 }}>
@@ -136,7 +172,7 @@ export default function PartnersPage() {
 
           <p style={{ fontSize: 'clamp(16px, 2vw, 20px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.75, maxWidth: 660, margin: '0 auto 40px' }}>
             They discover. They search. They compare. They revisit. They ask friends. They come back.
-            River Region Parents is where that entire journey happens — across print, digital guides,
+            {brandName} is where that entire journey happens — across print, digital guides,
             editorial content, events, social media, and email.
           </p>
 
@@ -180,7 +216,7 @@ export default function PartnersPage() {
         </div>
       </section>
 
-      {/* ── 2. THE FAMILY DISCOVERY JOURNEY ──────────────────────────────── */}
+      {/* ── 2. THE FAMILY DISCOVERY JOURNEY(market) ──────────────────────────────── */}
       <section style={{ backgroundColor: W, padding: '96px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 64 }}>
@@ -195,7 +231,7 @@ export default function PartnersPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {JOURNEY.map((j, i) => (
+            {JOURNEY(market).map((j, i) => (
               <div
                 key={j.step}
                 style={{
@@ -203,20 +239,20 @@ export default function PartnersPage() {
                   gridTemplateColumns: '80px 1fr',
                   gap: 24,
                   padding: '28px 0',
-                  borderBottom: i < JOURNEY.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
+                  borderBottom: i < JOURNEY(market).length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
                   alignItems: 'start',
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 52, height: 52, borderRadius: '50%', backgroundColor: i === JOURNEY.length - 1 ? T : N, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: '50%', backgroundColor: i === JOURNEY(market).length - 1 ? T : N, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <span style={{ fontFamily: serif, fontSize: 15, fontWeight: 900, color: W }}>{j.step}</span>
                   </div>
-                  {i < JOURNEY.length - 1 && (
+                  {i < JOURNEY(market).length - 1 && (
                     <div style={{ width: 2, height: 28, backgroundColor: 'rgba(0,0,0,0.08)' }} />
                   )}
                 </div>
                 <div style={{ paddingTop: 12 }}>
-                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: i === JOURNEY.length - 1 ? T : N, marginBottom: 6 }}>{j.surface}</p>
+                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: i === JOURNEY(market).length - 1 ? T : N, marginBottom: 6 }}>{j.surface}</p>
                   <p style={{ fontSize: 16, color: '#444', lineHeight: 1.7 }}>{j.action}</p>
                 </div>
               </div>
@@ -227,7 +263,7 @@ export default function PartnersPage() {
             <p style={{ fontFamily: serif, fontSize: 20, fontWeight: 700, color: N, lineHeight: 1.4, marginBottom: 8 }}>
               &ldquo;When your business appears across five platforms the family already trusts, the call isn&apos;t a cold contact. It&apos;s an introduction they&apos;ve already made.&rdquo;
             </p>
-            <p style={{ fontSize: 13, color: '#888', fontWeight: 600 }}>River Region Parents</p>
+            <p style={{ fontSize: 13, color: '#888', fontWeight: 600 }}>{brandName}</p>
           </div>
         </div>
       </section>
@@ -241,13 +277,13 @@ export default function PartnersPage() {
               Nine Discovery Layers.<br />Every One a Place Families Look.
             </h2>
             <p style={{ fontSize: 16, color: '#666', lineHeight: 1.7, maxWidth: 580, margin: '0 auto' }}>
-              Each guide is a curated, searchable, trusted directory where River Region families
+              Each guide is a curated, searchable, trusted directory where {region} families
               actively look for businesses in your category. Your listing lives inside each one that&apos;s relevant to you.
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-            {GUIDES.map(g => (
+            {GUIDES(market).map(g => (
               <div key={g.slug} style={{ backgroundColor: W, border: '1px solid rgba(0,0,0,0.07)', borderRadius: 18, padding: '22px 22px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
                   <div style={{ width: 42, height: 42, borderRadius: 10, backgroundColor: `rgba(196,98,45,0.08)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
@@ -277,7 +313,7 @@ export default function PartnersPage() {
         </div>
       </section>
 
-      {/* ── 4. VISIBILITY LADDER ─────────────────────────────────────────── */}
+      {/* ── 4. VISIBILITY LADDER(market) ─────────────────────────────────────────── */}
       <section id="visibility" style={{ backgroundColor: N, padding: '96px 24px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 64 }}>
@@ -292,7 +328,7 @@ export default function PartnersPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {LADDER.map((tier, i) => (
+            {LADDER(market).map((tier, i) => (
               <div
                 key={tier.tier}
                 style={{
@@ -349,14 +385,14 @@ export default function PartnersPage() {
               <div style={{ width: 40, height: 3, backgroundColor: T, borderRadius: 2, marginBottom: 24 }} />
               <p style={{ fontSize: 15, color: '#5a4a3e', lineHeight: 1.8, marginBottom: 16 }}>
                 Marketing research has shown for decades that people need 7 or more exposures to a brand before they act on it.
-                In a city the size of Montgomery, that familiarity is everything.
+                In a city the size of {market.city}, that familiarity is everything.
               </p>
               <p style={{ fontSize: 15, color: '#5a4a3e', lineHeight: 1.8, marginBottom: 16 }}>
-                The businesses that win in the River Region are the ones that mothers recognize — not because they saw one ad,
+                The businesses that win in {regionPhrase} are the ones that mothers recognize — not because they saw one ad,
                 but because they&apos;ve encountered the name in the magazine, the guide, the newsletter, and their friend&apos;s group chat.
               </p>
               <p style={{ fontSize: 15, fontWeight: 700, color: N, lineHeight: 1.7 }}>
-                Being inside River Region Parents means being inside the conversation River Region moms are already having — before families even know they need you.
+                Being inside {brandName} means being inside the conversation {region} moms are already having — before families even know they need you.
               </p>
             </div>
 
@@ -466,7 +502,7 @@ export default function PartnersPage() {
 
           {/* Stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 64 }}>
-            {STATS.map(s => (
+            {STATS(market).map(s => (
               <div key={s.label} style={{ backgroundColor: W, border: '1px solid rgba(0,0,0,0.07)', borderRadius: 18, padding: '28px 20px', textAlign: 'center' }}>
                 <p style={{ fontFamily: serif, fontSize: 40, fontWeight: 900, color: N, lineHeight: 1, marginBottom: 8 }}>{s.number}</p>
                 <p style={{ fontSize: 13, color: '#555', lineHeight: 1.4, fontWeight: 500 }}>{s.label}</p>
@@ -477,7 +513,7 @@ export default function PartnersPage() {
 
           {/* Testimonials */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-            {TESTIMONIALS.map(t => (
+            {TESTIMONIALS(market).map(t => (
               <div key={t.name} style={{ backgroundColor: W, border: '1px solid rgba(0,0,0,0.07)', borderRadius: 20, padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <p style={{ fontSize: 13, color: T, fontWeight: 700 }}>&ldquo;</p>
                 <p style={{ fontSize: 15, color: '#3a2c1e', lineHeight: 1.75, fontStyle: 'italic', flex: 1 }}>{t.quote}&rdquo;</p>
@@ -493,7 +529,7 @@ export default function PartnersPage() {
           <div style={{ textAlign: 'center', marginTop: 56 }}>
             <div style={{ display: 'inline-block', padding: '20px 36px', borderRadius: 100, backgroundColor: N }}>
               <p style={{ fontFamily: serif, fontSize: 17, fontWeight: 700, color: W, fontStyle: 'italic' }}>
-                The River Region&apos;s most trusted family media network since 1994.
+                {RegionPhrase}&apos;s most trusted family media network since 1994.
               </p>
             </div>
           </div>
@@ -505,9 +541,9 @@ export default function PartnersPage() {
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
             {[
-              { title: 'You Don\'t Need to Understand Marketing.', body: 'We\'ve been doing this for 30 years. We know what makes a River Region mom notice something, trust it, and act on it. We design the approach. You serve the customers it brings.' },
+              { title: 'You Don\'t Need to Understand Marketing.', body: `We've been doing this for 30 years. We know what makes a ${region} mom notice something, trust it, and act on it. We design the approach. You serve the customers it brings.` },
               { title: 'You Stay Consistently Visible.', body: 'Most businesses disappear between campaigns. Partners are present every month — magazine, guides, digital, email, social. Families encounter you before they need you.' },
-              { title: 'Your Leads Arrive Warm.', body: 'When River Region Parents recommends you, 30 years of community credibility transfers. New leads know your name, trust the context, and convert faster.' },
+              { title: 'Your Leads Arrive Warm.', body: `When ${brandName} recommends you, 30 years of community credibility transfers. New leads know your name, trust the context, and convert faster.` },
             ].map(c => (
               <div key={c.title} style={{ padding: '28px 24px', backgroundColor: C, borderRadius: 18, border: '1px solid rgba(0,0,0,0.06)' }}>
                 <h3 style={{ fontFamily: serif, fontSize: 18, fontWeight: 700, color: N, marginBottom: 12, lineHeight: 1.3 }}>{c.title}</h3>
@@ -575,7 +611,7 @@ export default function PartnersPage() {
               <div style={{ padding: '18px 20px', backgroundColor: W, borderRadius: 14, border: '1px solid rgba(0,0,0,0.07)' }}>
                 <p style={{ fontSize: 12, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Prefer to talk first?</p>
                 <p style={{ fontSize: 15, fontWeight: 600, color: N }}>Jason Watson</p>
-                <p style={{ fontSize: 13, color: '#888' }}>River Region Parents · (334) 328-5189</p>
+                <p style={{ fontSize: 13, color: '#888' }}>{brandName}{partnersPhone ? ` · ${partnersPhone}` : ''}</p>
               </div>
             </div>
 

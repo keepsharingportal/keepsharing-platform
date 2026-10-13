@@ -3,6 +3,7 @@
 // status='pending' for editor moderation.
 
 import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { ShareYourPartyClient } from './ShareYourPartyClient'
@@ -10,7 +11,9 @@ import { ShareYourPartyClient } from './ShareYourPartyClient'
 export const metadata: Metadata = { title: 'Share your party — The Big Birthday Bash' }
 export const dynamic = 'force-dynamic'
 
-export default function ShareYourPartyPage() {
+export default async function ShareYourPartyPage() {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return (
     <main className="bg-[#fffaf5] min-h-screen">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
@@ -21,7 +24,7 @@ export default function ShareYourPartyPage() {
           Share your kid&apos;s last birthday
         </h1>
         <p className="text-[14px] text-slate-600 mt-3 leading-relaxed">
-          Photos + a couple sentences. We feature submissions on the Real River Region Parties wall after a quick editor review.
+          Photos + a couple sentences. We feature submissions on the Real {region} Parties wall after a quick editor review.
           Your email is for follow-up only — never displayed.
         </p>
         <div className="mt-8">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy } from '@/components/BrandCopyProvider'
 import { Send, Check } from 'lucide-react'
 
 export function SuggestForm({ brandSlug }: { brandSlug: string }) {
@@ -128,7 +129,7 @@ export function SuggestForm({ brandSlug }: { brandSlug: string }) {
           <input
             value={city}
             onChange={e => setCity(e.target.value)}
-            placeholder="Montgomery, Auburn, etc."
+            placeholder={`${city}, etc.`}
             className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:border-primary"
           />
         </div>

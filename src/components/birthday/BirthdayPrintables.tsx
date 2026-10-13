@@ -27,7 +27,7 @@ const CATEGORY_PILL: Record<string, string> = {
   sign:       'Signs',
 }
 
-export function BirthdayPrintables({ printables, brandSlug }: { printables: Array<Record<string, unknown>>; brandSlug: string }) {
+export function BirthdayPrintables({ printables, brandSlug, region }: { printables: Array<Record<string, unknown>>; brandSlug: string; region: string }) {
   const items: Printable[] = printables.map(p => ({
     id:          p.id as string,
     name:        p.name as string,
@@ -76,7 +76,7 @@ export function BirthdayPrintables({ printables, brandSlug }: { printables: Arra
       <SectionHeader
         eyebrow="Free downloads"
         title="Printables library"
-        kicker="Invitations, thank-you notes, banners — designed for River Region parties. Drop in your details, print, done."
+        kicker={`Invitations, thank-you notes, banners — designed for ${region} parties. Drop in your details, print, done.`}
       />
 
       {items.length === 0 ? (

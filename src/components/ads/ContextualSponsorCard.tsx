@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { ArrowRight } from 'lucide-react'
 import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 
@@ -67,7 +68,9 @@ export function ContextualSponsorCard({
 // Fallback "available" card shown when no real sponsor is booked.
 // Intentionally understated so it doesn't feel like an ad, but compelling enough
 // that advertisers who see it understand the opportunity.
-export function SponsorPlaceholder({ context = 'education' }: { context?: string }) {
+export async function SponsorPlaceholder({ context = 'education' }: { context?: string }) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const config: Record<string, { label: string; headline: string; desc: string; emoji: string }> = {
     education: {
       label:    'Education Partner',
@@ -77,7 +80,7 @@ export function SponsorPlaceholder({ context = 'education' }: { context?: string
     },
     summer: {
       label:    'Summer Sponsor',
-      headline: 'Be the go-to summer resource for River Region families',
+      headline: `Be the go-to summer resource for ${region} families`,
       desc:     'Summer camps, swim lessons, day programs, and activities. First-come, first-served.',
       emoji:    '☀️',
     },
@@ -89,7 +92,7 @@ export function SponsorPlaceholder({ context = 'education' }: { context?: string
     },
     family: {
       label:    'Family Partner',
-      headline: 'Put your business in front of River Region families',
+      headline: `Put your business in front of ${region} families`,
       desc:     'Family services, home, real estate, and community businesses.',
       emoji:    '🏠',
     },

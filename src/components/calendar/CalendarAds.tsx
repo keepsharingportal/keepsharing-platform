@@ -26,9 +26,15 @@ import type { ActiveAd } from '@/lib/get-active-ads'
 interface CalendarAdCardProps {
   placement: string
   ad?:       ActiveAd | null
+  /** Brand region phrase for the placeholder copy. This module is pulled
+   *  into the client bundle by CalendarClient, so it cannot read the brand
+   *  itself — the server page threads it down. Required on purpose: an
+   *  optional prop defaulting to "River Region" is the exact silent fallback
+   *  that put RRP copy on sibling brands. */
+  region:    string
 }
 
-export function CalendarAdCard({ placement, ad }: CalendarAdCardProps) {
+export function CalendarAdCard({ placement, ad, region }: CalendarAdCardProps) {
   if (ad?.ad_link) {
     return (
       <TrackedImpression adPlacementId={ad.id}>
@@ -85,7 +91,7 @@ export function CalendarAdCard({ placement, ad }: CalendarAdCardProps) {
       </div>
       <div className="p-5 flex flex-col flex-1">
         <p className="inline-flex items-center gap-1.5 text-sm font-bold text-primary mb-2">
-          Your Business, in Front of River Region Families
+          Your Business, in Front of {region} Families
         </p>
         <p className="text-sm text-muted-foreground leading-relaxed mb-5">
           The calendar reaches thousands of local parents every week. Get the media kit and put your event, class, or service here.
@@ -104,12 +110,14 @@ export function CalendarAdCard({ placement, ad }: CalendarAdCardProps) {
 // ── 2. Full-width sponsor banner ───────────────────────────────────────────
 
 interface SponsorAdBannerProps {
+  /** See CalendarAdCardProps.region — same reason, same requirement. */
+  region:    string
   placement: string
   variant?:  'tan' | 'coral'
   ad?:       ActiveAd | null
 }
 
-export function SponsorAdBanner({ placement, variant = 'tan', ad }: SponsorAdBannerProps) {
+export function SponsorAdBanner({ placement, variant = 'tan', ad, region }: SponsorAdBannerProps) {
   const bgClass = variant === 'tan'
     ? 'bg-[var(--fg-cream)] ring-amber-200'
     : 'bg-[var(--fg-terra-light)] ring-primary/15'
@@ -190,7 +198,7 @@ export function SponsorAdBanner({ placement, variant = 'tan', ad }: SponsorAdBan
           Sponsored Slot
         </p>
         <p className="text-base md:text-lg font-bold text-foreground leading-snug">
-          Reach River Region Families Where They&apos;re Already Looking.
+          Reach {region} Families Where They&apos;re Already Looking.
         </p>
         <p className="text-xs md:text-sm text-muted-foreground leading-relaxed mt-0.5">
           Calendar sponsorships put your business next to the events parents are actively planning around. Premium placement, brand-safe, hyperlocal.

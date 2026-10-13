@@ -3,6 +3,8 @@ import { Suspense } from 'react'
 import Script from 'next/script'
 import { ViewTracker } from '@/components/ViewTracker'
 import { loadBrandContext } from '@/lib/brand-context'
+import { BrandCopyProvider } from '@/components/BrandCopyProvider'
+import { theRegion } from '@/lib/brandify'
 import { chromeForBrand } from '@/lib/brands'
 import { newsMediaOrganizationJsonLd, websiteJsonLd, jsonLdScript } from '@/lib/seo/jsonld'
 import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
@@ -117,6 +119,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const ctx     = await loadBrandContext()
   const seoCfg  = getBrandSeoConfig(ctx.market, ctx.publicOrigin)
   const brandIcon = brandIconFor(ctx.market.slug, chromeForBrand(ctx.brand).logoUrl)
+  // Count each brand's traffic under its OWN domain. The env var is a single
+  // value for the whole deployment, so every brand's pageviews were landing in
+  // River Region's Plausible site. Falls back to the env var when a brand has
+  // no host (local dev).
+  const analyticsDomain = ctx.market.publicHost || plausibleDomain
   const orgLd   = newsMediaOrganizationJsonLd({
     name:                 seoCfg.organizationName,
     legalName:            seoCfg.legalName,
@@ -153,7 +160,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Script
             defer
             strategy="afterInteractive"
-            data-domain={plausibleDomain}
+            data-domain={analyticsDomain}
             src="https://plausible.io/js/script.tagged-events.outbound-links.js"
           />
         )}
@@ -217,7 +224,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Suspense fallback={null}>
           <ViewTracker />
         </Suspense>
-        {children}
+        {/* Brand wording for the client tree. Client components cannot call
+            loadBrandContext() (it imports server-only + next/headers), and
+            prop-threading it through every intermediate component does not
+            scale — NewsletterSignup alone has ten call sites. */}
+        <BrandCopyProvider
+          value={{
+            displayName:  ctx.market.displayName,
+            regionLabel:  ctx.market.regionLabel,
+            regionPhrase: theRegion(ctx.market),
+            city:         ctx.market.city,
+            state:        ctx.market.state,
+            contactEmail: chromeForBrand(ctx.brand).contactEmail,
+            contactPhone: chromeForBrand(ctx.brand).contactPhone,
+            towns:        ctx.market.serviceArea,
+            tenureClaim:  ctx.market.tenureClaim ?? null,
+            ownsTestimonials: ctx.market.slug === 'rrp',
+          }}
+        >
+          {children}
+        </BrandCopyProvider>
       </body>
     </html>
   )

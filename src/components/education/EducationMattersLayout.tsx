@@ -22,6 +22,7 @@
 //   Sidebar: Weekly Scoop / More Education Matters / Trending / Ad slot
 
 import Image from 'next/image'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import {
   ArrowRight, CalendarDays, Clock, Coffee, GraduationCap, MapPin,
@@ -79,7 +80,7 @@ export interface EducationMattersArticle {
   deck?:              string | null   // subtitle line under the title
   publishedLabel:     string          // e.g. "May 30, 2026"
   readTimeMinutes:    number
-  authorByline:       string          // "By River Region Parents" default
+  authorByline:       string          // `By ${brandName}` default
   focusOverride?:     string | null   // "This month's focus" for At a Glance
   monthLabel:         string          // "May 2026" — shown in At a Glance
   bodyHtml:           string          // sanitized HTML (paragraphs)
@@ -191,7 +192,9 @@ export function EducationMattersLayout({ article, district, superintendentProfil
 
 export { THEME as EDUCATION_THEME }
 
-export function EducationMattersLogo() {
+export async function EducationMattersLogo() {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   return (
     <div className="inline-flex flex-col">
       <div className="flex items-center gap-3">
@@ -201,7 +204,7 @@ export function EducationMattersLogo() {
             Education Matters
           </p>
           <p className="mt-2 text-xs font-black uppercase tracking-[0.14em]" style={{ color: THEME.teal }}>
-            Monthly Updates From Our River Region School Superintendents
+            Monthly Updates From Our {region} School Superintendents
           </p>
         </div>
       </div>

@@ -1,4 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import { Button } from '@/components/ui/button'
 import { MapPin } from 'lucide-react'
 
@@ -7,7 +9,9 @@ interface Props {
   listingCount: number
 }
 
-export function GuideMapCard({ guideName, listingCount }: Props) {
+export async function GuideMapCard({ guideName, listingCount }: Props) {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
   return (
     <Card className="overflow-hidden">
       <div className="relative aspect-[4/3] bg-secondary/10 flex items-center justify-center">
@@ -16,7 +20,7 @@ export function GuideMapCard({ guideName, listingCount }: Props) {
           <p className="text-sm text-muted-foreground font-medium">
             {listingCount} {guideName} locations
           </p>
-          <p className="text-xs text-muted-foreground mt-1">across the River Region</p>
+          <p className="text-xs text-muted-foreground mt-1">across {regionPhrase}</p>
         </div>
       </div>
       <CardContent className="p-4">

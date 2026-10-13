@@ -57,6 +57,11 @@ export interface BrandChrome {
   backgroundColorHex: string
   foregroundColorHex: string
   contactEmail:     string | null
+  /** Public sales/contact phone, or null. Same rule as contactEmail: a
+   *  hardcoded number put River Region's line on every brand's sales
+   *  pages. No DB column yet — set a brand's number below until one
+   *  exists, and show nothing rather than someone else's line. */
+  contactPhone:     string | null
   socialFacebook:   string | null
   socialInstagram:  string | null
   /** Column slugs to feature in the homepage rotation block. */
@@ -113,6 +118,9 @@ export function chromeForBrand(brand: Brand): BrandChrome {
     contactEmail:            v?.contact_email ?? (
       slug === 'rrp'      ? 'hello@riverregionparents.com' :
       slug === 'rr50plus' ? 'hello@riverregion50plus.com'  : null),
+    contactPhone:            (
+      slug === 'rrp'      ? '(334) 328-5189' :
+      slug === 'rr50plus' ? '(334) 328-5189' : null),
     socialFacebook:          v?.social_facebook           ?? null,
     socialInstagram:         v?.social_instagram          ?? null,
     homepageRotationColumns: v?.homepage_rotation_columns ?? D.rotation,

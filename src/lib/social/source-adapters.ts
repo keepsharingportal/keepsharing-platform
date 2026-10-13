@@ -9,6 +9,8 @@
 // loadPayload(sb, sourceId): Promise<SocialPayload>.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import { MARKETS } from '@/lib/markets'
 
 export interface SocialPayload {
@@ -119,13 +121,16 @@ export async function loadEventPayload(
 export async function loadGuidePayload(
   _sb: SupabaseClient, guideSlug: string, brandSlug: string | null = 'rrp',
 ): Promise<SocialPayload | null> {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   const origin = originForBrand(brandSlug)
   // Guides are code-defined. Best-effort metadata.
   const titles: Record<string, { title: string; excerpt: string }> = {
-    'family-resource-guide':  { title: 'Family Resource Guide',  excerpt: 'Your one-stop directory for everything River Region families need.' },
+    'family-resource-guide':  { title: 'Family Resource Guide',  excerpt: `Your one-stop directory for everything ${region} families need.` },
     'summer-fun-guide':       { title: 'Summer Fun Guide',       excerpt: 'Camps, day trips, activities, and ideas for families this summer.' },
     'special-needs-guide':    { title: 'Special Needs Guide',    excerpt: 'Resources, therapists, support groups, and family services.' },
-    'summer-camp-guide':      { title: 'Summer Camp Guide',      excerpt: 'Every summer camp in the River Region, with dates, ages, and pricing.' },
+    'summer-camp-guide':      { title: 'Summer Camp Guide',      excerpt: `Every summer camp in ${regionPhrase}, with dates, ages, and pricing.` },
   }
   const meta = titles[guideSlug]
   if (!meta) return null
@@ -168,12 +173,14 @@ export async function loadSchoolBitPayload(
 export async function loadCtaPayload(
   _sb: SupabaseClient, ctaId: string, brandSlug: string | null = 'rrp',
 ): Promise<SocialPayload | null> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const origin = originForBrand(brandSlug)
   const CTAS: Record<string, { title: string; excerpt: string; path: string }> = {
-    'newsletter': { title: 'Get the weekly River Region Parents newsletter',
+    'newsletter': { title: `Get the weekly ${brandName} newsletter`,
                     excerpt: 'Local family events, must-read articles, and exclusive offers — every Tuesday.',
                     path:    '/subscribe' },
-    'advertise':  { title: 'Advertise with River Region Parents',
+    'advertise':  { title: `Advertise with ${brandName}`,
                     excerpt: 'Reach 50,000+ engaged local families per month. Print + digital + social.',
                     path:    '/advertise' },
     'submit':     { title: 'Submit a story or nominate someone',

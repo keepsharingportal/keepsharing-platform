@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Check, ShieldCheck } from 'lucide-react'
@@ -127,6 +128,7 @@ function UpgradeForm() {
 }
 
 export default function UpgradePage() {
+  const { displayName: brandName } = useBrandCopy()
   return (
     <div className="min-h-screen bg-gray-50 px-5 py-10">
       <div className="max-w-2xl mx-auto">
@@ -138,7 +140,7 @@ export default function UpgradePage() {
           {/* Left: what you get */}
           <div>
             <div className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-2">
-              River Region Parents
+              {brandName}
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Upgrade to Enhanced Listing

@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
@@ -15,13 +17,15 @@ import type { Metadata } from 'next'
 export const revalidate = 3600
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       'Local Guides',
-    description: 'River Region\'s family-first guide library — schools, childcare, summer camps, healthy kids, special needs, newcomers, after-school, and more. Local. Real. Updated weekly.',
+    description: `${region}'s family-first guide library — schools, childcare, summer camps, healthy kids, special needs, newcomers, after-school, and more. Local. Real. Updated weekly.`,
     path:        '/local-guides',
     type:        'website',
-    keywords:    ['River Region guides', 'family resources', 'Montgomery guides', 'local directories'],
+    keywords:    [`${region} guides`, 'family resources', `${market.city} guides`, 'local directories'],
   })
 }
 
@@ -106,6 +110,9 @@ async function getData() {
 }
 
 export default async function LocalGuidesPage() {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
   const { guides, featured } = await getData()
 
   return (
@@ -114,7 +121,7 @@ export default async function LocalGuidesPage() {
 
       <PageHeader
         title="Community Guides"
-        subtitle="Your comprehensive directories for everything family-related in the River Region. Curated, trusted, and always up-to-date."
+        subtitle={`Your comprehensive directories for everything family-related in ${regionPhrase}. Curated, trusted, and always up-to-date.`}
         badge={{ text: 'Local Resources', variant: 'secondary' }}
         variant="cream"
         align="center"
@@ -223,7 +230,7 @@ export default async function LocalGuidesPage() {
               <BookOpen className="h-10 w-10 text-primary mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-foreground mb-2">Get your business listed</h3>
               <p className="text-muted-foreground mb-6">
-                Reach thousands of River Region families searching in our local guides.
+                Reach thousands of {region} families searching in our local guides.
               </p>
               <Button asChild className="rounded-full">
                 <Link href="/advertise">Learn About Partnerships →</Link>

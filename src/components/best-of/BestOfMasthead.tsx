@@ -7,6 +7,7 @@
 // Optional right-aligned action slot for "View All Lists" or similar.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import type { ReactNode } from 'react'
 import { ArrowRight } from 'lucide-react'
 
@@ -21,7 +22,9 @@ interface Props {
   size?:     'default' | 'large'
 }
 
-export function BestOfMasthead({ subtitle, action, size = 'default' }: Props) {
+export async function BestOfMasthead({ subtitle, action, size = 'default' }: Props) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const wordmarkCls = size === 'large'
     ? 'text-6xl sm:text-7xl md:text-8xl'
     : 'text-5xl sm:text-6xl md:text-7xl'
@@ -39,7 +42,7 @@ export function BestOfMasthead({ subtitle, action, size = 'default' }: Props) {
           BEST <span className={`font-light italic text-muted-foreground align-baseline ${ofCls}`}>of</span>
         </h2>
         <p className="text-base md:text-lg font-bold tracking-wide italic mt-0.5">
-          <span className="text-foreground">for River Region </span>
+          <span className="text-foreground">for {region} </span>
           <span className="text-primary not-italic">Families</span>
         </p>
         {subtitle && (

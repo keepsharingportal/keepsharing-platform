@@ -14,7 +14,8 @@
 // formal acceptance.
 
 import { createClient } from '@supabase/supabase-js'
-import { loadBrandContext } from '@/lib/brand-context'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 
 export const runtime = 'nodejs'
 export const revalidate = 600  // refresh every 10 minutes (news cadence)
@@ -36,6 +37,7 @@ function xmlEscape(s: string): string {
 }
 
 export async function GET() {
+  const brandSlug = (await currentBrandSlug()) ?? 'rrp'
   const ctx      = await loadBrandContext()
   const origin   = ctx.publicOrigin.replace(/\/$/, '')
   const pubName  = ctx.market.displayName
@@ -48,6 +50,7 @@ export async function GET() {
     .from('guide_articles')
     .select('column_slug, slug, title, published_at, dek, excerpt')
     .eq('published', true)
+    .or(articleBrandFilter(brandSlug))
     .gte('published_at', cutoff)
     .order('published_at', { ascending: false })
     .limit(1000)

@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import { use } from 'react'
 import { ArrowRight, RefreshCw, Check, Mail } from 'lucide-react'
 
 export default function PartnerLoginPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { displayName: brandName } = useBrandCopy()
   const { slug } = use(params)
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
@@ -40,7 +42,7 @@ export default function PartnerLoginPage({ params }: { params: Promise<{ slug: s
         {/* Logo/header */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <p style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 22, fontWeight: 700, color: '#1a2744', marginBottom: 6 }}>
-            River Region Parents
+            {brandName}
           </p>
           <p style={{ fontSize: 13, color: '#888' }}>Partner Dashboard</p>
         </div>
@@ -63,7 +65,7 @@ export default function PartnerLoginPage({ params }: { params: Promise<{ slug: s
               Sign in to your dashboard
             </h2>
             <p style={{ fontSize: 13, color: '#888', marginBottom: 24 }}>
-              Enter the email on your River Region Parents account. We&apos;ll send you a sign-in link.
+              Enter the email on your {brandName} account. We&apos;ll send you a sign-in link.
             </p>
 
             <form onSubmit={sendLink} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

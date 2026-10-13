@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 
@@ -55,6 +56,8 @@ export async function GET(req: NextRequest) {
 
 // ── POST /api/bookings — create booking record + Stripe checkout session ──────
 export async function POST(req: NextRequest) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   try {
     const body = await req.json() as {
       publicationSlug: string
@@ -149,7 +152,7 @@ export async function POST(req: NextRequest) {
           currency:     'usd',
           unit_amount:  Math.round(monthlyRate * 100),
           product_data: {
-            name:        `${adSizeLabel} Page — River Region Parents`,
+            name:        `${adSizeLabel} Page — ${brandName}`,
             description: `${n} month${n !== 1 ? 's' : ''}: ${monthsLabel}`,
           },
         },

@@ -7,7 +7,7 @@
 
 import type { Metadata } from 'next'
 import { currentBrandSlug } from '@/lib/current-brand'
-import { articleBrandFilter } from '@/lib/brand-context'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
@@ -27,13 +27,15 @@ export const revalidate = 600
 // Region. buildPageMetadata resolves the brand and runs the copy through
 // brandifyCopy, an identity transform on RRP.
 export async function generateMetadata(): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       'Best Of',
-    description: 'The lists River Region families text to their friends. Best parks, sweet treats, day trips, and more — new lists added throughout the year.',
+    description: `The lists ${region} families text to their friends. Best parks, sweet treats, day trips, and more — new lists added throughout the year.`,
     path:        '/best-of',
     type:        'website',
-    keywords:    ['best of River Region', 'family favorites', 'local lists'],
+    keywords:    [`best of ${region}`, 'family favorites', 'local lists'],
   })
 }
 

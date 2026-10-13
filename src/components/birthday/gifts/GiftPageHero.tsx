@@ -2,10 +2,13 @@
 // Bucket color drives the gradient; copy is intro + count + reading time.
 
 import { Gift, ArrowLeft, Clock } from 'lucide-react'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import type { AgeBucket } from '@/lib/birthday/gift-guides'
 
-export function GiftPageHero({ bucket }: { bucket: AgeBucket }) {
+export async function GiftPageHero({ bucket }: { bucket: AgeBucket }) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const minutes = Math.max(3, Math.ceil(bucket.ideas.length * 0.4))
   return (
     <header
@@ -32,7 +35,7 @@ export function GiftPageHero({ bucket }: { bucket: AgeBucket }) {
               Ages {bucket.range} · {bucket.label}
             </p>
             <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-[1.1] mb-3">
-              {bucket.ideas.length} birthday gifts River Region parents stand behind
+              {bucket.ideas.length} birthday gifts {region} parents stand behind
             </h1>
             <p className="text-base md:text-lg text-slate-700 max-w-3xl leading-relaxed">
               {bucket.intro}

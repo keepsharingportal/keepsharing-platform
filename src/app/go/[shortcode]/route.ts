@@ -16,6 +16,7 @@
 // in one place — the short_links.click_count column.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
@@ -91,10 +92,10 @@ export async function GET(
       return handleVcard(row)
 
     case 'event':
-      return handleEvent(row)
+      return handleEvent(row, (await loadBrandContext()).market.displayName)
 
     case 'text':
-      return handleText(req, row)
+      return handleText(req, row, (await loadBrandContext()).market.displayName)
   }
 }
 
@@ -170,13 +171,13 @@ function handleVcard(row: LinkRow) {
 }
 
 // ── Event (.ics download) ────────────────────────────────────────────────────
-function handleEvent(row: LinkRow) {
+function handleEvent(row: LinkRow, brandName: string) {
   const d = (row.content_data ?? {}) as Record<string, string>
   const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//River Region Parents//QR//EN',
+    `PRODID:-//${brandName}//QR//EN`,
     'BEGIN:VEVENT',
     `DTSTART:${d.start ?? now}`,
     d.end ? `DTEND:${d.end}` : '',
@@ -200,14 +201,14 @@ function handleEvent(row: LinkRow) {
 }
 
 // ── Text (branded page) ──────────────────────────────────────────────────────
-function handleText(req: NextRequest, row: LinkRow) {
+function handleText(req: NextRequest, row: LinkRow, brandName: string) {
   const text = row.destination
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>River Region Parents</title>
+  <title>${brandName}</title>
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; color: #1a2744; background: #faf8f5; }
     .brand { color: #ef6442; font-weight: 800; font-size: 14px; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 24px; }
@@ -217,7 +218,7 @@ function handleText(req: NextRequest, row: LinkRow) {
   </style>
 </head>
 <body>
-  <div class="brand">River Region Parents</div>
+  <div class="brand">${brandName}</div>
   <div class="content">${escapeHtml(text)}</div>
   <div class="footer">
     <a href="${req.nextUrl.origin}">riverregionparents.com</a>

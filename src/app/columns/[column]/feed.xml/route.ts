@@ -6,7 +6,8 @@
 // <link rel="alternate"> in the column page head.
 
 import { createClient } from '@supabase/supabase-js'
-import { loadBrandContext } from '@/lib/brand-context'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 
 export const runtime = 'nodejs'
@@ -33,6 +34,7 @@ function rfc822(iso: string): string {
 }
 
 export async function GET(_req: Request, { params }: { params: Promise<{ column: string }> }) {
+  const brandSlug = (await currentBrandSlug()) ?? 'rrp'
   const { column } = await params
   const ctx      = await loadBrandContext()
   const seoCfg   = getBrandSeoConfig(ctx.market, ctx.publicOrigin)
@@ -49,6 +51,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ column:
       .from('guide_articles')
       .select('column_slug, slug, title, published_at, dek, excerpt, hero_image_url, author_name')
       .eq('published', true)
+      .or(articleBrandFilter(brandSlug))
       .eq('column_slug', column)
       .order('published_at', { ascending: false })
       .limit(50),

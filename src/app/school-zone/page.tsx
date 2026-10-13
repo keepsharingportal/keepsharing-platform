@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { brandifyCopy } from '@/lib/brandify'
 import { loadBrandContext } from '@/lib/brand-context'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { articleBrandFilter } from '@/lib/brand-context'
@@ -160,6 +161,7 @@ export default async function SchoolZonePage() {
   // Region phrase for the visible copy. 'River Region' on RRP, so the live
   // site reads exactly as before.
   const { market: brandMarket } = await loadBrandContext()
+  const brandName    = brandMarket.displayName
   const region = brandMarket.regionLabel
   const brandFilter = articleBrandFilter(brandSlug)
 
@@ -324,7 +326,7 @@ export default async function SchoolZonePage() {
 
   const heroImage    = vertical?.hero_image_url    || HERO_BG
   const heroTitle    = vertical?.display_name      || 'The School Zone'
-  const heroSubtitle = vertical?.subtitle          || `Celebrating student achievements, sharing district news, and keeping you connected to education across ${region}.`
+  const heroSubtitle = brandifyCopy(vertical?.subtitle ?? '', brandMarket) || `Celebrating student achievements, sharing district news, and keeping you connected to education across ${region}.`
   const sponsorLabel = vertical?.sponsor_label     || 'Proudly Presented By'
 
   return (
@@ -347,7 +349,7 @@ export default async function SchoolZonePage() {
             Education Hub
           </div>
 
-          {/* Title + subtitle — two-tone matches the "River Region Parents"
+          {/* Title + subtitle — two-tone matches the `${brandName}`
               treatment in the nav. Only colors the LAST word so a future
               `display_name` of "Mom Knows Best" / "Summer Fun" stays sensible. */}
           <h1 className="text-5xl md:text-7xl font-black text-white leading-[1.05] mb-4 drop-shadow-sm">

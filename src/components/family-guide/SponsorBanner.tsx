@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import { ArrowRight } from 'lucide-react'
 
 interface SponsorBannerProps {
@@ -14,7 +16,10 @@ const DEFAULT_PITCHES: Record<string, string> = {
     'When a newcomer family chooses their child\'s first doctor, your practice is the one we put in front of them. One pediatric practice per year as Section Sponsor. Year-round presence, custom landing page, dedicated editorial integration.',
 }
 
-export function SponsorBanner({ sectionLabel, sponsorName, pitch }: SponsorBannerProps) {
+export async function SponsorBanner({ sectionLabel, sponsorName, pitch }: SponsorBannerProps) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
   if (sponsorName) {
     return (
       <div style={{
@@ -35,7 +40,7 @@ export function SponsorBanner({ sectionLabel, sponsorName, pitch }: SponsorBanne
   }
 
   const message = pitch ?? DEFAULT_PITCHES[sectionLabel] ??
-    `This section is available for sponsorship. Be the trusted name families see when they look for ${sectionLabel.toLowerCase()} resources. River Region Parents is the biggest community influencer for parents in the River Region.`
+    `This section is available for sponsorship. Be the trusted name families see when they look for ${sectionLabel.toLowerCase()} resources. ${brandName} is the biggest community influencer for parents in ${regionPhrase}.`
 
   return (
     <div style={{

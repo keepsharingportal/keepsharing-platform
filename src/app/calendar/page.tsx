@@ -16,12 +16,16 @@ export const revalidate = 900
 
 export async function generateMetadata(): Promise<Metadata> {
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  // Keywords name the actual place, so they can't ride on brandifyCopy's
+  // "River Region" substitution the way the title and description do.
+  const { market: metaMarket } = await loadBrandContext()
+  const region       = metaMarket.regionLabel
   return buildPageMetadata({
     title:       'Family Calendar',
-    description: 'Events, festivals, workshops, and activities for River Region families — updated weekly. Hosting an event? Submit it free and get on the calendar.',
+    description: `Events, festivals, workshops, and activities for ${region} families — updated weekly. Hosting an event? Submit it free and get on the calendar.`,
     path:        '/calendar',
     type:        'website',
-    keywords:    ['River Region events', 'family events', 'Montgomery calendar', 'kids events'],
+    keywords:    [`${metaMarket.regionLabel} events`, 'family events', `${metaMarket.city} calendar`, 'kids events'],
   })
 }
 
@@ -250,6 +254,7 @@ export default async function CalendarPage() {
         topBannerAd={topBannerAd}
         bottomBannerAd={bottomBannerAd}
         inlineAds={inlineAds}
+        region={region}
       />
 
       <PublicFooter />

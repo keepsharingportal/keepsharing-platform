@@ -28,7 +28,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   other:        'Other',
 }
 
-export function BirthdayFreebies({ freebies, brandSlug }: { freebies: Array<Record<string, unknown>>; brandSlug: string }) {
+export function BirthdayFreebies({ freebies, brandSlug, regionPhrase }: { freebies: Array<Record<string, unknown>>; brandSlug: string; regionPhrase: string }) {
   const useFreebies: Freebie[] = freebies.map(f => ({
     id:           f.id as string,
     business:     f.business as string,
@@ -81,7 +81,7 @@ export function BirthdayFreebies({ freebies, brandSlug }: { freebies: Array<Reco
     <div>
       <SectionHeader
         eyebrow="Local freebies"
-        title="Birthday freebies in the River Region"
+        title={`Birthday freebies in ${regionPhrase}`}
         kicker="Local spots that give your kid a free treat, gift, or experience on their birthday. Verified by our team. Bring ID."
       />
 

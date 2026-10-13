@@ -17,9 +17,12 @@ interface Props {
    *  the Nth visible card. Skipped when filtering narrows the list. */
   midRow?:  React.ReactNode
   midRowAfter?: number
+  /** Forwarded to the pull-quote this renders: a client component cannot
+   *  resolve the brand itself. */
+  brandName: string
 }
 
-export function GiftTagFilter({ ideas, accent, midRow, midRowAfter = 6 }: Props) {
+export function GiftTagFilter({ ideas, accent, midRow, midRowAfter = 6, brandName }: Props) {
   const [activeTag, setActiveTag] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
@@ -92,7 +95,7 @@ export function GiftTagFilter({ ideas, accent, midRow, midRowAfter = 6 }: Props)
             <div key={i} className={showMidRow && i === midRowAfter ? 'sm:col-span-2 lg:col-span-3' : ''}>
               {showMidRow && i === midRowAfter && (
                 <div className="mb-4">
-                  <GiftPullQuote accent={accent} />
+                  <GiftPullQuote accent={accent} brandName={brandName} />
                 </div>
               )}
               <GiftIdeaCard idea={idea} accent={accent} />

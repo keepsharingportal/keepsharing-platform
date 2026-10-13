@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 
 interface Props {
   size?: 'sm' | 'md' | 'lg'
@@ -14,19 +15,21 @@ const SIZE_CLASSES = {
   lg: { wordmark: 'text-3xl md:text-4xl', tagline: 'text-sm' },
 }
 
-export function BrandLogo({ size = 'md', withTagline = false, href = '/', className = '', variant = 'default' }: Props) {
+export async function BrandLogo({ size = 'md', withTagline = false, href = '/', className = '', variant = 'default' }: Props) {
+  const { market } = await loadBrandContext()
+  const region       = market.regionLabel
   const sizes = SIZE_CLASSES[size]
   const isFooter = variant === 'footer'
 
   const content = (
     <div className={`inline-flex flex-col ${className}`}>
       <span className={`${sizes.wordmark} font-black tracking-tight leading-none`}>
-        <span className={isFooter ? 'text-white' : 'text-foreground'}>River Region </span>
+        <span className={isFooter ? 'text-white' : 'text-foreground'}>{region} </span>
         <span className="text-primary">Parents</span>
       </span>
       {withTagline && (
         <span className={`${sizes.tagline} font-medium tracking-wide mt-1 ${isFooter ? 'text-white/60' : 'text-muted-foreground'}`}>
-          The Go-To Resource for River Region Families
+          The Go-To Resource for {region} Families
         </span>
       )}
     </div>

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { chromeForBrand } from '@/lib/brands'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, CheckCircle2, Lock } from 'lucide-react'
@@ -17,11 +19,13 @@ export function generateStaticParams() {
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { slug } = await params
   const guide = getGuideConfig(slug)
   if (!guide) return {}
   return {
-    title: `${guide.name} — Partner Opportunities | River Region Parents`,
+    title: `${guide.name} — Partner Opportunities | ${brandName}`,
     description: `See how your business appears in the ${guide.name} and what visibility looks like for families who use this guide to find local providers.`,
   }
 }
@@ -40,6 +44,9 @@ const sans  = 'var(--font-dm-sans, sans-serif)'
 export default async function GuidePartnerPage(
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  const pgPhone = chromeForBrand((await loadBrandContext()).brand).contactPhone
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { slug } = await params
   const guide = getGuideConfig(slug)
   if (!guide) notFound()
@@ -471,7 +478,7 @@ export default async function GuidePartnerPage(
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 700, color: N, margin: 0 }}>Jason Watson</p>
-                <p style={{ fontSize: 11, color: '#aaa', margin: '2px 0 0' }}>River Region Parents · (334) 328-5189</p>
+                <p style={{ fontSize: 11, color: '#aaa', margin: '2px 0 0' }}>{brandName}{pgPhone ? ` · ${pgPhone}` : ''}-5189</p>
               </div>
               <div style={{ width: 1, height: 30, backgroundColor: '#e0e0e0' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>

@@ -6,7 +6,8 @@
 // that brings traffic back to the site organically.
 
 import { createClient } from '@supabase/supabase-js'
-import { loadBrandContext } from '@/lib/brand-context'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 
 export const runtime = 'nodejs'
@@ -35,6 +36,7 @@ function rfc822(iso: string): string {
 }
 
 export async function GET() {
+  const brandSlug = (await currentBrandSlug()) ?? 'rrp'
   const ctx      = await loadBrandContext()
   const seoCfg   = getBrandSeoConfig(ctx.market, ctx.publicOrigin)
   const origin   = seoCfg.url
@@ -46,6 +48,7 @@ export async function GET() {
     .from('guide_articles')
     .select('column_slug, slug, title, published_at, dek, excerpt, hero_image_url, author_name')
     .eq('published', true)
+    .or(articleBrandFilter(brandSlug))
     .order('published_at', { ascending: false })
     .limit(50)
 

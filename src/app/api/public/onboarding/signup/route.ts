@@ -10,6 +10,7 @@
 // way so the business can fill it out immediately.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { loadBrandContext } from '@/lib/brand-context'
 import { brandSender } from '@/lib/email/brand-sender'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { randomUUID } from 'node:crypto'
@@ -53,6 +54,8 @@ const ALLOWED_GUIDES = new Set([
 ])
 
 export async function POST(req: NextRequest) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const allowed = await checkRateLimit({ scope: 'advertise.signup', req, max: 5 })
   if (!allowed) return NextResponse.json({ error: 'too_many_requests' }, { status: 429 })
 
@@ -158,7 +161,7 @@ export async function POST(req: NextRequest) {
       await new Resend(apiKey).emails.send({
         from:    await fromAddress(),
         to:      email,
-        subject: `Welcome to River Region Parents — your listing editor is ready`,
+        subject: `Welcome to ${brandName} — your listing editor is ready`,
         html: `
           <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
             <h1 style="font-size:22px;color:#1a1a1a;margin:0 0 16px;">Your listing editor is ready</h1>
@@ -169,7 +172,7 @@ export async function POST(req: NextRequest) {
             <p style="font-size:13px;color:#666;line-height:1.6;margin:0 0 8px;">Or paste this URL into your browser:</p>
             <p style="font-size:12px;color:#888;word-break:break-all;background:#f7f7f7;padding:10px 12px;border-radius:6px;margin:0 0 24px;">${wizardUrl}</p>
             <p style="font-size:13px;color:#666;line-height:1.6;margin:0;">Once you've filled it out, our editor will review and publish your listing to the appropriate guide.</p>
-            <p style="font-size:13px;color:#666;line-height:1.6;margin:8px 0 0;">— River Region Parents</p>
+            <p style="font-size:13px;color:#666;line-height:1.6;margin:8px 0 0;">— ${brandName}</p>
           </div>
         `,
       })

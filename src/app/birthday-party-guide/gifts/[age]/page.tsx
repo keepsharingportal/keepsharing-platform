@@ -20,6 +20,7 @@
 // chips, mid-list quote, sticky sidebar, related guides.
 
 import type { Metadata } from 'next'
+import { chromeForBrand } from '@/lib/brands'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
@@ -27,6 +28,7 @@ import { PublicFooter } from '@/components/PublicFooter'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { ArrowRight } from 'lucide-react'
 import { bucketBySlug, featuredPick, nonFeaturedPicks, AGE_BUCKETS } from '@/lib/birthday/gift-guides'
+import { loadBrandContext } from '@/lib/brand-context'
 import { GiftPageHero }     from '@/components/birthday/gifts/GiftPageHero'
 import { GiftTagFilter }    from '@/components/birthday/gifts/GiftTagFilter'
 import { FeaturedPickCard } from '@/components/birthday/gifts/FeaturedPickCard'
@@ -53,6 +55,11 @@ export function generateStaticParams() {
 }
 
 export default async function GiftAgePage({ params }: Props) {
+  const giftCtx       = await loadBrandContext()
+  const giftMarket    = giftCtx.market
+  const giftContact   = chromeForBrand(giftCtx.brand).contactEmail
+  const giftRegion    = giftMarket.regionLabel
+  const giftBrandName = giftMarket.displayName
   const { age } = await params
   const bucket = bucketBySlug(age)
   if (!bucket) notFound()
@@ -89,6 +96,7 @@ export default async function GiftAgePage({ params }: Props) {
             <GiftTagFilter
               ideas={rest}
               accent={bucket.color}
+              brandName={giftBrandName}
               midRowAfter={6}
               midRow={true /* GiftTagFilter renders its own pull-quote */}
             />
@@ -102,7 +110,7 @@ export default async function GiftAgePage({ params }: Props) {
                 Real parent recs beat curated lists every time. Send us yours and we&apos;ll add it.
               </p>
               <a
-                href={`mailto:hello@riverregionparents.com?subject=Gift%20Guide%20Idea%20-%20Ages%20${bucket.range}`}
+                href={giftContact ? `mailto:${giftContact}?subject=Gift%20Guide%20Idea%20-%20Ages%20${bucket.range}` : undefined}
                 className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-bold text-white rounded-lg hover:opacity-90"
                 style={{ backgroundColor: bucket.color }}
               >
@@ -112,7 +120,7 @@ export default async function GiftAgePage({ params }: Props) {
           </div>
 
           {/* ── Sidebar ─────────────────────────────────────── */}
-          <GiftPageSidebar currentSlug={bucket.slug} accent={bucket.color} />
+          <GiftPageSidebar currentSlug={bucket.slug} accent={bucket.color} region={giftRegion} />
         </div>
       </main>
 

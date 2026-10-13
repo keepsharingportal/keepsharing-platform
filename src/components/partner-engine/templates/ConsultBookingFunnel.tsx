@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useId, useEffect } from 'react'
+import { useBrandCopy, type BrandCopy } from '@/components/BrandCopyProvider'
 import Image from 'next/image'
 import { Star, CheckCircle2, Shield, ArrowRight, RefreshCw, Check, Heart, Smile } from 'lucide-react'
 import { getColorScheme } from '@/lib/color-schemes'
@@ -323,6 +324,7 @@ function BookingForm({
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function ConsultBookingFunnel(props: ConsultBookingFunnelProps) {
+  const { displayName: brandName } = useBrandCopy()
   const scheme = getColorScheme(props.color_scheme)
   const formId = 'consult-form'
 
@@ -611,7 +613,7 @@ export function ConsultBookingFunnel(props: ConsultBookingFunnelProps) {
           </a>
         )}
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>
-          Powered by River Region Parents · Built by River Region Parents. Powered by KeepSharing.
+          Powered by {brandName} · Built by {brandName}. Powered by KeepSharing.
         </p>
       </footer>
 

@@ -1,4 +1,7 @@
 import { notFound } from 'next/navigation'
+import { currentBrandSlug } from '@/lib/current-brand'
+import type { MarketDef } from '@/lib/markets'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -15,11 +18,14 @@ export const revalidate = 1800
 
 // ── Known issues ───────────────────────────────────────────────────────
 
-const ISSUE_META: Record<string, { label: string; tagline: string }> = {
-  '2026-05': { label: 'May 2026',   tagline: 'Summer Fun Issue — Camps, day trips, and outdoor adventures for River Region families' },
-  '2026-04': { label: 'April 2026', tagline: 'Spring into Family Fun — School spotlights, community events, and warm-weather activities' },
-  '2026-03': { label: 'March 2026', tagline: 'Spring Season — School stories, teacher features, and family resources' },
-  '2026-02': { label: 'Feb 2026',   tagline: 'Winter Edition — Family events, school news, and community spotlights' },
+const ISSUE_META = (market: MarketDef): Record<string, { label: string; tagline: string }> => {
+  const region       = market.regionLabel
+  return {
+    '2026-05': { label: 'May 2026',   tagline: `Summer Fun Issue — Camps, day trips, and outdoor adventures for ${region} families` },
+    '2026-04': { label: 'April 2026', tagline: 'Spring into Family Fun — School spotlights, community events, and warm-weather activities' },
+    '2026-03': { label: 'March 2026', tagline: 'Spring Season — School stories, teacher features, and family resources' },
+    '2026-02': { label: 'Feb 2026',   tagline: 'Winter Edition — Family events, school news, and community spotlights' },
+  }
 }
 
 const ISSUE_SEQUENCE = ['2026-05', '2026-04', '2026-03', '2026-02']
@@ -47,16 +53,20 @@ interface PageParams {
 }
 
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { month } = await params
-  const meta = ISSUE_META[month]
-  if (!meta) return { title: 'Issue Archive — River Region Parents' }
+  const meta = ISSUE_META(market)[month]
+  if (!meta) return { title: `Issue Archive — ${brandName}` }
   return {
-    title:       `${meta.label} Issue — River Region Parents`,
+    title:       `${meta.label} Issue — ${brandName}`,
     description: meta.tagline,
   }
 }
 
 export default async function IssuePage({ params }: PageParams) {
+  const { market } = await loadBrandContext()
+  const brandSlug = (await currentBrandSlug()) ?? 'rrp'
   const { month: monthSlug } = await params
   const parsed = parseMonth(monthSlug)
   if (!parsed) notFound()
@@ -70,12 +80,13 @@ export default async function IssuePage({ params }: PageParams) {
     .from('guide_articles')
     .select('id, title, slug, excerpt, hero_image_url, author_name, published_at, column_slug, guide_slug')
     .eq('published', true)
+    .or(articleBrandFilter(brandSlug))
     .gte('published_at', start)
     .lt('published_at', end)
     .order('published_at', { ascending: false, nullsFirst: false })
     .limit(60)
 
-  const meta = ISSUE_META[monthSlug] ?? {
+  const meta = ISSUE_META(market)[monthSlug] ?? {
     label:   new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
     tagline: `Articles published in ${new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
   }
@@ -128,7 +139,7 @@ export default async function IssuePage({ params }: PageParams) {
                   className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-full border border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
                 >
                   <ArrowLeft className="h-3 w-3" />
-                  {ISSUE_META[prev]?.label ?? prev}
+                  {ISSUE_META(market)[prev]?.label ?? prev}
                 </Link>
               )}
               {next && (
@@ -136,7 +147,7 @@ export default async function IssuePage({ params }: PageParams) {
                   href={`/articles/issue/${next}`}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-full border border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
                 >
-                  {ISSUE_META[next]?.label ?? next}
+                  {ISSUE_META(market)[next]?.label ?? next}
                   <ArrowRight className="h-3 w-3" />
                 </Link>
               )}
@@ -213,7 +224,7 @@ export default async function IssuePage({ params }: PageParams) {
           <h2 className="text-lg font-bold text-foreground mb-5">Other Issues</h2>
           <div className="grid sm:grid-cols-3 gap-3">
             {ISSUE_SEQUENCE.filter(k => k !== monthSlug).map(k => {
-              const m = ISSUE_META[k] ?? { label: k, tagline: '' }
+              const m = ISSUE_META(market)[k] ?? { label: k, tagline: '' }
               return (
                 <Link
                   key={k}

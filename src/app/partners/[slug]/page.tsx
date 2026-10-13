@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
@@ -81,16 +82,18 @@ async function getPartnerData(slug: string): Promise<PartnerPageData | null> {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { slug } = await params
   const data = await getPartnerData(slug)
   if (!data) return {}
   const { account, offer } = data
   const title = offer?.offer_headline
     ? `${offer.offer_headline} — ${account.business_name}`
-    : `${account.business_name} — River Region Parents Partner`
+    : `${account.business_name} — ${brandName} Partner`
   return {
     title,
-    description: offer?.offer_value_statement ?? offer?.offer_subheadline ?? `${account.business_name} is a River Region Parents Trusted Partner.`,
+    description: offer?.offer_value_statement ?? offer?.offer_subheadline ?? `${account.business_name} is a ${brandName} Trusted Partner.`,
     openGraph: { title, description: offer?.offer_value_statement ?? '' },
   }
 }
@@ -109,6 +112,8 @@ function DemoBanner({ businessName }: { businessName: string }) {
 }
 
 export default async function PartnerPage({ params }: Props) {
+  const { market } = await loadBrandContext()
+  const brandName    = market.displayName
   const { slug } = await params
   const data = await getPartnerData(slug)
 
@@ -176,8 +181,8 @@ export default async function PartnerPage({ params }: Props) {
         )}
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontStyle: 'italic' }}>
           Powered by{' '}
-          <Link href="/" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }}>River Region Parents</Link>
-          {' '}· Built by River Region Parents. Powered by KeepSharing.
+          <Link href="/" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }}>{brandName}</Link>
+          {' '}· Built by {brandName}. Powered by KeepSharing.
         </p>
       </footer>
 

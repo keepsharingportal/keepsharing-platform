@@ -7,6 +7,8 @@
 // it renders nothing if the vertical has no other published articles.
 
 import Link from 'next/link'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { articleBrandFilter } from '@/lib/brand-context'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { ArrowRight } from 'lucide-react'
@@ -45,6 +47,7 @@ export async function RelatedFromVertical({
   className = '',
 }: Props) {
   const supabase = getSupabase()
+  const relBrandSlug = (await currentBrandSlug()) ?? 'rrp'
 
   const [{ data: vertical }, { data: articles }] = await Promise.all([
     supabase.from('verticals')
@@ -56,6 +59,7 @@ export async function RelatedFromVertical({
       .select('id, slug, title, excerpt, hero_image_url, published_at, author_name')
       .eq('vertical_slug', verticalSlug)
       .eq('published', true)
+      .or(articleBrandFilter(relBrandSlug))
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(limit + (excludeId ? 1 : 0)),
   ])

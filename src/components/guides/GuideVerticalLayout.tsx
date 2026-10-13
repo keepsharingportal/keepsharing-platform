@@ -1,4 +1,7 @@
 import Image from 'next/image'
+import type { MarketDef } from '@/lib/markets'
+import { theRegion } from '@/lib/brandify'
+import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -36,61 +39,69 @@ export interface GuideVerticalLayoutProps {
 
 // ── Fallback content (renders when live data is absent) ───────────────────────
 
-const FB_ARTICLES: AnchorArticle[] = [
-  {
-    id: 'fb-1',
-    slug: 'choosing-right-pediatrician',
-    title: 'How to Choose the Right Pediatrician for Your Family',
-    excerpt: "Finding the right pediatrician is one of the most important decisions you'll make as a parent. Here's what to look for.",
-    heroImageUrl: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=800&q=80&auto=format&fit=crop',
-    category: 'Health',
-    byline: 'River Region Parents',
-    href: '/family-resource-guide/articles/choosing-right-pediatrician',
-  },
-  {
-    id: 'fb-2',
-    slug: 'best-schools-river-region',
-    title: 'Best Schools in the River Region: 2026 Guide',
-    excerpt: 'From top-rated public schools to innovative private academies — your complete guide to education in Montgomery.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80&auto=format&fit=crop',
-    category: 'Education',
-    byline: 'River Region Parents',
-    href: '/family-resource-guide/articles/best-schools-river-region',
-  },
-  {
-    id: 'fb-3',
-    slug: 'family-parks-outdoor-fun',
-    title: 'Top 10 Parks & Outdoor Spots for River Region Families',
-    excerpt: 'Splash pads, nature trails, and hidden gems — discover the best outdoor spaces for families in Montgomery.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1472457974886-0ebcd59440cc?w=800&q=80&auto=format&fit=crop',
-    category: 'Activities',
-    byline: 'River Region Parents',
-    href: '/family-resource-guide/articles/family-parks-outdoor-fun',
-  },
-  {
-    id: 'fb-4',
-    slug: 'moving-to-montgomery',
-    title: "New to Montgomery? Your Complete Family Relocation Guide",
-    excerpt: 'Everything you need to know about settling your family into the River Region — neighborhoods, schools, doctors, and community.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80&auto=format&fit=crop',
-    category: 'Newcomers',
-    byline: 'River Region Parents',
-    href: '/family-resource-guide/articles/moving-to-montgomery',
-  },
-]
+const FB_ARTICLES = (market: MarketDef): AnchorArticle[] => {
+  const brandName    = market.displayName
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
+  return [
+    {
+      id: 'fb-1',
+      slug: 'choosing-right-pediatrician',
+      title: 'How to Choose the Right Pediatrician for Your Family',
+      excerpt: "Finding the right pediatrician is one of the most important decisions you'll make as a parent. Here's what to look for.",
+      heroImageUrl: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=800&q=80&auto=format&fit=crop',
+      category: 'Health',
+      byline: `${brandName}`,
+      href: '/family-resource-guide/articles/choosing-right-pediatrician',
+    },
+    {
+      id: 'fb-2',
+      slug: 'best-schools-river-region',
+      title: `Best Schools in ${regionPhrase}: 2026 Guide`,
+      excerpt: 'From top-rated public schools to innovative private academies — your complete guide to education in Montgomery.',
+      heroImageUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80&auto=format&fit=crop',
+      category: 'Education',
+      byline: `${brandName}`,
+      href: '/family-resource-guide/articles/best-schools-river-region',
+    },
+    {
+      id: 'fb-3',
+      slug: 'family-parks-outdoor-fun',
+      title: `Top 10 Parks & Outdoor Spots for ${region} Families`,
+      excerpt: 'Splash pads, nature trails, and hidden gems — discover the best outdoor spaces for families in Montgomery.',
+      heroImageUrl: 'https://images.unsplash.com/photo-1472457974886-0ebcd59440cc?w=800&q=80&auto=format&fit=crop',
+      category: 'Activities',
+      byline: `${brandName}`,
+      href: '/family-resource-guide/articles/family-parks-outdoor-fun',
+    },
+    {
+      id: 'fb-4',
+      slug: 'moving-to-montgomery',
+      title: "New to Montgomery? Your Complete Family Relocation Guide",
+      excerpt: `Everything you need to know about settling your family into ${regionPhrase} — neighborhoods, schools, doctors, and community.`,
+      heroImageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80&auto=format&fit=crop',
+      category: 'Newcomers',
+      byline: `${brandName}`,
+      href: '/family-resource-guide/articles/moving-to-montgomery',
+    },
+  ]
+}
 
-const FB_PARTNER: GuideListing = {
-  id: 'fb-partner',
-  category_id: '',
-  slug: 'river-region-pediatrics',
-  business_name: 'River Region Pediatrics',
-  editorial_blurb: 'Trusted Care for Every Stage',
-  description: 'River Region Pediatrics has been serving families in Montgomery for over 20 years. Their compassionate team provides comprehensive care for children from birth through age 18, accepting most major insurance plans.',
-  cover_image_url: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=900&q=80&auto=format&fit=crop',
-  logo_url: null,
-  tags: ['Pediatric Care', 'All Ages', 'Most Insurance Accepted'],
-  listing_tier: 'featured',
-  display_order: 0,
+const FB_PARTNER = (market: MarketDef): GuideListing => {
+  const region       = market.regionLabel
+  return {
+    id: 'fb-partner',
+    category_id: '',
+    slug: 'river-region-pediatrics',
+    business_name: `${region} Pediatrics`,
+    editorial_blurb: 'Trusted Care for Every Stage',
+    description: `${region} Pediatrics has been serving families in Montgomery for over 20 years. Their compassionate team provides comprehensive care for children from birth through age 18, accepting most major insurance plans.`,
+    cover_image_url: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=900&q=80&auto=format&fit=crop',
+    logo_url: null,
+    tags: ['Pediatric Care', 'All Ages', 'Most Insurance Accepted'],
+    listing_tier: 'featured',
+    display_order: 0,
+  }
 }
 
 const FB_CATEGORIES = [
@@ -127,13 +138,16 @@ const FB_TRENDING: GuideListing[] = [
   },
 ]
 
-const FB_CHECKLIST = [
-  '30 Days Before Moving Checklist',
-  'New School Enrollment Guide',
-  'Pediatrician Interview Questions',
-  'River Region Utility Setup',
-  'Neighborhood Family Groups',
-]
+const FB_CHECKLIST = (market: MarketDef) => {
+  const region       = market.regionLabel
+  return [
+    '30 Days Before Moving Checklist',
+    'New School Enrollment Guide',
+    'Pediatrician Interview Questions',
+    `${region} Utility Setup`,
+    'Neighborhood Family Groups',
+  ]
+}
 
 const PLACEHOLDER_EVENTS = [
   { month: 'JUN', day: '5',  title: 'Summer Camp Open House',   detail: 'Saturday, June 5 · 10:00 AM' },
@@ -165,7 +179,7 @@ const DISCOVERY_ICONS = [Map, Compass, Sparkles, BookOpen]
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function GuideVerticalLayout({
+export async function GuideVerticalLayout({
   guideName = 'Family Resource Guide',
   heroImageUrl,
   heroTitle,
@@ -182,10 +196,13 @@ export function GuideVerticalLayout({
   sponsorCta,
   newsletter,
 }: GuideVerticalLayoutProps) {
+  const { market } = await loadBrandContext()
+  const regionPhrase = theRegion(market)
+  const region       = market.regionLabel
 
   // Resolved data — real if available, fallback if empty ─────────────────────
-  const partner          = featuredPartner ?? FB_PARTNER
-  const resolvedArticles = articles.length > 0 ? articles : FB_ARTICLES
+  const partner          = featuredPartner ?? FB_PARTNER(market)
+  const resolvedArticles = articles.length > 0 ? articles : FB_ARTICLES(market)
   const resolvedCats     = resourceCategories.length > 0 ? resourceCategories : FB_CATEGORIES
   // Trending: real data only — no fallback. Hides the section until listings exist.
   const resolvedTrending = trendingListings
@@ -194,7 +211,7 @@ export function GuideVerticalLayout({
     startCards && startCards.length > 0
       ? startCards.map(c => c.title)
       : (playbookSection?.items?.[0]?.items ?? [])
-  const resolvedChecklist = rawChecklist.length > 0 ? rawChecklist : FB_CHECKLIST
+  const resolvedChecklist = rawChecklist.length > 0 ? rawChecklist : FB_CHECKLIST(market)
 
   const editorialArticles = resolvedArticles.slice(0, 2)
   const discoveryArticles = resolvedArticles.slice(0, 4)
@@ -393,7 +410,7 @@ export function GuideVerticalLayout({
                     title={article.title}
                     excerpt={article.excerpt}
                     imageSrc={article.heroImageUrl}
-                    fallbackSrc={FB_ARTICLES[i]?.heroImageUrl ?? undefined}
+                    fallbackSrc={FB_ARTICLES(market)[i]?.heroImageUrl ?? undefined}
                     category={article.category ?? undefined}
                   />
                 ))}
@@ -428,7 +445,7 @@ export function GuideVerticalLayout({
           <SectionHeader
             size="lg"
             title="Local Discovery Hub"
-            description="The best parks, day trips, and hidden gems in the River Region."
+            description={`The best parks, day trips, and hidden gems in ${regionPhrase}.`}
             action={
               <Button variant="ghost" className="hidden md:flex gap-2 font-bold" asChild>
                 <Link href="#directory">Explore More <Compass className="h-4 w-4" /></Link>
@@ -482,7 +499,7 @@ export function GuideVerticalLayout({
                 </Badge>
                 <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Happening Around Town</h2>
                 <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                  Don&apos;t miss out on local events specifically curated for River Region families.
+                  Don&apos;t miss out on local events specifically curated for {region} families.
                 </p>
                 <div className="space-y-4 mb-8">
                   {PLACEHOLDER_EVENTS.map((event, i) => (
@@ -508,7 +525,7 @@ export function GuideVerticalLayout({
               <div className="lg:w-1/2 relative hidden lg:block">
                 <div className="relative aspect-square rounded-[2rem] overflow-hidden shadow-2xl rotate-3">
                   <Image
-                    src={discoveryArticles[0]?.heroImageUrl ?? FB_ARTICLES[0].heroImageUrl!}
+                    src={discoveryArticles[0]?.heroImageUrl ?? FB_ARTICLES(market)[0].heroImageUrl!}
                     alt="Local events"
                     fill
                     className="object-cover"
@@ -517,7 +534,7 @@ export function GuideVerticalLayout({
                 </div>
                 <div className="absolute -bottom-6 -left-6 w-48 aspect-square rounded-[2rem] overflow-hidden shadow-2xl -rotate-6 border-4 border-white">
                   <Image
-                    src={discoveryArticles[2]?.heroImageUrl ?? FB_ARTICLES[2].heroImageUrl!}
+                    src={discoveryArticles[2]?.heroImageUrl ?? FB_ARTICLES(market)[2].heroImageUrl!}
                     alt="Local events"
                     fill
                     className="object-cover"
