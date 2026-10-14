@@ -8,6 +8,7 @@
 // month. Future enhancement: arrows to step month-by-month.
 
 import type { Metadata } from 'next'
+import { MARKETS } from '@/lib/markets'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -39,7 +40,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
 
   const { data: acct } = await supabase
     .from('advertiser_accounts')
-    .select('id, business_name, slug, package_tier, contact_name, contact_email, logo_url')
+    .select('*')
     .eq('id', id)
     .maybeSingle()
   if (!acct) return notFound()
@@ -49,6 +50,10 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
   const slug      = String(a.slug ?? '')
   const tier      = String(a.package_tier ?? '')
   const logoUrl   = a.logo_url ? String(a.logo_url) : null
+  // The advertiser's own brand. The footer printed "riverregionparents.com"
+  // on every report, including the ones an advertiser receives at /r/003ctoken003e,
+  // so a Greater Pensacola advertiser's campaign report named River Region.
+  const reportHost = MARKETS.find(m => m.slug === a.market)?.publicHost ?? ''
 
   // Time window — current calendar month by default, or ?month=YYYY-MM
   const now    = new Date()
@@ -234,7 +239,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
         {/* Footer */}
         <div className="mt-12 pt-6 border-t border-portal-border flex items-center justify-between text-[11px] text-portal-muted">
           <span className="inline-flex items-center gap-1.5">
-            <Globe size={11} /> riverregionparents.com
+            <Globe size={11} /> {reportHost}
           </span>
           <span>Report generated {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
         </div>

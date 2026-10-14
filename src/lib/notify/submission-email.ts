@@ -10,6 +10,7 @@
 import { Resend } from 'resend'
 import { brandSender } from '@/lib/email/brand-sender'
 import { SUBMISSION_TYPES } from '@/lib/submissions'
+import { inboxForBrand, subjectTag } from '@/lib/email/brand-recipient'
 
 interface NotifyArgs {
   /** Brand this submission came in on. Decides the From: name, the site
@@ -31,10 +32,15 @@ function siteUrl(marketSlug?: string | null): string {
   return sender.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://riverregionparents.com'
 }
 
-function editorEmail(): string {
-  // Configurable per env so launch-week emails go to the editor's inbox,
-  // not a stale forwarder. Falls back to the literal team address.
-  return process.env.SUBMISSIONS_EDITOR_EMAIL ?? 'jason@riverregionparents.com'
+function editorEmail(marketSlug?: string | null): Promise<string> {
+  // The brand's OWN editorial desk. This was a single env var with a literal
+  // River Region fallback, and one deployment serves six brands — so a
+  // Greater Pensacola school bit was reviewed by River Region's editor, or by
+  // whoever the one env var happened to name. The env var is still honoured
+  // for brands with no inbox configured yet; see brand-recipient.ts for why
+  // the fallback chain ends at the platform inbox here but renders nothing on
+  // a public page.
+  return inboxForBrand(marketSlug, 'editorial', process.env.SUBMISSIONS_EDITOR_EMAIL)
 }
 
 function fromAddress(marketSlug?: string | null): string {
@@ -97,12 +103,12 @@ export async function notifyEditorOfSubmission(args: NotifyArgs): Promise<void> 
   </div>
 </div>`
 
-  const subject = `New ${typeLabel} nomination: ${args.subjectLine}`
+  const subject = `${subjectTag(args.marketSlug)}New ${typeLabel} nomination: ${args.subjectLine}`
 
   const resend = new Resend(apiKey)
   await resend.emails.send({
     from:    fromAddress(args.marketSlug),
-    to:      [editorEmail()],
+    to:      [await editorEmail(args.marketSlug)],
     replyTo: args.submitterEmail || undefined,
     subject,
     html,

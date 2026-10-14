@@ -187,6 +187,14 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
   if (scope.active) configQuery.eq('market', scope.market)
   const { data: guideConfig } = await configQuery.maybeSingle()
 
+  // "Not launched yet" and "not offered on this brand" are different, and
+  // preview only covers the first. A brand with a config row set inactive is
+  // a guide someone is preparing, and previewing it is the whole point. A
+  // brand with no row at all does not have this guide in its library, so
+  // preview must not resurrect it — otherwise ?preview=1 renders an empty
+  // Grown-Up Time hub under River Region's masthead.
+  if (scope.active && !guideConfig) notFound()
+
   const isLive = guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, guideConfig,
     { requireConfig: scope.active })
   if (!isLive && !preview) notFound()
@@ -354,7 +362,18 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
   // True guide-wide total (independent of any active category filter).
   // Counts renderable listings only, so the header matches the cards below.
   const totalListings = Object.values(catMap).reduce((sum, n) => sum + n, 0)
-  const guideName = (guide.display_name as string).replace(' Guide', '').replace(' guide', '')
+  // Per-market name and hero, falling back to the shared catalog.
+  //
+  // market-copy.ts already resolved both, but the header rendered
+  // guide.display_name and guide.hero_image_url directly — so a brand that
+  // set display_name in guide_type_copy got its name in the <title> tag
+  // (generateGuideDetailMetadata reads the resolved copy) and the catalog's
+  // name in the <h1> on the same page. Every field market-copy resolves has
+  // to be the field the page renders, or "editable per market" is only half
+  // true and which half depends on where you look.
+  const displayName  = marketCopy.displayName ?? (guide.display_name as string)
+  const heroImageUrl = marketCopy.heroImageUrl ?? guide.hero_image_url
+  const guideName = displayName.replace(' Guide', '').replace(' guide', '')
 
   // Category links drop every other query param. While a guide is only
   // reachable with ?preview=1, losing that flag 404s the next click. The
@@ -459,21 +478,21 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
       )}
 
       <PageHeader
-        title={guide.display_name}
+        title={displayName}
         subtitle={marketCopy.subtitle ?? undefined}
         badge={{ text: `${new Date().getFullYear()} Edition`, variant: 'default' }}
         variant="primary"
         size="lg"
-        heroImageUrl={guide.hero_image_url}
+        heroImageUrl={heroImageUrl}
       >
-        <div className={`flex items-center gap-4 text-sm ${guide.hero_image_url ? 'text-white/85' : 'text-muted-foreground'}`}>
+        <div className={`flex items-center gap-4 text-sm ${heroImageUrl ? 'text-white/85' : 'text-muted-foreground'}`}>
           <span className="flex items-center gap-1.5">
-            <BookOpen className={`h-4 w-4 ${guide.hero_image_url ? 'text-white' : 'text-primary'}`} />
+            <BookOpen className={`h-4 w-4 ${heroImageUrl ? 'text-white' : 'text-primary'}`} />
             {totalListings} listings
           </span>
           {categories.length > 0 && (
             <span className="flex items-center gap-1.5">
-              <Filter className={`h-4 w-4 ${guide.hero_image_url ? 'text-white' : 'text-primary'}`} />
+              <Filter className={`h-4 w-4 ${heroImageUrl ? 'text-white' : 'text-primary'}`} />
               {categories.length} categories
             </span>
           )}

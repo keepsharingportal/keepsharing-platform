@@ -22,7 +22,7 @@ import { ArrowLeft, Star, Building2 } from 'lucide-react'
 import {
   BirthdayCategoryHubCards,
   BirthdaySubCategoryCards,
-  bucketBySlug,
+  bucketBySlugForBrand,
 } from '@/components/birthday/BirthdayCategoryHubCards'
 import {
   BirthdayCategorySidebar,
@@ -37,6 +37,8 @@ export const revalidate = 600
 
 interface Props {
   params: Promise<{ slug: string }>
+  /** ?preview=1 — set while a brand reviews an unlaunched guide. */
+  searchParams?: Promise<{ preview?: string }>
 }
 
 function sb() {
@@ -50,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { market } = await loadBrandContext()
   const brandName    = market.displayName
   const { slug } = await params
-  const bucket = bucketBySlug(slug, (await loadBrandContext()).market)
+  const bucket = await bucketBySlugForBrand(slug)
   if (!bucket) return { title: 'Birthday Category Not Found' }
   return {
     title:       `${bucket.label} — Birthday Party Guide | ${brandName}`,
@@ -105,9 +107,14 @@ function toListingData(row: ListingRow): ListingData | null {
   }
 }
 
-export default async function BirthdayCategoryPage({ params }: Props) {
+export default async function BirthdayCategoryPage({ params, searchParams }: Props) {
   const { slug } = await params
-  const bucket = bucketBySlug(slug, (await loadBrandContext()).market)
+  // Preview includes DRAFT listings, matching the hub and GuideDetailPage.
+  // A hub card that says "12 vendors" leading to an empty page is worse
+  // than either behaviour on its own.
+  const preview = (await searchParams)?.preview === '1'
+  const pubStates = preview ? [true, false] : [true]
+  const bucket = await bucketBySlugForBrand(slug)
   if (!bucket) notFound()
 
   const supabase = sb()
@@ -135,13 +142,13 @@ export default async function BirthdayCategoryPage({ params }: Props) {
     supabase.from('guide_listings').select(listingSelect)
       .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
       .in('category', bucket.categories)
-      .eq('is_published', true)
+      .in('is_published', pubStates)
       .order('display_order', { ascending: true })
       .limit(500),
     supabase.from('guide_listings').select(listingSelect)
       .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
       .overlaps('extra_categories', bucket.categories)
-      .eq('is_published', true)
+      .in('is_published', pubStates)
       .order('display_order', { ascending: true })
       .limit(500),
   ])
@@ -183,13 +190,13 @@ export default async function BirthdayCategoryPage({ params }: Props) {
       .select('id, category, extra_categories')
       .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
       .in('category', bucket.categories)
-      .eq('is_published', true)
+      .in('is_published', pubStates)
       .limit(2000),
     supabase.from('guide_listings')
       .select('id, category, extra_categories')
       .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
       .overlaps('extra_categories', bucket.categories)
-      .eq('is_published', true)
+      .in('is_published', pubStates)
       .limit(2000),
   ])
   const bucketSet = new Set(bucket.categories)
@@ -216,7 +223,7 @@ export default async function BirthdayCategoryPage({ params }: Props) {
       .from('guide_listings')
       .select('advertiser_accounts ( slug, business_name, card_hook, hero_photo_url )')
       .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
-      .eq('is_published', true)
+      .in('is_published', pubStates)
       .in('listing_tier', FEATURED_TIERS)
       .limit(20),
     supabase
@@ -282,9 +289,12 @@ export default async function BirthdayCategoryPage({ params }: Props) {
           {/* ── Main column ────────────────────────────────────── */}
           <div className="lg:col-span-8 space-y-12">
 
-            {/* Sub-type cards — only when this bucket has 2+ subs */}
-            {bucket.subs && bucket.subs.length > 1 && (
-              <BirthdaySubCategoryCards bucket={bucket} countsByCategory={countsByCategory} />
+            {/* Sub-type cards — only when this bucket has 2+ subs.
+                A bucket derived from category_order has no subs: sub-types are
+                hand-authored editorial structure, and inventing them from a
+                category name would produce navigation nobody designed. */}
+            {'subs' in bucket && bucket.subs && bucket.subs.length > 1 && (
+              <BirthdaySubCategoryCards bucket={bucket} countsByCategory={countsByCategory} preview={preview} />
             )}
 
             {/* Featured listings — full ListingCard, prominent */}

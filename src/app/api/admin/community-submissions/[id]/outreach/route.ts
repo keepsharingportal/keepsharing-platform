@@ -18,6 +18,7 @@
 // the email worker handles actual delivery.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { publicOriginForBrand } from '@/lib/markets'
 import { randomBytes } from 'crypto'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -121,7 +122,11 @@ export async function POST(req: NextRequest, ctx: RouteCtx) {
 
   const brand     = await loadBrand(sub.target_publication ?? 'rrp')
   const brandName = brand?.displayName ?? 'River Region Parents'
-  const baseUrl   = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+  // The submission's target brand, which loadBrand above already resolved.
+  // Was NEXT_PUBLIC_SITE_URL with a hardcoded River Region fallback: a
+  // Greater Pensacola business was emailed a River Region link.
+  const baseUrl   = publicOriginForBrand(sub.target_publication ?? 'rrp')
+    || process.env.NEXT_PUBLIC_SITE_URL || ''
   const opsSig    = process.env.NEXT_PUBLIC_OPS_EMAIL ?? ''
   const typeLabel = (cfg.label ?? sub.submission_type.replace(/-/g, ' ')) as string
 

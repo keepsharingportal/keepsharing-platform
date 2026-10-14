@@ -12,6 +12,29 @@ import { renderNewsletterHtml, type NewsletterPickEvent } from '@/lib/newsletter
 import { CopyHtmlIsland } from './CopyHtmlIsland'
 import { SendPanel } from './SendPanel'
 import { EVENT_CATEGORIES } from '@/lib/calendar-taxonomy'
+import { requireAdmin } from '@/lib/admin/auth'
+import { marketDisplayName, isKnownMarket } from '@/lib/markets'
+
+/**
+ * The brand whose picks this page reads and writes.
+ *
+ * Every query here was `.eq('market', 'rrp')`, so a Greater Pensacola
+ * publisher curated River Region's newsletter without being told. Reads and
+ * writes resolve through the same helper so they can never disagree — the
+ * list you see is the list you add to.
+ *
+ * 'all' is a cross-brand reading view and a newsletter has one masthead, so
+ * it resolves to the admin's first allowed brand and the heading names it.
+ * Sending is gated harder: /api/admin/newsletter/send refuses 'all' outright.
+ */
+async function picksMarket(): Promise<string> {
+  const ctx = await requireAdmin()
+  const slug = ctx.viewingAll ? ctx.allowedMarkets[0] : ctx.activeMarket
+  // activeMarket is '' for an admin whose allowed_markets was never filled in.
+  // The renderer refuses an unknown market rather than guessing, so without
+  // this the page 500s instead of showing an editor an empty picks list.
+  return isKnownMarket(slug) ? slug : 'rrp'
+}
 
 export const metadata: Metadata = { title: 'Newsletter Picks — Admin' }
 export const dynamic = 'force-dynamic'
@@ -66,6 +89,7 @@ function fmtDate(iso: string): string {
 async function addPick(formData: FormData) {
   'use server'
   const supabase     = await createClient()
+  const market       = await picksMarket()
   const issue_date   = (formData.get('issue_date') as string) || nextThursday()
   const event_id     = (formData.get('event_id')   as string) || ''
   if (!event_id) return
@@ -75,13 +99,13 @@ async function addPick(formData: FormData) {
     .from('newsletter_picks')
     .select('display_order')
     .eq('issue_date', issue_date)
-    .eq('market', 'rrp')
+    .eq('market', market)
     .order('display_order', { ascending: false })
     .limit(1)
   const nextOrder = ((existing?.[0]?.display_order as number | undefined) ?? -1) + 1
 
   await supabase.from('newsletter_picks').insert({
-    issue_date, market: 'rrp', event_id, display_order: nextOrder,
+    issue_date, market, event_id, display_order: nextOrder,
   })
   revalidatePath('/admin/newsletter/pick-events')
 }
@@ -89,26 +113,29 @@ async function addPick(formData: FormData) {
 async function removePick(formData: FormData) {
   'use server'
   const supabase = await createClient()
+  const market   = await picksMarket()
   const id = (formData.get('id') as string) || ''
   if (!id) return
-  await supabase.from('newsletter_picks').delete().eq('id', id)
+  await supabase.from('newsletter_picks').delete().eq('id', id).eq('market', market)
   revalidatePath('/admin/newsletter/pick-events')
 }
 
 async function updatePick(formData: FormData) {
   'use server'
   const supabase = await createClient()
+  const market   = await picksMarket()
   const id              = (formData.get('id') as string) || ''
   const custom_headline = ((formData.get('custom_headline') as string) || '').trim() || null
   const custom_blurb    = ((formData.get('custom_blurb')    as string) || '').trim() || null
   if (!id) return
-  await supabase.from('newsletter_picks').update({ custom_headline, custom_blurb }).eq('id', id)
+  await supabase.from('newsletter_picks').update({ custom_headline, custom_blurb }).eq('id', id).eq('market', market)
   revalidatePath('/admin/newsletter/pick-events')
 }
 
 async function reorderPick(formData: FormData) {
   'use server'
   const supabase = await createClient()
+  const market   = await picksMarket()
   const id        = (formData.get('id')        as string) || ''
   const direction = (formData.get('direction') as string) || ''
   if (!id || !['up', 'down'].includes(direction)) return
@@ -127,7 +154,7 @@ async function reorderPick(formData: FormData) {
     .from('newsletter_picks')
     .select('id, display_order')
     .eq('issue_date', (pick as PickRow).issue_date)
-    .eq('market', 'rrp')
+    .eq('market', market)
     [op]('display_order', (pick as PickRow).display_order)
     .order('display_order', ord)
     .limit(1)
@@ -156,6 +183,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
   const freeOnly  = sp.free === 'true'
 
   const supabase = await createClient()
+  const market   = await picksMarket()
 
   // 1. Eligible events — published, in the 7-day window leading up to the next 14 days.
   // Editors usually pick events 1–14 days out; the window can be tuned.
@@ -188,7 +216,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
     .from('newsletter_picks')
     .select('id, event_id, issue_date, display_order, custom_blurb, custom_headline')
     .eq('issue_date', issueDate)
-    .eq('market', 'rrp')
+    .eq('market', market)
     .order('display_order', { ascending: true })
 
   const pickRows = (pickRowsData ?? []) as PickRow[]
@@ -204,7 +232,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
     .from('newsletter_picks')
     .select('event_id, issue_date')
     .gte('issue_date', recentCutoff)
-    .eq('market', 'rrp')
+    .eq('market', market)
   const recentlyFeatured = new Map<string, string>()
   for (const r of recentPicksData ?? []) {
     const evt = (r as { event_id: string; issue_date: string })
@@ -238,7 +266,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
     })
     .filter((x): x is NewsletterPickEvent => x !== null)
 
-  const html = renderNewsletterHtml(picks, { issue_date: issueDate })
+  const html = renderNewsletterHtml(picks, { issue_date: issueDate, market })
 
   // 6. Pull send history for this issue and recent sends (last 4 issues for context)
   interface IssueRow {
@@ -255,7 +283,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
       .from('newsletter_issues')
       .select('id, issue_date, subject, status, list_tag, scheduled_for, sent_at, picks_count, error_message')
       .eq('issue_date', issueDate)
-      .eq('market', 'rrp')
+      .eq('market', market)
       .order('sent_at', { ascending: false })
       .limit(5)
     thisIssueSends = (thisIssueData ?? []) as IssueRow[]
@@ -263,7 +291,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
     const { data: recentData } = await supabase
       .from('newsletter_issues')
       .select('id, issue_date, subject, status, list_tag, scheduled_for, sent_at, picks_count, error_message')
-      .eq('market', 'rrp')
+      .eq('market', market)
       .neq('issue_date', issueDate)
       .order('sent_at', { ascending: false })
       .limit(4)
@@ -299,10 +327,14 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
           <div className="flex items-center gap-2 mb-1">
             <Mail size={20} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-portal-text tracking-tight">Weekly Newsletter Picks</h1>
+            <span className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-portal-blue/10 text-portal-blue">
+              {marketDisplayName(market)}
+            </span>
           </div>
           <p className="text-sm text-portal-sub">
-            Build the "Weekly Scoop" event picks. Select 4–6 events, optionally override
-            the headline/blurb per pick, then copy the rendered HTML into your email tool.
+            Build the "Weekly Scoop" event picks for {marketDisplayName(market)}. Select 4–6 events,
+            optionally override the headline/blurb per pick, then copy the rendered HTML into your
+            email tool. Switch brands with the market picker — picks, preview and send all follow it.
           </p>
         </div>
         <Link href="/admin/go/calendar" target="_blank" rel="noreferrer"

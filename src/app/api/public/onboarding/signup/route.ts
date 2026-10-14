@@ -10,6 +10,7 @@
 // way so the business can fill it out immediately.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { publicOriginForBrand } from '@/lib/markets'
 import { loadBrandContext } from '@/lib/brand-context'
 import { brandSender } from '@/lib/email/brand-sender'
 import { currentBrandSlug } from '@/lib/current-brand'
@@ -37,10 +38,19 @@ function sb() {
   )
 }
 
-function publicOrigin(): string {
-  return process.env.NEXT_PUBLIC_PUBLIC_ORIGIN
-      ?? process.env.NEXT_PUBLIC_SITE_URL
-      ?? 'https://riverregionparents.com'
+/**
+ * The wizard link, on the brand the advertiser actually signed up through.
+ *
+ * Was a chain of deployment-wide env vars ending in a hardcoded River Region
+ * URL — one value for six brand domains. The From: line already carried the
+ * right brand, so the mail looked correct and the link went to another brand's
+ * site. Env vars remain the last resort for a single-brand deployment.
+ */
+function publicOrigin(marketSlug?: string | null): string {
+  return (marketSlug ? publicOriginForBrand(marketSlug) : '')
+      || process.env.NEXT_PUBLIC_PUBLIC_ORIGIN
+      || process.env.NEXT_PUBLIC_SITE_URL
+      || ''
 }
 
 async function fromAddress(): Promise<string> {
@@ -152,7 +162,7 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  const wizardUrl = `${publicOrigin()}/advertise/edit/${token}?guide=${encodeURIComponent(guide_slug)}`
+  const wizardUrl = `${publicOrigin(market.slug)}/advertise/edit/${token}?guide=${encodeURIComponent(guide_slug)}`
 
   let sent = false
   const apiKey = process.env.RESEND_API_KEY

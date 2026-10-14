@@ -11,6 +11,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { requireAal2 } from '@/lib/admin/mfa-gate'
 import { recordAuditEvent } from '@/lib/admin/audit'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { publicOriginForBrand } from '@/lib/markets'
 
 export const runtime = 'nodejs'
 
@@ -27,6 +28,18 @@ export async function POST(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   const sr = createAdminClient()
+
+  // Which brand's advertiser is this? The renewal link below was built from
+  // NEXT_PUBLIC_SITE_URL with a hardcoded River Region fallback, so a Greater
+  // Pensacola advertiser was emailed a River Region URL — and the token is
+  // scoped to the placement, so the link also landed on a site that may not
+  // recognise it. The placement carries its own market (migration 232).
+  // select('*') rather than naming the column: this must not fail on a
+  // database where 232 has not run.
+  const { data: placement } = await sr
+    .from('ad_placements').select('*').eq('id', id).maybeSingle()
+  const placementMarket = (placement as { market?: string | null } | null)?.market ?? null
+
   const token = mint()
   const { error } = await sr.from('ad_placements').update({
     renewal_token:            token,
@@ -41,6 +54,14 @@ export async function POST(req: NextRequest) {
     target_id:    id,
   })
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
-  return NextResponse.json({ ok: true, token, url: `${base}/renew/${token}` })
+  // The advertiser's own brand, then the admin's active brand, then whatever
+  // the deployment is configured as. Never another brand's host.
+  const base = publicOriginForBrand(placementMarket ?? ctx.activeMarket)
+    || process.env.NEXT_PUBLIC_SITE_URL
+    || ''
+  return NextResponse.json({
+    ok: true, token,
+    url:    `${base}/renew/${token}`,
+    market: placementMarket ?? ctx.activeMarket,
+  })
 }

@@ -4,6 +4,7 @@
 // publishing destination, and placeholder panels for AI and GHL.
 
 import type { Metadata }         from 'next'
+import { MARKETS } from '@/lib/markets'
 import { notFound, redirect }    from 'next/navigation'
 import Link                      from 'next/link'
 import { createAdminClient }     from '@/lib/supabase/admin'
@@ -161,7 +162,13 @@ function buildGuidance(
 
   // Photo
   if (missingReqPhoto) {
-    items.push({ icon: '📷', severity: 'critical', message: `Photo required but not yet received. Ask submitter to email photos@riverregionparents.com.` })
+    // The submitting brand's photo inbox, not River Region's. A brand with
+    // none set gets the instruction without an address rather than one that
+    // routes the reader's photo to another magazine.
+    const photoInbox = MARKETS.find(m => m.slug === (sub.target_publication ?? sub.target_market))?.photoEmail
+    items.push({ icon: '📷', severity: 'critical', message: photoInbox
+      ? `Photo required but not yet received. Ask submitter to email ${photoInbox}.`
+      : 'Photo required but not yet received. Ask the submitter to send one.' })
   } else if (missingOptPhoto) {
     items.push({ icon: '📷', severity: 'warning', message: `No photo yet. A photo would strengthen this submission — consider requesting one.` })
   }

@@ -11,6 +11,7 @@
 // var; we verify it so the route can't be called externally.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { publicOriginForBrand } from '@/lib/markets'
 import { loadBrandContext } from '@/lib/brand-context'
 import { createClient } from '@supabase/supabase-js'
 
@@ -86,7 +87,13 @@ export async function GET(req: NextRequest) {
     }, { status: 500 })
   }
 
-  const siteUrl       = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+  // Was NEXT_PUBLIC_SITE_URL with a hardcoded River Region fallback. One
+  // deployment serves six brand domains, so no value of that env var sends a
+  // Greater Pensacola recipient a Greater Pensacola link. publicOriginForBrand
+  // resolves the brand's own host; the env var stays as the last resort for a
+  // single-brand deployment and local dev.
+  const siteUrl       = publicOriginForBrand(market.slug)
+    || process.env.NEXT_PUBLIC_SITE_URL || ''
   const issueLabel    = nextMonthLabel()
   const sent: { school: string; email: string; ok: boolean; error?: string }[] = []
 

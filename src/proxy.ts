@@ -21,7 +21,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
-import { brandFromHost } from '@/lib/markets'
+import { brandFromHost, MARKETS } from '@/lib/markets'
 import { lookupRedirect } from '@/lib/seo/redirect-lookup'
 
 const FIRST_TOUCH_COOKIE = 'rrp_first_touch'
@@ -141,7 +141,9 @@ export async function proxy(request: NextRequest) {
   if (!path.startsWith('/api/') && !path.startsWith('/go/') && !path.startsWith('/_next/')) {
     const maint = await checkMaintenanceMode()
     if (maint && !(await hasAdminSession(request))) {
-      return new NextResponse(MAINTENANCE_HTML, {
+      // resolveBrand again here rather than hoisting it: this branch is the
+      // rare case, and brand resolution is pure host parsing with no I/O.
+      return new NextResponse(maintenanceHtml(resolveBrand(request)), {
         status: 503,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'Retry-After': '300' },
       })
@@ -156,6 +158,29 @@ export async function proxy(request: NextRequest) {
   const brandSlug = resolveBrand(request)
   const forwardedHeaders = new Headers(request.headers)
   forwardedHeaders.set('x-brand-slug', brandSlug)
+
+  // ── Guide preview flag ─────────────────────────────────────────────────
+  // Guide trees with their own sub-routes (Birthday Party, Family Resource,
+  // Newcomer) are gated in a layout, because a layout covers every route
+  // beneath it including ones added later. But a layout cannot read
+  // searchParams — Next.js only passes those to a page — so the layout gate
+  // 404'd `?preview=1` along with everything else, and a brand could not
+  // review its own unlaunched guide. The pages under the same tree could see
+  // the flag, which made the behaviour depend on how deep you clicked.
+  //
+  // The proxy does see the whole URL, and already stamps a header the server
+  // components read. One more does not cost a request: these routes call
+  // currentBrandSlug() anyway, so they are dynamic either way.
+  //
+  // This grants no access by itself — GuideDetailPage still refuses a brand
+  // with no guide_configs row at all, preview or not. It only carries the
+  // "the operator asked for a preview" bit to where the gate can see it.
+  if (request.nextUrl.searchParams.get('preview') === '1') {
+    forwardedHeaders.set('x-guide-preview', '1')
+  } else {
+    // Never forward a client-supplied value for this.
+    forwardedHeaders.delete('x-guide-preview')
+  }
 
   // ── Redirect manager — editor-managed 301/302/307/308 ──────────────────
   // Check the redirects table for the current path BEFORE serving the
@@ -403,11 +428,61 @@ async function checkMaintenanceMode(): Promise<boolean> {
   }
 }
 
-const MAINTENANCE_HTML = `<!DOCTYPE html>
+/**
+ * The maintenance page, in the serving brand's identity.
+ *
+ * This was one static string: River Region's wordmark, River Region's
+ * tagline, a <title> saying "River Region Parents" and a mailto to River
+ * Region's inbox. Every brand in maintenance showed it. A Greater Pensacola
+ * reader hitting a tune-up window was told, on the only page they could
+ * reach, that they were on a different magazine's site.
+ *
+ * Runs on the Edge, so there is no database here — the copy is derived from
+ * the brand registry in markets.ts, which is plain data and edge-safe.
+ *
+ * The contact line is omitted for a brand with no inbox of its own. Same rule
+ * as the public footer and the JSON-LD: an unmonitored mailbox loses the
+ * message silently, and printing River Region's address under Greater
+ * Pensacola's masthead is worse than printing none.
+ */
+function maintenanceHtml(brandSlug: string): string {
+  const market = MARKETS.find(m => m.slug === brandSlug) ?? MARKETS[0]
+
+  // Split the display name so the last word takes the accent colour, the way
+  // the real wordmark does: "River Region <span>Parents</span>".
+  const words  = market.displayName.split(' ')
+  const accent = words.length > 1 ? words.pop()! : ''
+  const lead   = words.join(' ')
+
+  const region  = market.regionTakesArticle ? `the ${market.regionLabel}` : market.regionLabel
+  const tagline = `The Go-To Resource for ${region} Families`
+
+  // markets.ts carries photoEmail, not a general inbox, so derive the
+  // brand's hello@ from its own host rather than borrowing another brand's.
+  // A brand whose domain is not pointed yet gets no contact line.
+  const inbox = market.photoEmail ? `hello@${market.photoEmail.split('@')[1]}` : null
+  const footer = inbox
+    ? `Questions? <a href="mailto:${inbox}">${inbox}</a>`
+    : 'Back shortly.'
+
+  return MAINTENANCE_TEMPLATE
+    .replace(/__TITLE__/g,   escapeHtmlAttr(market.displayName))
+    .replace(/__LEAD__/g,    escapeHtmlAttr(lead))
+    .replace(/__ACCENT__/g,  escapeHtmlAttr(accent))
+    .replace(/__TAGLINE__/g, escapeHtmlAttr(tagline))
+    .replace(/__FOOTER__/g,  footer)
+}
+
+/** Minimal escape for text interpolated into the template above. */
+function escapeHtmlAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+const MAINTENANCE_TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Be Right Back — River Region Parents</title>
+<title>Be Right Back — __TITLE__</title>
 <style>
 body{font-family:system-ui,-apple-system,sans-serif;max-width:480px;margin:80px auto;padding:20px;color:#1a2744;background:#faf8f5;text-align:center}
 .brand{font-size:18px;font-weight:800;margin-bottom:4px}.brand span{color:#ef6442}
@@ -423,13 +498,13 @@ p{font-size:15px;color:#666;line-height:1.7;margin-bottom:24px}
 </style>
 </head>
 <body>
-<div class="brand">River Region <span>Parents</span></div>
-<div class="sub">The Go-To Resource for River Region Families</div>
+<div class="brand">__LEAD__ <span>__ACCENT__</span></div>
+<div class="sub">__TAGLINE__</div>
 <div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef6442" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
 <h1>Quick Tune-Up in Progress</h1>
 <p>We're making a few improvements to give you a better experience. We'll be back in just a few minutes.</p>
 <div class="pill"><span class="dot"></span> Back shortly</div>
-<div class="footer">Questions? <a href="mailto:hello@riverregionparents.com">hello@riverregionparents.com</a></div>
+<div class="footer">__FOOTER__</div>
 </body>
 </html>`
 

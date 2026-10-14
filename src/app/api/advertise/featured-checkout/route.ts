@@ -11,6 +11,7 @@
 // in Stripe representing the annual featured tier).
 
 import { NextRequest, NextResponse } from 'next/server'
+import { checkoutOrigin } from '@/lib/checkout-origin'
 import { loadStripe, createCheckoutSession } from '@/lib/integrations/stripe/client'
 import { checkRateLimit } from '@/lib/rate-limit'
 
@@ -25,11 +26,15 @@ interface Body {
   website?:       string
 }
 
-function publicOrigin(): string {
-  return process.env.NEXT_PUBLIC_PUBLIC_ORIGIN
-      ?? process.env.NEXT_PUBLIC_SITE_URL
-      ?? 'https://riverregionparents.com'
-}
+// Was a chain of deployment-wide env vars ending in a hardcoded River Region
+// URL. One deployment serves six brand domains, so no value of those vars
+// returns a Greater Pensacola advertiser to Greater Pensacola — they paid and
+// landed on River Region's site. Resolved from the request instead; see
+// lib/checkout-origin.ts, which also validates the host rather than trusting
+// the Origin header.
+//
+// The honeypot path calls this too: a bot gets the same shape of URL as a
+// real submission, which is the point of a honeypot.
 
 export async function POST(req: NextRequest) {
   const allowed = await checkRateLimit({ scope: 'advertise.featured-checkout', req, max: 5 })
@@ -38,7 +43,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({})) as Body
   if (body.website) {
     // Honeypot. Return a fake success URL — don't tell the bot anything.
-    return NextResponse.json({ url: `${publicOrigin()}/advertise/featured-success?fake=1` })
+    return NextResponse.json({ url: `${checkoutOrigin(req).origin}/advertise/featured-success?fake=1` })
   }
 
   const business_name = (body.business_name ?? '').trim()
@@ -66,8 +71,8 @@ export async function POST(req: NextRequest) {
     const session = await createCheckoutSession(stripe.secret_key, {
       priceId,
       mode:          'subscription', // annual recurring
-      successUrl:    `${publicOrigin()}/advertise/featured-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl:     `${publicOrigin()}/advertise/get-listed?canceled=1`,
+      successUrl:    `${checkoutOrigin(req).origin}/advertise/featured-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl:     `${checkoutOrigin(req).origin}/advertise/get-listed?canceled=1`,
       customerEmail: email,
       metadata: {
         type:          'featured_listing',

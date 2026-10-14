@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { publicOriginForBrand } from '@/lib/markets'
 import { upsertContact } from '@/lib/ghl'
 import { sendLeadSMS } from '@/lib/sms-handoff'
 import { sendPartnerNotification } from '@/lib/partner-notification'
@@ -127,7 +128,12 @@ export async function POST(req: NextRequest) {
 
         // 6. Partner notification email
         if (account?.contact_email) {
-          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+          // The partner's own brand, not the deployment default — see
+          // lib/markets.ts. account is selected with '*' above, so market is
+          // present once migration 232 has run and absent harmlessly before.
+          const leadMarket = (account as { market?: string | null } | null)?.market ?? null
+          const siteUrl = (leadMarket ? publicOriginForBrand(leadMarket) : '')
+            || process.env.NEXT_PUBLIC_SITE_URL || ''
           const notifRes = await sendPartnerNotification({
             partnerContactEmail: account.contact_email,
             partnerContactName: account.contact_name ?? account.business_name,

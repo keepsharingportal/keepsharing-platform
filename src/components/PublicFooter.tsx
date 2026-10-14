@@ -57,11 +57,25 @@ const RRP_CHROME_FALLBACK: BrandChrome = {
   tertiaryColorHex:        '#f3bf24',
   backgroundColorHex:      '#fbfaf8',
   foregroundColorHex:      '#2b2420',
-  // RRP's own fallback chrome, used only when no brand resolves.
-  contactEmail:            'hello@riverregionparents.com',
-  contactPhone:            '(334) 328-5189',
-  contactEmailEditorial:   'editor@riverregionparents.com',
-  contactEmailSales:       'advertise@riverregionparents.com',
+  // Contact details are deliberately absent from the no-brand fallback.
+  //
+  // This object is used only when brand resolution fails outright, which on a
+  // normal request cannot happen — the proxy stamps x-brand-slug from the Host
+  // header. But if it ever does, the failure mode matters: carrying River
+  // Region's inbox and phone here meant an unresolved request on
+  // gpp.keepsharing.com would print River Region's contact details under
+  // Greater Pensacola's masthead, silently, which is the exact class of bug
+  // this file's colours and tagline cannot cause.
+  //
+  // The footer and the JSON-LD both omit a null field, so an unresolved brand
+  // now shows no contact block rather than someone else's. Losing a phone
+  // number on a page that already doesn't know what brand it is costs less
+  // than publishing the wrong one. Styling still falls back to RRP's palette
+  // below — a brand-coloured page is not a factual claim.
+  contactEmail:            null,
+  contactPhone:            null,
+  contactEmailEditorial:   null,
+  contactEmailSales:       null,
   socialFacebook:          null,
   socialInstagram:         null,
   homepageRotationColumns: [],

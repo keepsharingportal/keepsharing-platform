@@ -68,8 +68,13 @@ if (process.argv[2] === 'up') {
   })
 
   // ── magazine issue ──────────────────────────────────────────────────────
+  // issuu_url is NOT NULL (migration 112). Omitting it failed the insert
+  // quietly enough to leave the homepage magazine block untested — the
+  // "homepage" marker check was passing on the article rows alone.
   await post('magazine_issues', {
     market: 'gpp', label: 'ZZTEST GPP Issue', issue_month: soon.slice(0, 7) + '-01',
+    issuu_url: 'https://issuu.com/zztest/docs/zztest-gpp-issue',
+    tagline: 'Temporary brand-isolation test.',
   })
 
   console.log('seeded GPP test data')

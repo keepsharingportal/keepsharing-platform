@@ -78,6 +78,14 @@ export function AgreementGenerator() {
   const adjustment  = 0
   const grandTotal  = subtotal + tax + adjustment
 
+  // The brands this agreement actually sells. The document header read
+  // "KeepSharing LLC · River Region Parents · riverregionparents.com" on every
+  // agreement, so a contract for Greater Pensacola space named River Region as
+  // the publication — on the signed page, next to the money. KeepSharing LLC
+  // stays: that is the legal counterparty regardless of brand.
+  const soldBrands = [...new Set(lineItems.map(l => l.publication))]
+    .map(abbrev => PUBLICATIONS.find(p => p.abbrev === abbrev)?.name ?? abbrev)
+
   const addLineItem = () => setLineItems((prev) => [
     ...prev,
     { id: String(Date.now()), publication: 'RRP', size: 0.25, monthlyRate: 275, months: 10, specialPosition: '' },
@@ -271,7 +279,9 @@ export function AgreementGenerator() {
       <div className="max-w-3xl mx-auto px-8 py-10 bg-white" id="agreement-doc">
         <div className="text-center border-b-2 border-gray-900 pb-4 mb-8">
           <h1 className="text-2xl font-black tracking-tight">ADVERTISING AGREEMENT</h1>
-          <p className="text-sm text-gray-600 mt-1">KeepSharing LLC · River Region Parents · riverregionparents.com</p>
+          <p className="text-sm text-gray-600 mt-1">
+            KeepSharing LLC{soldBrands.length ? ` · ${soldBrands.join(' · ')}` : ''}
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-8 mb-8">

@@ -65,7 +65,10 @@ const SLUG_TO_PIT_ENV: Record<string, string> = {
   gpp:      'GHL_PIT_GPP',
 }
 
-function resolvePit(publicationSlug: string): string | null {
+/** Per-brand GHL sub-account token. Exported because notification routes
+ *  outside this module were reading process.env.GHL_PIT_RRP directly, which
+ *  sent every brand's leads into River Region's GHL sub-account. */
+export function resolvePit(publicationSlug: string): string | null {
   const key = publicationSlug.toLowerCase().trim()
   const envVar = SLUG_TO_PIT_ENV[key]
   if (!envVar) return null

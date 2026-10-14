@@ -1,5 +1,5 @@
 import { PublicHeader } from '@/components/PublicHeader'
-import { guideIsLiveForBrand } from '@/lib/guides/require-live'
+import { guideTreeIsViewable } from '@/lib/guides/require-live'
 import { notFound } from 'next/navigation'
 import { loadBrandContext } from '@/lib/brand-context'
 import { MobileNav } from '@/components/family-guide/MobileNav'
@@ -14,7 +14,7 @@ import { dmSans, fraunces } from '@/lib/fonts'
 export default async function NewcomerGuideLayout({ children }: { children: React.ReactNode }) {
   // This is the 'newcomer' guide's legacy path; /family-resource-guide is its
   // url_slug. Both trees have their own layout, so both need the gate.
-  if (!(await guideIsLiveForBrand('newcomer'))) notFound()
+  if (!(await guideTreeIsViewable('newcomer'))) notFound()
   const { market } = await loadBrandContext()
   const brandName    = market.displayName
   return (

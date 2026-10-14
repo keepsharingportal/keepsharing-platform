@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
+import { publicOriginForBrand } from '@/lib/markets'
 
 function supabaseAdmin() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '', process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '')
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     const supabase = supabaseAdmin()
 
     // Generate or retrieve token
-    const { data: account } = await supabase.from('advertiser_accounts').select('id, contact_email, contact_name, business_name, onboarding_token, slug').eq('id', partnerId).maybeSingle()
+    const { data: account } = await supabase.from('advertiser_accounts').select('*').eq('id', partnerId).maybeSingle()
     if (!account) return NextResponse.json({ error: 'Partner not found' }, { status: 404 })
 
     let token = account.onboarding_token
@@ -33,7 +34,16 @@ export async function POST(req: NextRequest) {
       await supabase.from('advertiser_accounts').update({ onboarding_token: token, onboarding_status: 'not-started' }).eq('id', partnerId)
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+    // The partner's own brand. Was NEXT_PUBLIC_SITE_URL with a hardcoded
+    // River Region fallback, which is one value for a deployment serving six
+    // brand domains — so a Greater Pensacola partner was emailed an
+    // onboarding link to River Region's site, where their token means nothing.
+    // select('*') above rather than naming `market`: PostgREST fails the whole
+    // query on an unknown column, and this must not break the flow on a
+    // database where migration 232 has not run.
+    const partnerMarket = (account as { market?: string | null }).market ?? null
+    const siteUrl = (partnerMarket ? publicOriginForBrand(partnerMarket) : '')
+      || process.env.NEXT_PUBLIC_SITE_URL || ''
     const onboardingUrl = `${siteUrl}/onboard/${token}`
 
     // TODO: send email when GHL email is configured

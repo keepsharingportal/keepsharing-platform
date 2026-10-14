@@ -13,6 +13,7 @@
 // show "last sent" + a paper-trail count.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { publicOriginForBrand } from '@/lib/markets'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin/auth'
 import { recordAuditEvent } from '@/lib/admin/audit'
@@ -22,7 +23,12 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const WEBHOOK_URL = process.env.GHL_REPORT_SEND_WEBHOOK_URL
-const SITE_BASE   = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.riverregionparents.com'
+// The report link goes to the advertiser's OWN brand. This was a module-level
+// NEXT_PUBLIC_SITE_URL with a hardcoded River Region fallback — one value for
+// a deployment serving six brand domains, so a Greater Pensacola advertiser
+// got a River Region URL for their own campaign report. adv.market is already
+// selected below; this is only the fallback for a brand we can't resolve.
+const SITE_FALLBACK = process.env.NEXT_PUBLIC_SITE_URL ?? ''
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   let admin
@@ -66,7 +72,8 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
   if (!tok)       return NextResponse.json({ error: 'No active report token. Generate one first.' }, { status: 400 })
   if (!adv.contact_email) return NextResponse.json({ error: 'Advertiser has no contact_email on file.' }, { status: 400 })
 
-  const reportUrl = `${SITE_BASE}/r/${tok.token}`
+  const siteBase  = (adv.market ? publicOriginForBrand(adv.market) : '') || SITE_FALLBACK
+  const reportUrl = `${siteBase}/r/${tok.token}`
   const now       = new Date()
   const reportLabel = now.toLocaleString('en-US', { month: 'long', year: 'numeric' })
 

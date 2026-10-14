@@ -8,9 +8,11 @@ import { useRouter } from 'next/navigation'
 import { AddPanel } from '../ShortLinksClient'
 import type { AdvertiserOption } from '../page'
 
-export function NewTrackedLinkClient({ advertisers, initialAdvertiserId }: {
+export function NewTrackedLinkClient({ advertisers, initialAdvertiserId, brandSlug }: {
   advertisers:          AdvertiserOption[]
   initialAdvertiserId?: string
+  /** Brand the link belongs to — decides the QR's host. */
+  brandSlug:            string
 }) {
   const router = useRouter()
   const back = () => router.push('/admin/content/short-links')
@@ -18,6 +20,7 @@ export function NewTrackedLinkClient({ advertisers, initialAdvertiserId }: {
     <AddPanel
       advertisers={advertisers}
       initialAdvertiserId={initialAdvertiserId}
+      brandSlug={brandSlug}
       onCancel={back}
       onCreated={back}
     />

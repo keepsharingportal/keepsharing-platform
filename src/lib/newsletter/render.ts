@@ -4,6 +4,7 @@
 // Weekly Scoop. Inline styles only — email clients ignore <style> tags.
 
 import { getFallbackByContext } from '@/lib/image-fallbacks'
+import { MARKETS } from '@/lib/markets'
 
 export interface NewsletterPickEvent {
   id:               string
@@ -25,7 +26,25 @@ export interface NewsletterPickEvent {
   custom_blurb:     string | null
 }
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+/**
+ * The sending brand's name and origin.
+ *
+ * This used to be `NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'`
+ * with "River Region Parents" written into the masthead — one deployment
+ * serves six brands, so that env var names whichever brand was deployed last
+ * and the fallback names River Region unconditionally. A Greater Pensacola
+ * newsletter went out under River Region's masthead with links to River
+ * Region's calendar.
+ *
+ * Takes the market explicitly and refuses an unknown one rather than falling
+ * back: a newsletter is the one surface a reader cannot un-see, and sending
+ * it wearing another brand's name is worse than not sending it.
+ */
+function brandOf(market: string): { name: string; origin: string } {
+  const m = MARKETS.find(x => x.slug === market)
+  if (!m) throw new Error(`renderNewsletterHtml: unknown market "${market}"`)
+  return { name: m.displayName, origin: `https://${m.publicHost}` }
+}
 
 function fmtDate(iso: string): string {
   return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', {
@@ -51,15 +70,16 @@ function escapeHtml(s: string): string {
 
 export function renderNewsletterHtml(
   picks: NewsletterPickEvent[],
-  opts: { issue_date: string },
+  opts: { issue_date: string; market: string },
 ): string {
+  const { name: BRAND, origin: SITE } = brandOf(opts.market)
   const lines: string[] = []
-  lines.push(`<!-- River Region Parents — Family Picks for the week of ${fmtDate(opts.issue_date)} -->`)
+  lines.push(`<!-- ${BRAND} — Family Picks for the week of ${fmtDate(opts.issue_date)} -->`)
   lines.push(`<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;margin:0 auto;font-family:Helvetica,Arial,sans-serif;color:#2b2420;">`)
 
   // Header
   lines.push(`  <tr><td style="padding:24px 20px 12px;">`)
-  lines.push(`    <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#ef6442;">River Region Parents — Family Picks</p>`)
+  lines.push(`    <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#ef6442;">${escapeHtml(BRAND)} — Family Picks</p>`)
   lines.push(`    <h1 style="margin:0;font-size:26px;line-height:1.2;color:#2b2420;">Things to do, week of ${escapeHtml(fmtDate(opts.issue_date))}</h1>`)
   lines.push(`  </td></tr>`)
 

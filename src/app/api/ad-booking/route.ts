@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { checkoutOrigin } from '@/lib/checkout-origin'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { PRINT_ZONES, WEB_ZONES } from '@/lib/ad-zones'
@@ -67,7 +68,14 @@ export async function POST(req: NextRequest) {
 
     const totalCents = basePrice * 100 + (body.designHelp ? DESIGN_HELP_PRICE : 0)
 
-    const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+    // Was: the raw Origin request header, then NEXT_PUBLIC_SITE_URL, then a
+    // hardcoded River Region URL. Two bugs in one line. Origin is
+    // attacker-controlled, so it fed an unvalidated host straight into
+    // Stripe's success_url — a forged Origin turned the post-payment
+    // redirect into an open redirect. And when Origin was absent, a Greater
+    // Pensacola payer landed on River Region's site. Both are handled in
+    // lib/checkout-origin.ts; see the header there.
+    const { origin } = checkoutOrigin(req)
 
     // Create draft booking in DB
     const supabase = await createClient()

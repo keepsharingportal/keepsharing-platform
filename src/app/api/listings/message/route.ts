@@ -19,12 +19,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { publicOriginForBrand } from '@/lib/markets'
 import { brandSender, type BrandSender } from '@/lib/email/brand-sender'
 import { currentBrandSlug } from '@/lib/current-brand'
+import { inboxForBrand, subjectTag } from '@/lib/email/brand-recipient'
+import { resolvePit } from '@/lib/ghl'
 import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? 'hello@riverregionparents.com'
-const SITE_URL    = process.env.NEXT_PUBLIC_SITE_URL    ?? 'https://riverregionparents.com'
+// The editor inbox used to be a module constant:
+//   process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? 'hello@riverregionparents.com'
+// One deployment serves six brands, so no value of that env var routes a
+// Greater Pensacola listing inquiry to Greater Pensacola. Resolved per
+// request now — see lib/email/brand-recipient.ts. (SITE_URL went with it;
+// it was declared here and never read.)
 
 const GHL_BASE    = 'https://services.leadconnectorhq.com'
 const GHL_VERSION = '2021-07-28'
@@ -41,8 +47,10 @@ async function notifyAdmin(args: {
   parentPhone:   string | null
   message:       string
   sourceUrl:     string | null
+  /** Editor inbox for THIS brand — lib/email/brand-recipient.ts. */
+  adminEmail:    string
 }) {
-  const token = process.env.GHL_PIT_RRP
+  const token = resolvePit(args.sender.market.slug)
   if (!token) return { sent: false, reason: 'no GHL token' }
 
   const body = `
@@ -85,8 +93,8 @@ async function notifyAdmin(args: {
       },
       body: JSON.stringify({
         type:    'Email',
-        emailTo: ADMIN_EMAIL,
-        subject: `📩 Listing inquiry — ${args.businessName} (from ${args.parentName})`,
+        emailTo: args.adminEmail,
+        subject: `${subjectTag(args.sender.market.slug)}📩 Listing inquiry — ${args.businessName} (from ${args.parentName})`,
         html:    body,
       }),
     })
@@ -122,6 +130,8 @@ async function notifyBusiness(args: {
   parentPhone:   string | null
   message:       string
   sourceUrl:     string | null
+  /** Editor inbox for THIS brand — lib/email/brand-recipient.ts. */
+  adminEmail:    string
 }): Promise<{ sent: boolean; via?: string; reason?: string }> {
   const key = process.env.RESEND_API_KEY
   if (!key) return { sent: false, reason: 'no RESEND_API_KEY' }
@@ -132,7 +142,7 @@ async function notifyBusiness(args: {
     await new Resend(key).emails.send({
       from:    args.sender.from,
       to:      [args.businessEmail],
-      cc:      [ADMIN_EMAIL],
+      cc:      [args.adminEmail],
       replyTo: args.parentEmail,
       subject: `A ${args.sender.market.displayName} reader is asking about ${args.businessName}`,
       html: `
@@ -197,9 +207,9 @@ async function notifyAdminViaResend(
     const contact = [args.contactEmail, args.contactPhone].filter(Boolean).join(' · ') || 'no contact on file'
     await new Resend(key).emails.send({
       from:    args.sender.from,
-      to:      [ADMIN_EMAIL],
+      to:      [args.adminEmail],
       replyTo: args.parentEmail,
-      subject: `Listing inquiry — ${args.businessName} (from ${args.parentName})`,
+      subject: `${subjectTag(args.sender.market.slug)}Listing inquiry — ${args.businessName} (from ${args.parentName})`,
       html: `
         <p><strong>New listing inquiry — ${args.businessName}</strong></p>
         <p>${args.parentName} &lt;${args.parentEmail}&gt;${args.parentPhone ? ` · ${args.parentPhone}` : ''}</p>
@@ -280,6 +290,10 @@ export async function POST(req: NextRequest) {
     message:       body.message,
     // The brand the enquiry came through, not the deployment default.
     sourceUrl:     body.source_url ?? `${publicOriginForBrand((acct as { market?: string | null } | null)?.market ?? (await currentBrandSlug()) ?? 'rrp')}/`,
+    // Editorial desk, not sales: this is a reader asking a business a
+    // question, and the editor is the one who chases it if it goes quiet.
+    adminEmail:    await inboxForBrand(sender.market.slug, 'editorial',
+                     process.env.NEXT_PUBLIC_ADMIN_EMAIL),
   }
 
   // Which guide is this listing in? Only used for the line "your After-School
@@ -315,6 +329,7 @@ export async function POST(req: NextRequest) {
       parentPhone:  args.parentPhone,
       message:      args.message,
       sourceUrl:    args.sourceUrl,
+      adminEmail:   args.adminEmail,
     })
     businessNotified = notification.sent
     // If the direct send fails the lead must not evaporate — fall back to

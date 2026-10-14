@@ -57,7 +57,11 @@ export interface AdvertiserOption {
 }
 
 export default async function ShortLinksPage() {
-  await requireAdmin()
+  const ctx = await requireAdmin()
+  // The QR and the printed URL must carry THIS brand's host — see
+  // siteOriginFor in ShortLinksClient. 'all' is a reading view, so it falls
+  // back to the admin's first allowed brand rather than a hardcoded one.
+  const brandSlug = ctx.viewingAll ? (ctx.allowedMarkets[0] ?? 'rrp') : ctx.activeMarket
 
   const supabase = createAdminClient()
   // Three-tier fallback to stay tolerant of mid-migration DBs.
@@ -110,6 +114,7 @@ export default async function ShortLinksPage() {
       <ShortLinksClient
         initialRows={data}
         advertisers={(advData ?? []) as AdvertiserOption[]}
+        brandSlug={brandSlug}
       />
     </div>
   )

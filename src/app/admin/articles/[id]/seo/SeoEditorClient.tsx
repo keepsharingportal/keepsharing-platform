@@ -182,6 +182,7 @@ export function SeoEditorClient(props: Props) {
           title={effectiveTitle}
           description={effectiveDesc}
           urlPath={canonicalOverride.trim() || articlePath}
+          brandSlug={brandSlug}
         />
 
         {/* Score card */}

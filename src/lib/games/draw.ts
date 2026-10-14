@@ -51,7 +51,7 @@
 // rehearsal.
 
 import { randomInt } from 'node:crypto'
-import { publicOriginForBrand } from '@/lib/markets'
+import { publicOriginForBrand, marketDisplayName } from '@/lib/markets'
 import { brandSender } from '@/lib/email/brand-sender'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
@@ -62,6 +62,11 @@ import { GAMES_PRIZE, prizeAmount } from './prize'
 // sponsors, one set of prize rules. Passed explicitly to fromAddress and
 // siteUrl so both are right by construction rather than by coincidence.
 const MARKET = 'rrp'
+
+/** Display name of the brand above. Derived rather than written out so the
+ *  three reader-facing strings below cannot drift from MARKET if the draw is
+ *  ever extended to a second brand. */
+const BRAND = marketDisplayName(MARKET)
 
 /** DB key in site_settings holding the armed flag. */
 export const DRAW_ENABLED_KEY = 'games_draw_enabled'
@@ -358,7 +363,7 @@ async function emailWinners(
         // my Venmo" reply lands in a mailbox nobody reads and the winner is
         // never paid.
         replyTo: ownerEmails()[0],
-        subject: subjectFor(mode, `You won ${prizeAmount()} — River Region Parents Family Brain Games`),
+        subject: subjectFor(mode, `You won ${prizeAmount()} — ${BRAND} Family Brain Games`),
         html: `
           ${previewBanner(mode, `${w.first_name} <${w.email}>`)}
           <p>Hi ${esc(w.first_name)},</p>
@@ -367,7 +372,7 @@ async function emailWinners(
           <p>Just reply to this email and we'll arrange getting your ${prizeAmount()} to you.</p>
           <p>Thanks for playing — new puzzles go up every morning at
              <a href="${siteUrl(MARKET)}/games">${siteUrl(MARKET).replace(/^https?:\/\//, '')}/games</a>.</p>
-          <p>— River Region Parents</p>
+          <p>— ${BRAND}</p>
         `,
         // Every send carries a text/plain alternative. An HTML-only message is
         // a long-standing spam-filter signal, and this one has the worst
@@ -379,7 +384,7 @@ async function emailWinners(
           `You won this week's ${prizeAmount()} Family Brain Games drawing (${weekIso}). Congratulations!\n\n` +
           `Just reply to this email and we'll arrange getting your ${prizeAmount()} to you.\n\n` +
           `Thanks for playing — new puzzles go up every morning at ${siteUrl(MARKET)}/games\n\n` +
-          `— River Region Parents`,
+          `— ${BRAND}`,
       })
     }
     return 'sent'

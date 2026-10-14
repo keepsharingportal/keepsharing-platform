@@ -68,7 +68,18 @@ export async function generateMetadata(): Promise<Metadata> {
   })
 }
 
-export default async function BirthdayPartyGuidePage() {
+interface Props {
+  searchParams: Promise<{ preview?: string }>
+}
+
+export default async function BirthdayPartyGuidePage({ searchParams }: Props) {
+  // Preview shows DRAFT listings as well as published ones, matching
+  // GuideDetailPage. Without this, previewing an unlaunched guide showed
+  // the brand's own category cards with a count of zero against every
+  // one of them — so the thing preview exists to check (are these the
+  // right categories, in the right order?) could not be checked. The
+  // layout gate above still keeps the hub 404 to the public.
+  const preview = (await searchParams).preview === '1'
   // Client components below cannot await the brand, so the page resolves the
   // region wording once and passes it down.
   const pageRegion = (await loadBrandContext()).market.regionLabel
@@ -123,7 +134,7 @@ export default async function BirthdayPartyGuidePage() {
     scoped(supabase.from('guide_listings')
       .select('category, extra_categories, advertiser_accounts(id)')
       .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
-      .eq('is_published', true)
+      .in('is_published', preview ? [true, false] : [true])
       .limit(500), bdayScope),
     // Active section sponsor for the page (sponsorship slot)
     supabase.from('ad_placements')
@@ -166,7 +177,20 @@ export default async function BirthdayPartyGuidePage() {
     advertiser_accounts: { id: string } | null
   }
   const rawListings = (listingCountsRes.data ?? []) as unknown as RawListing[]
-  const linkedListings = rawListings.filter(r => r.advertiser_accounts !== null)
+  // Preview counts UNLINKED listings too.
+  //
+  // The advertiser-link filter is right in public: a listing with no
+  // advertiser_account has no card content and no detail page, so counting it
+  // would advertise vendors nobody can click through to.
+  //
+  // In preview it defeats the purpose. A freshly imported brand has listings
+  // but no advertiser links yet (those are created separately), so every
+  // bucket counted zero, every bucket was therefore hidden as empty, and the
+  // hub rendered with no category cards at all — which is precisely the thing
+  // preview exists to check: are these the right categories, in this order?
+  const linkedListings = preview
+    ? rawListings
+    : rawListings.filter(r => r.advertiser_accounts !== null)
   const categoryCountsObj: Record<string, number> = {}
   for (const l of linkedListings) {
     if (l.category) categoryCountsObj[l.category] = (categoryCountsObj[l.category] ?? 0) + 1
@@ -225,7 +249,7 @@ export default async function BirthdayPartyGuidePage() {
                 the "what can I browse" question gets answered right
                 after readers see the Featured Pros. */}
             <section id="vendors">
-              <BirthdayCategoryHubCards countsByCategory={categoryCountsObj} />
+              <BirthdayCategoryHubCards countsByCategory={categoryCountsObj} preview={preview} />
             </section>
 
             <section id="timeline">

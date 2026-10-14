@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { renderNewsletterHtml, type NewsletterPickEvent } from '@/lib/newsletter/render'
+import { requireAdmin } from '@/lib/admin/auth'
+import { isKnownMarket } from '@/lib/markets'
 
 export const runtime     = 'nodejs'
 export const maxDuration = 60
@@ -59,6 +61,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'issue_date and subject are required' }, { status: 400 })
   }
 
+  // Which brand is sending. Every query and the rendered masthead below used
+  // the literal 'rrp', so a publisher switched to Greater Pensacola sent River
+  // Region's picks under River Region's name. 'all' is a reading view, not a
+  // sending identity — there is no such thing as a cross-brand newsletter.
+  const ctx = await requireAdmin()
+  if (ctx.viewingAll) {
+    return NextResponse.json({
+      error: 'Pick a single brand in the market switcher before sending — a newsletter goes out under one brand\'s name.',
+    }, { status: 400 })
+  }
+  const market = ctx.activeMarket
+  // Refuse rather than guess. An admin whose allowed_markets was never filled
+  // in has activeMarket '', and a newsletter sent under a guessed brand is
+  // exactly the failure this whole change is about.
+  if (!isKnownMarket(market)) {
+    return NextResponse.json({
+      error: 'No brand is selected for your account. Set your market access before sending.',
+    }, { status: 400 })
+  }
+
   const webhookUrl = process.env.GHL_NEWSLETTER_WEBHOOK_URL
   if (!webhookUrl) {
     return NextResponse.json({
@@ -73,7 +95,7 @@ export async function POST(req: NextRequest) {
     .from('newsletter_picks')
     .select('event_id, display_order, custom_blurb, custom_headline')
     .eq('issue_date', body.issue_date)
-    .eq('market', 'rrp')
+    .eq('market', market)
     .order('display_order', { ascending: true })
 
   const picks = (picksData ?? []) as PickRow[]
@@ -105,14 +127,14 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Render the email HTML
-  const html = renderNewsletterHtml(pickEvents, { issue_date: body.issue_date })
+  const html = renderNewsletterHtml(pickEvents, { issue_date: body.issue_date, market })
 
   // 3. Insert a pending audit row so we have a record even if the webhook fails
   const issueInsert = await supabase
     .from('newsletter_issues')
     .insert({
       issue_date:    body.issue_date,
-      market:        'rrp',
+      market,
       subject:       body.subject.trim(),
       list_tag:      body.list_tag?.trim() || null,
       scheduled_for: body.scheduled_for || null,

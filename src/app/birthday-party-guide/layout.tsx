@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { guideIsLiveForBrand } from '@/lib/guides/require-live'
+import { guideTreeIsViewable } from '@/lib/guides/require-live'
 
 // One gate for the whole Birthday Party Guide tree.
 //
@@ -14,6 +14,6 @@ export default async function BirthdayPartyGuideLayout({
 }: {
   children: React.ReactNode
 }) {
-  if (!(await guideIsLiveForBrand('birthday-party'))) notFound()
+  if (!(await guideTreeIsViewable('birthday-party'))) notFound()
   return <>{children}</>
 }

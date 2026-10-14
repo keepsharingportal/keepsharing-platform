@@ -187,3 +187,29 @@ export function bucketByCategory<T extends { id: string; category?: string | nul
 
   return { sections, all, order }
 }
+
+/**
+ * Every category a `category_order` names, flattened.
+ *
+ * orderCategories() intentionally hides a category with no listings — an
+ * empty section is worse than no section. That makes it the wrong tool for
+ * resolving a URL slug: a bucket page for a category that happens to be empty
+ * today should say "nothing here yet", not 404. Passing this as the "present"
+ * set gives the brand's declared categories regardless of current data.
+ */
+export function declaredCategories(rawOrder: unknown): string[] {
+  const out: string[] = []
+  for (const entry of asEntries(rawOrder)) {
+    if (typeof entry === 'string') {
+      if (!out.includes(entry)) out.push(entry)
+      continue
+    }
+    for (const child of entry.children ?? []) {
+      if (typeof child !== 'string' || !child) continue
+      // Store the form the data uses, so matchPresent lines up either way.
+      const prefixed = `${entry.group} - ${child}`
+      if (!out.includes(prefixed)) out.push(prefixed)
+    }
+  }
+  return out
+}

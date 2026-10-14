@@ -8,6 +8,7 @@
 // Replaces the external QR Code Studio subscription.
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { MARKETS } from '@/lib/markets'
 import Link from 'next/link'
 import {
   Plus, Copy, Check, ExternalLink, RefreshCw, Trash2, QrCode,
@@ -24,12 +25,23 @@ import {
 // host. window.location.origin returns 'https://app.keepsharing.com' when
 // the editor is browsing on the admin subdomain — that baked the wrong
 // host into printed QRs (June 2026 issue). Hard-pin to the public origin
-// via env var; fall back to riverregionparents.com so QRs always point
+// via env var; fall back to the brand's own host so QRs always point
 // at the brand site no matter where the wizard is opened from.
-const SITE_ORIGIN =
-  process.env.NEXT_PUBLIC_PUBLIC_ORIGIN
-  ?? process.env.NEXT_PUBLIC_SITE_URL
-  ?? 'https://riverregionparents.com'
+// The brand whose issue this QR is printed in. The env-var pin above was
+// right about the problem (the admin host is not the public host) and wrong
+// about the fix: one deployment serves six brand domains, so the pin names
+// whichever brand was deployed last. A QR printed in Greater Pensacola's
+// issue pointed at River Region, and a printed QR cannot be corrected.
+//
+// Resolved from the brand the admin is working in, passed from the server
+// component. The env vars remain the fallback for a single-brand deployment.
+function siteOriginFor(brandSlug: string | undefined): string {
+  const host = MARKETS.find(m => m.slug === brandSlug)?.publicHost
+  if (host) return `https://${host}`
+  return process.env.NEXT_PUBLIC_PUBLIC_ORIGIN
+      ?? process.env.NEXT_PUBLIC_SITE_URL
+      ?? ''
+}
 
 const CONTENT_TYPES = [
   { value: 'url',    label: 'URL / Website',  icon: Link2,          desc: 'Link to any page on our site or an external URL' },
@@ -44,6 +56,8 @@ const CONTENT_TYPES = [
 interface Props {
   initialRows: ShortLinkRow[]
   advertisers: AdvertiserOption[]
+  /** Brand the admin is working in — decides the printed host. */
+  brandSlug:   string
 }
 
 // Resolve a row's effective purpose. Reads the column first; falls back
@@ -68,7 +82,7 @@ const SORT_LABELS: Record<SortKey, string> = {
   recent: 'Most recently clicked',
 }
 
-export function ShortLinksClient({ initialRows, advertisers }: Props) {
+export function ShortLinksClient({ initialRows, advertisers, brandSlug }: Props) {
   const [rows, setRows] = useState<ShortLinkRow[]>(initialRows)
 
   // Filter state
@@ -249,7 +263,7 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-portal-border divide-y divide-portal-border overflow-hidden">
-            {visibleRows.map(r => <LinkRow key={r.id} row={r} onRemoved={onRemoved} />)}
+            {visibleRows.map(r => <LinkRow key={r.id} row={r} onRemoved={onRemoved} brandSlug={brandSlug} />)}
           </div>
         )}
       </div>
@@ -304,7 +318,7 @@ function useQrPreview(text: string, primaryColor: string, bgColor: string) {
 }
 
 // ── Row ─────────────────────────────────────────────────────────────────────
-function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string) => void }) {
+function LinkRow({ row, onRemoved, brandSlug }: { row: ShortLinkRow; onRemoved: (id: string) => void; brandSlug: string }) {
   const [copied, setCopied]   = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [showQr, setShowQr]     = useState(false)
@@ -312,8 +326,11 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
   // Local copy of the editable fields so the row reflects edits without a refetch
   const [local, setLocal]       = useState(row)
 
-  const goUrl   = `${SITE_ORIGIN}/go/${local.shortcode}`
-  const printUrl = `riverregionparents.com/go/${local.shortcode}`
+  // Both from the brand being edited. printUrl is what goes on the printed
+  // page, so a wrong host here is uncorrectable once the issue ships.
+  const origin   = siteOriginFor(brandSlug)
+  const goUrl    = `${origin}/go/${local.shortcode}`
+  const printUrl = `${origin.replace(/^https?:\/\//, '')}/go/${local.shortcode}`
   const typeDef  = CONTENT_TYPES.find(t => t.value === local.content_type) ?? CONTENT_TYPES[0]
   const Icon     = typeDef.icon
 
@@ -542,12 +559,14 @@ function EditRow({
 // Exported so the dedicated /admin/content/short-links/new route can mount
 // the same form on its own page (where save/cancel both router.push back).
 export function AddPanel({
-  advertisers, initialAdvertiserId, onCancel, onCreated,
+  advertisers, initialAdvertiserId, onCancel, onCreated, brandSlug,
 }: {
   advertisers:          AdvertiserOption[]
   initialAdvertiserId?: string
   onCancel:             () => void
   onCreated:            (r: ShortLinkRow) => void
+  /** Brand the link belongs to — decides the QR's host. */
+  brandSlug:            string
 }) {
   // Purpose drives the whole form view. Null until the editor picks
   // a card — progressive disclosure: the form starts collapsed and
@@ -724,7 +743,7 @@ export function AddPanel({
 
   // QR preview
   const previewCode = shortcode.trim().toLowerCase().replace(/[^a-z0-9-]/g, '') || 'shortcode'
-  const goUrl = `${SITE_ORIGIN}/go/${previewCode}`
+  const goUrl = `${siteOriginFor(brandSlug)}/go/${previewCode}`
   const { qrDataUrl, loading: qrLoading, generate: genQr } = useQrPreview(goUrl, primaryColor, '#ffffff')
   useEffect(() => { if (previewCode !== 'shortcode') genQr() }, [previewCode, primaryColor, genQr])
 
@@ -1199,7 +1218,7 @@ export function AddPanel({
             </a>
           )}
           <p className="mt-2 text-[10px] text-portal-sub text-center">
-            riverregionparents.com<br />/go/{previewCode}
+            {siteOriginFor(brandSlug).replace(/^https?:\/\//, '')}<br />/go/{previewCode}
           </p>
         </div>
         )}

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin/auth'
+import { publicOriginForBrand } from '@/lib/markets'
 import { recordAuditEvent } from '@/lib/admin/audit'
 import { mintContributorToken } from '@/lib/contributors/token'
 
@@ -93,7 +94,13 @@ export async function sendInviteAction(input: SendInviteInput): Promise<{ ok: tr
     after: { contributor_id: input.contributorId, template_slug: input.templateSlug },
   })
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+  // The brand the admin is working in. Was NEXT_PUBLIC_SITE_URL with a
+  // hardcoded River Region fallback — one value for a deployment serving six
+  // brand domains, so a contributor invited to Greater Pensacola got a link
+  // to River Region's site. 'all' is a reading view, not a place to send
+  // someone, so it falls back to the admin's first allowed brand.
+  const base = publicOriginForBrand(ctx.viewingAll ? (ctx.allowedMarkets[0] ?? 'rrp') : ctx.activeMarket)
+    || process.env.NEXT_PUBLIC_SITE_URL || ''
   const url = `${base}/contribute/${token}`
 
   revalidatePath('/admin/contributors')

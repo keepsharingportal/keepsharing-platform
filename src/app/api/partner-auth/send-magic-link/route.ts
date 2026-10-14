@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { publicOriginForBrand } from '@/lib/markets'
 import { loadBrandContext } from '@/lib/brand-context'
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
@@ -46,7 +47,13 @@ export async function POST(req: NextRequest) {
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     })
 
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+    // Was NEXT_PUBLIC_SITE_URL with a hardcoded River Region fallback. One
+    // deployment serves six brand domains, so no value of that env var sends a
+    // Greater Pensacola recipient a Greater Pensacola link. publicOriginForBrand
+    // resolves the brand's own host; the env var stays as the last resort for a
+    // single-brand deployment and local dev.
+    const baseUrl = publicOriginForBrand(market.slug)
+      || process.env.NEXT_PUBLIC_SITE_URL || ''
     const magicLink = `${baseUrl}/partners/${slug}/admin?token=${token}`
 
     // Log the link (in production, send via GHL or email service)

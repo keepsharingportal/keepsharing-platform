@@ -221,7 +221,7 @@ function handleText(req: NextRequest, row: LinkRow, brandName: string) {
   <div class="brand">${brandName}</div>
   <div class="content">${escapeHtml(text)}</div>
   <div class="footer">
-    <a href="${req.nextUrl.origin}">riverregionparents.com</a>
+    <a href="${req.nextUrl.origin}">${escapeHtml(req.nextUrl.host)}</a>
   </div>
 </body>
 </html>`

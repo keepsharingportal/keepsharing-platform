@@ -10,6 +10,7 @@
 
 import Link from 'next/link'
 import { bucketsFromCategoryOrder, type DerivedBucket } from '@/lib/guides/buckets-from-order'
+import { declaredCategories } from '@/lib/guides/category-order'
 import { createClient } from '@supabase/supabase-js'
 import { theRegion } from '@/lib/brandify'
 import type { MarketDef } from '@/lib/markets'
@@ -232,6 +233,25 @@ export function bucketBySlug(slug: string, market: MarketDef): CategoryBucket | 
   return BIRTHDAY_CATEGORY_BUCKETS(market).find(b => b.slug === slug) ?? null
 }
 
+/**
+ * Slug → bucket for the brand being served, derived buckets included.
+ *
+ * The hub cards come from birthdayBuckets(), which honours category_order —
+ * so on Greater Pensacola they carry slugs derived from GPP's own category
+ * names. The category landing page looked those slugs up in River Region's
+ * hand-authored table, found nothing, and 404'd: every card on GPP's hub was
+ * a dead link, which is a worse failure than the wrong labels it replaced.
+ *
+ * Same resolution as the cards, so a card and the page it links to can never
+ * disagree.
+ */
+export async function bucketBySlugForBrand(slug: string): Promise<CategoryBucket | DerivedBucket | null> {
+  // No counts: a slug lookup must resolve a bucket that currently has no
+  // listings, otherwise an empty category 404s instead of saying it's empty.
+  const buckets = await birthdayBuckets()
+  return buckets.find(b => b.slug === slug) ?? null
+}
+
 export function subBySlug(bucketSlug: string, subSlug: string, market: MarketDef): { bucket: CategoryBucket; sub: CategorySub } | null {
   const bucket = bucketBySlug(bucketSlug, market)
   if (!bucket?.subs) return null
@@ -245,14 +265,22 @@ export function subBySlug(bucketSlug: string, subSlug: string, market: MarketDef
 // label, count) but scaled down so the hierarchy is obvious: big hub
 // cards on the portal, mini gradient cards inside each bucket page.
 export function BirthdaySubCategoryCards({
-  bucket, countsByCategory, currentSubSlug,
+  bucket, countsByCategory, currentSubSlug, preview = false,
 }: {
   bucket: CategoryBucket
   countsByCategory?: Record<string, number>
   // Optional — when set, highlights the active sub on the sub-page so
   // visitors see where they are in the bucket.
   currentSubSlug?: string
+  /** Carry ?preview=1 onto the sub-category links. */
+  preview?: boolean
 }) {
+  // Preview has to survive the click. These hubs are only reachable with
+  // ?preview=1 while the guide is unlaunched, so a link that drops the flag
+  // 404s on the very next page — which makes the preview useless for
+  // checking the one thing it is for: that the categories and their order
+  // are right.
+  const previewQs = preview ? '?preview=1' : ''
   if (!bucket.subs?.length) return null
   function subCount(sub: CategorySub): number {
     if (!countsByCategory) return 0
@@ -269,7 +297,7 @@ export function BirthdaySubCategoryCards({
           return (
             <Link
               key={s.slug}
-              href={`/birthday-party-guide/category/${bucket.slug}/${s.slug}`}
+              href={`/birthday-party-guide/category/${bucket.slug}/${s.slug}${previewQs}`}
               className={`group relative overflow-hidden rounded-xl aspect-[3/2] flex flex-col justify-end hover:shadow-lg transition-shadow ${
                 isCurrent ? 'ring-2 ring-offset-2 ring-primary/60' : ''
               }`}
@@ -327,16 +355,32 @@ export async function birthdayBuckets(
     .maybeSingle()
   const order = (cfg as { category_order?: unknown } | null)?.category_order
   if (!order) return BIRTHDAY_CATEGORY_BUCKETS(market)
-  // Only categories that actually have listings become cards.
-  return bucketsFromCategoryOrder(order, Object.keys(countsByCategory ?? {}))
+  // With counts: only categories that actually have listings become cards —
+  // an empty section on a hub is worse than no section.
+  //
+  // Without counts the caller is resolving a slug, not rendering cards, and
+  // filtering by "has listings" would 404 a category that is merely empty
+  // today. So fall back to everything the brand declares.
+  const present = countsByCategory
+    ? Object.keys(countsByCategory)
+    : declaredCategories(order)
+  return bucketsFromCategoryOrder(order, present)
 }
 
-export async function BirthdayCategoryHubCards({ countsByCategory }: {
+export async function BirthdayCategoryHubCards({ countsByCategory, preview = false }: {
   // Optional: { csvCategory → count } so each card can render its size.
   // Page component computes from the same guide_listings query that
   // feeds everything else, no separate round trip.
   countsByCategory?: Record<string, number>
+  /** Carry ?preview=1 onto the category links. */
+  preview?: boolean
 }) {
+  // Preview has to survive the click. These hubs are only reachable with
+  // ?preview=1 while the guide is unlaunched, so a link that drops the flag
+  // 404s on the very next page — which makes the preview useless for
+  // checking the one thing it is for: that the categories and their order
+  // are right.
+  const previewQs = preview ? '?preview=1' : ''
   const buckets = await birthdayBuckets(countsByCategory)
   function bucketCount(b: CategoryBucket | DerivedBucket): number {
     if (!countsByCategory) return 0
@@ -367,7 +411,7 @@ export async function BirthdayCategoryHubCards({ countsByCategory }: {
           return (
             <Link
               key={b.slug}
-              href={`/birthday-party-guide/category/${b.slug}`}
+              href={`/birthday-party-guide/category/${b.slug}${previewQs}`}
               className="group relative overflow-hidden rounded-2xl min-h-[200px] md:min-h-[220px] flex flex-col justify-end hover:shadow-lg transition-shadow"
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${b.gradient}`} />

@@ -5,6 +5,7 @@
 // It does NOT auto-publish, auto-promote, or auto-pair sponsors.
 
 import type { Metadata } from 'next'
+import { MARKETS } from '@/lib/markets'
 import Link              from 'next/link'
 import { redirect }      from 'next/navigation'
 import { createClient }  from '@/lib/supabase/server'
@@ -272,7 +273,10 @@ function buildHTML(items: DistItem[], pubName: string): string {
   return p.join('\n')
 }
 
-function buildMobile(items: DistItem[], pubName: string): string {
+// pubHost: the brand's own domain. The sign-off said "See more at
+// riverregionparents.com" for every brand, which is wrong in a block the
+// editor pastes straight into a newsletter.
+function buildMobile(items: DistItem[], pubName: string, pubHost: string): string {
   if (items.length === 0) return 'No items assembled yet.'
   const bySec = nlGroupBySec(items)
   const ordered: DistItem[] = []
@@ -283,7 +287,7 @@ function buildMobile(items: DistItem[], pubName: string): string {
     const l = nlLink(item)
     lines.push(`• ${item.working_title ?? 'New Story'}${l ? ` → ${l}` : ''}`)
   }
-  lines.push('', 'See more at riverregionparents.com')
+  if (pubHost) lines.push('', `See more at ${pubHost}`)
   return lines.join('\n')
 }
 
@@ -618,7 +622,8 @@ export default async function DistributionPage({
   const nlSubjects = suggestSubjects(groups.newsletter, nlPubName)
   const nlText     = buildPlainText(groups.newsletter, nlPubName)
   const nlHtmlStr  = buildHTML(groups.newsletter, nlPubName)
-  const nlMobile   = buildMobile(groups.newsletter, nlPubName)
+  const nlPubHost  = MARKETS.find(m => m.slug === (filterPub ?? 'rrp'))?.publicHost ?? ''
+  const nlMobile   = buildMobile(groups.newsletter, nlPubName, nlPubHost)
 
   // ── Render ────────────────────────────────────────────────────────────────
 

@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { brandSender } from '@/lib/email/brand-sender'
 import { currentBrandSlug } from '@/lib/current-brand'
+import { inboxForBrand, subjectTag } from '@/lib/email/brand-recipient'
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { findPlacementType } from '@/lib/ads/placement-types'
@@ -56,30 +57,46 @@ export async function POST(req: NextRequest) {
   // Falls back gracefully if the table doesn't exist yet (migration 120
   // will create it). Editor still gets the email below.
   const supabase = createAdminClient()
-  await supabase
-    .from('ad_inquiries')
-    .insert({
-      placement_type: placementType,
-      business_name:  businessName,
-      contact_name:   (body.contact_name ?? '').trim() || null,
-      email,
-      phone:          (body.phone   ?? '').trim() || null,
-      message:        (body.message ?? '').trim() || null,
-      source_url:     (body.source_url ?? '').trim() || null,
-      status:         'new',
-    })
-    .then(({ error }) => {
-      if (error) console.warn('[ad-inquiry] insert failed (may need migration 120):', error.message)
-    })
+  const inquiryBrand = await currentBrandSlug()
+  const row = {
+    placement_type: placementType,
+    business_name:  businessName,
+    contact_name:   (body.contact_name ?? '').trim() || null,
+    email,
+    phone:          (body.phone   ?? '').trim() || null,
+    message:        (body.message ?? '').trim() || null,
+    source_url:     (body.source_url ?? '').trim() || null,
+    status:         'new',
+  }
+  // Record WHICH brand the lead came in on (migration 235). Vercel deploys on
+  // push and the SQL editor is a human, so this code is live before the column
+  // is — and PostgREST rejects an insert naming a column it doesn't know,
+  // which would drop the lead entirely. So: try with the market, and on the
+  // one error that means "no such column", retry without it. The lead is the
+  // thing that must not be lost; the attribution can wait for the migration.
+  const withMarket = await supabase.from('ad_inquiries').insert({ ...row, market: inquiryBrand ?? 'rrp' })
+  if (withMarket.error) {
+    const retry = await supabase.from('ad_inquiries').insert(row)
+    if (retry.error) {
+      console.warn('[ad-inquiry] insert failed (may need migration 120):', retry.error.message)
+    } else {
+      console.warn('[ad-inquiry] saved without market — run migration 235:', withMarket.error.message)
+    }
+  }
 
   // Email the editor. Phase 1 = manual follow-up; Phase 2 = Stripe.
   const apiKey = process.env.RESEND_API_KEY
   if (apiKey) {
     try {
       const resend  = new Resend(apiKey)
-      const editorEmail = process.env.AD_INQUIRY_EDITOR_EMAIL ?? 'jason@riverregionparents.com'
+      // An advertise inquiry is money, and it goes to the SALES desk of the
+      // brand it came in on — not to whichever single address the env var
+      // named. River Region routes editorial and sales to different people.
+      const brandSlug   = inquiryBrand
+      const editorEmail = await inboxForBrand(brandSlug, 'sales',
+                            process.env.AD_INQUIRY_EDITOR_EMAIL)
       // Brand display name over the verified address — brand-sender.ts.
-      const fromAddress = brandSender(await currentBrandSlug(), process.env.SUBMISSIONS_FROM_EMAIL).from
+      const fromAddress = brandSender(brandSlug, process.env.SUBMISSIONS_FROM_EMAIL).from
 
       const html = `<div style="font-family: Arial, sans-serif; max-width: 600px;">
   <div style="background: #0f172a; padding: 24px;">
@@ -100,7 +117,7 @@ export async function POST(req: NextRequest) {
         from:    fromAddress,
         to:      [editorEmail],
         replyTo: email,
-        subject: `Advertise inquiry: ${businessName} — ${slotLabel}`,
+        subject: `${subjectTag(brandSlug)}Advertise inquiry: ${businessName} — ${slotLabel}`,
         html,
       })
     } catch (e) {

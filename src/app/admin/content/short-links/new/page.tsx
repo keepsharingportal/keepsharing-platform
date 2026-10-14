@@ -20,7 +20,9 @@ interface Props {
 }
 
 export default async function NewTrackedLinkPage({ searchParams }: Props) {
-  await requireAdmin()
+  const ctx = await requireAdmin()
+  // Brand for the QR's host — see siteOriginFor in ShortLinksClient.
+  const brandSlug = ctx.viewingAll ? (ctx.allowedMarkets[0] ?? 'rrp') : ctx.activeMarket
   const sp = await searchParams
   const initialAdvertiserId = sp.advertiser_id?.trim() || undefined
   const supabase = createAdminClient()
@@ -46,6 +48,7 @@ export default async function NewTrackedLinkPage({ searchParams }: Props) {
         <NewTrackedLinkClient
           advertisers={(advData ?? []) as AdvertiserOption[]}
           initialAdvertiserId={initialAdvertiserId}
+          brandSlug={brandSlug}
         />
       </div>
     </div>

@@ -23,6 +23,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { MARKETS, marketDisplayName } from '@/lib/markets'
 
 interface SupabaseRow { id: string }
 
@@ -105,8 +106,8 @@ export async function drainQueue(market: string, batchSize = 30): Promise<DrainR
 
   // Look up the brand from settings (from_email + brand_name).
   const settings = await loadSettings(market)
-  const fromEmail = settings.from_email || `noreply@${defaultDomain()}`
-  const fromName  = settings.from_name  || 'River Region Distribution'
+  const fromEmail = settings.from_email || `noreply@${defaultDomain(market)}`
+  const fromName  = settings.from_name  || `${marketDisplayName(market)} Distribution`
 
   const resend = new Resend(apiKey)
 
@@ -174,7 +175,19 @@ async function loadSettings(market: string): Promise<Record<string, string>> {
   return out
 }
 
-function defaultDomain(): string {
+/**
+ * Sending domain for a brand with no `from_email` in circulation_settings.
+ *
+ * Was NEXT_PUBLIC_SITE_URL with a hardcoded riverregionparents.com fallback.
+ * One deployment serves six brands, so that env var names whichever brand was
+ * deployed last: Greater Pensacola's delivery emails went out from
+ * noreply@riverregionparents.com, which is both confusing to the recipient and
+ * a deliverability problem — the envelope domain doesn't match the brand that
+ * the body claims to be from.
+ */
+function defaultDomain(market: string): string {
+  const m = MARKETS.find(x => x.slug === market)
+  if (m) return m.publicHost
   try {
     if (process.env.NEXT_PUBLIC_SITE_URL) return new URL(process.env.NEXT_PUBLIC_SITE_URL).hostname
   } catch { /* fall through */ }

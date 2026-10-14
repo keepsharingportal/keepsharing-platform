@@ -5,13 +5,13 @@
 // consistently with the home page.
 
 import { Navigation } from '@/components/Navigation'
-import { guideIsLiveForBrand } from '@/lib/guides/require-live'
+import { guideTreeIsViewable } from '@/lib/guides/require-live'
 import { notFound } from 'next/navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 
 export default async function FamilyResourceGuideLayout({ children }: { children: React.ReactNode }) {
   // One gate for the tree — see the Birthday Party Guide layout.
-  if (!(await guideIsLiveForBrand('newcomer'))) notFound()
+  if (!(await guideTreeIsViewable('newcomer'))) notFound()
   return (
     <div className="bg-background min-h-screen public-page">
       <Navigation />

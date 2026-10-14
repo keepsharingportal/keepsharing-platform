@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { checkoutOrigin } from '@/lib/checkout-origin'
 import { loadBrandContext } from '@/lib/brand-context'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
@@ -143,7 +144,14 @@ export async function POST(req: NextRequest) {
     const adSizeLabel = body.adSize.charAt(0).toUpperCase() + body.adSize.slice(1)
     const monthsLabel = body.months.map(fmtMonth).join(', ')
 
-    const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+    // Was: the raw Origin request header, then NEXT_PUBLIC_SITE_URL, then a
+    // hardcoded River Region URL. Two bugs in one line. Origin is
+    // attacker-controlled, so it fed an unvalidated host straight into
+    // Stripe's success_url — a forged Origin turned the post-payment
+    // redirect into an open redirect. And when Origin was absent, a Greater
+    // Pensacola payer landed on River Region's site. Both are handled in
+    // lib/checkout-origin.ts; see the header there.
+    const { origin } = checkoutOrigin(req)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const lineItems: any[] = [

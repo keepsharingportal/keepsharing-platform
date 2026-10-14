@@ -8,6 +8,7 @@
 // editor can refresh a link the business reports as lost / forwarded.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { publicOriginForBrand } from '@/lib/markets'
 import { brandSender } from '@/lib/email/brand-sender'
 import { randomUUID } from 'node:crypto'
 import { Resend } from 'resend'
@@ -25,10 +26,23 @@ interface Body {
 
 interface RouteParams { params: Promise<{ id: string }> }
 
-function publicOrigin(): string {
-  return process.env.NEXT_PUBLIC_PUBLIC_ORIGIN
-      ?? process.env.NEXT_PUBLIC_SITE_URL
-      ?? 'https://riverregionparents.com'
+/**
+ * Where the advertiser's onboarding wizard lives — on THEIR brand's site.
+ *
+ * Was a chain of deployment-wide env vars ending in a hardcoded River Region
+ * URL. One deployment serves six brand domains, so a Greater Pensacola
+ * advertiser was emailed a link to River Region's wizard. The From: line
+ * already said Greater Pensacola (see fromAddress below), which made it worse
+ * rather than better: the mail looked right and the link went somewhere else.
+ *
+ * Takes the advertiser's own market. The env vars stay as the last resort for
+ * a single-brand deployment and local dev.
+ */
+function publicOrigin(marketSlug?: string | null): string {
+  return (marketSlug ? publicOriginForBrand(marketSlug) : '')
+      || process.env.NEXT_PUBLIC_PUBLIC_ORIGIN
+      || process.env.NEXT_PUBLIC_SITE_URL
+      || ''
 }
 
 function fromAddress(marketSlug?: string | null): string {
@@ -76,7 +90,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     .eq('id', id)
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
-  const wizardUrl = `${publicOrigin()}/advertise/edit/${token}`
+  const wizardUrl = `${publicOrigin(acct.market)}/advertise/edit/${token}`
   const guideSlug = body.guide_slug ?? 'birthday-party'
 
   // Best-effort send — log failures but return 200 to the admin so

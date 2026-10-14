@@ -1,4 +1,5 @@
 'use client'
+import { MARKETS } from '@/lib/markets'
 
 // ── Google SERP preview ────────────────────────────────────────────────────
 //
@@ -16,6 +17,11 @@ interface Props {
   /** Page path on our site (e.g. /columns/play-ball/jane-doe). The
    *  preview synthesizes the breadcrumb from this. */
   urlPath:     string
+  /** Brand whose domain the breadcrumb shows. The breadcrumb was the literal
+   *  "riverregionparents.com", so an editor previewing a Greater Pensacola
+   *  article saw River Region's domain in the result they were tuning — the
+   *  one thing a SERP preview exists to show them. */
+  brandSlug?:  string
 }
 
 const TITLE_PIXEL_LIMIT = 580   // ~60 chars in Arial 18
@@ -31,7 +37,7 @@ function truncateToPixels(text: string, perChar: number, limit: number): { shown
   return { shown: text.slice(0, maxChars).trimEnd() + '…', truncated: true }
 }
 
-export function SerpPreview({ title, description, urlPath }: Props) {
+export function SerpPreview({ title, description, urlPath, brandSlug }: Props) {
   const titlePixels = approxPixelWidth(title, 9.6)   // Arial 18
   const descPixels  = approxPixelWidth(description, 5.7) // Arial 14
   const titleShown  = truncateToPixels(title,       9.6, TITLE_PIXEL_LIMIT)
@@ -40,9 +46,15 @@ export function SerpPreview({ title, description, urlPath }: Props) {
   // Breadcrumb — strip leading slash, replace separators with the
   // U+203A "single right-pointing angle quotation mark" Google uses.
   const trail = urlPath.replace(/^https?:\/\/[^/]+/, '').split('/').filter(Boolean)
+  // Prefer a host the caller pasted into urlPath, then the brand's own, then
+  // River Region as the last resort for a caller that passes neither.
+  const pastedHost = urlPath.match(/^https?:\/\/([^/]+)/)?.[1]
+  const host = pastedHost
+    ?? (brandSlug ? MARKETS.find(m => m.slug === brandSlug)?.publicHost : undefined)
+    ?? 'riverregionparents.com'
   const breadcrumb = trail.length === 0
-    ? 'riverregionparents.com'
-    : `riverregionparents.com › ${trail.join(' › ')}`
+    ? host
+    : `${host} › ${trail.join(' › ')}`
 
   return (
     <div className="bg-white border border-portal-border rounded-lg overflow-hidden">

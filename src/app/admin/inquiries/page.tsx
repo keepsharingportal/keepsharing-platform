@@ -64,8 +64,14 @@ export default async function InquiriesPage() {
           {fresh > 0 && <span className="ml-2 font-semibold text-portal-blue">{fresh} new</span>}
         </p>
         <p className="text-xs text-portal-muted mt-1">
-          Admin notification email goes to {process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? 'hello@riverregionparents.com'} when GHL is configured.
-          Forward to the business&apos;s <code className="px-1 bg-portal-row-hover rounded">contact_email</code> shown on each card.
+          {/* This used to name the env var's value, with River Region's inbox
+              as the printed fallback — which stopped being true once routing
+              became per-brand. It now describes the actual precedence rather
+              than one address, so the help text cannot go stale again. */}
+          Notifications go to the brand&apos;s own editorial inbox when one is set at{' '}
+          <code className="px-1 bg-portal-row-hover rounded">/admin/settings/brands</code>, otherwise to the
+          platform inbox. Forward to the business&apos;s{' '}
+          <code className="px-1 bg-portal-row-hover rounded">contact_email</code> shown on each card.
         </p>
       </div>
 

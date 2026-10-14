@@ -1,5 +1,6 @@
 import 'server-only'
 import { cache } from 'react'
+import { headers } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { guideIsLive } from '@/lib/guides/live'
@@ -20,6 +21,13 @@ import { guideIsLive } from '@/lib/guides/live'
 //
 // Put this in the tree's layout.tsx. A layout runs for every route beneath
 // it, so a route added later is covered without anyone remembering.
+//
+// ── Preview ─────────────────────────────────────────────────────────────────
+// A layout cannot read searchParams (Next.js passes those to pages only), so
+// the gate could not see `?preview=1` and 404'd the operator's own preview of
+// an unlaunched guide — while the pages under the same tree, which DO get
+// searchParams, honoured it. The proxy stamps x-guide-preview instead; see
+// guideTreeIsViewable below and the block in proxy.ts.
 
 function sb() {
   return createClient(
@@ -71,4 +79,46 @@ export const guideIsLiveForBrand = cache(async (guideTypeSlug: string): Promise<
   if (!config) return false
 
   return guideIsLive(type as { live_from?: string | null; live_until?: string | null }, config)
+})
+
+/**
+ * True when the current request may render this guide tree at all.
+ *
+ * This is the layout-level gate. It is deliberately more permissive than
+ * guideIsLiveForBrand: an operator previewing an unlaunched guide must get
+ * past the layout to reach the page, and the page then decides what to show.
+ *
+ * What preview does NOT do is conjure a guide the brand does not have. A
+ * brand with `is_active = false` is preparing this guide and previewing it is
+ * the whole point; a brand with no guide_configs row at all does not have it
+ * in its library, and GuideDetailPage refuses that case whether or not
+ * preview is set. So the two states stay distinguishable:
+ *
+ *   row, is_active = false  →  404 public, 200 with ?preview=1
+ *   no row at all           →  404 either way
+ *
+ * The preview bit comes from a header the proxy sets from the real URL, never
+ * from a client-supplied header — proxy.ts deletes any inbound copy first.
+ */
+export async function guideTreeIsViewable(guideTypeSlug: string): Promise<boolean> {
+  if (await guideIsLiveForBrand(guideTypeSlug)) return true
+
+  const h = await headers()
+  if (h.get('x-guide-preview') !== '1') return false
+
+  // Preview is only meaningful for a guide this brand actually has a row for.
+  // Without this check, ?preview=1 would open every guide on every brand.
+  return await brandHasGuideConfig(guideTypeSlug)
+}
+
+/** Does the current brand have a guide_configs row for this guide at all? */
+const brandHasGuideConfig = cache(async (guideTypeSlug: string): Promise<boolean> => {
+  const market = (await currentBrandSlug()) ?? 'rrp'
+  const { data, error } = await sb().from('guide_configs').select('*')
+    .eq('guide_type_slug', guideTypeSlug).eq('market', market).maybeSingle()
+  // Pre-232 database: the market filter errors because the column is absent.
+  // Treat that as "this brand's library is the only library" rather than
+  // hiding the preview.
+  if (error) return true
+  return Boolean(data)
 })
