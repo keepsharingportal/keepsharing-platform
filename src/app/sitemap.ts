@@ -67,6 +67,11 @@ const PRIVATE_PREFIXES = [
   '/interview/',
   '/contribute/',
   '/nominate/',
+  // A standalone drawing utility, not magazine content. It is a real page and
+  // it indexes fine on its own; it just has no business appearing in six
+  // parenting-magazine sitemaps. Promote it deliberately if it ever earns a
+  // place in one.
+  '/grid',
 ]
 const SKIP_DIR_PREFIX = ['_', '(', '@']
 
