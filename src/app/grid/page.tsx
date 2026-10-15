@@ -7,6 +7,11 @@
 // parenting-magazine page on six brand domains.
 //
 // All the work happens in the browser — see components/grid/GridTool.tsx.
+//
+// Where it is reachable: every host this app serves, which is the brand
+// domains and the *.keepsharing.com subdomains. The bare keepsharing.com is
+// a DIFFERENT site on different hosting and does not route here, so
+// keepsharing.com/grid is a 404 and not ours to fix from this repo.
 
 import type { Metadata } from 'next'
 import { Navigation } from '@/components/Navigation'
@@ -25,12 +30,21 @@ export async function generateMetadata(): Promise<Metadata> {
       'desktop; your photo never leaves your device.',
     path:        '/grid',
     type:        'website',
-    // One tool, one home. Without this the canonical follows the serving
-    // brand, so the same tool claims six canonical URLs — and the bare
-    // keepsharing.com host resolves to River Region, so even the platform
-    // domain pointed at riverregionparents.com/grid. It is not River
-    // Region's page; it is the platform's.
-    publicOrigin: 'https://keepsharing.com',
+    // No publicOrigin pin: the canonical is self-referential to whichever
+    // host served the page.
+    //
+    // It was pinned to https://keepsharing.com, which is wrong in a way worth
+    // recording — the bare keepsharing.com is NOT this application. It is a
+    // separate site on separate hosting; only the *.keepsharing.com
+    // subdomains point at Vercel. The pin therefore declared the canonical
+    // URL of a live page to be a 404 on someone else's server, which is
+    // strictly worse than the duplicate-URL problem it was meant to solve.
+    //
+    // A single canonical home is still the right end state. It needs a host
+    // that actually serves this app — a grid.keepsharing.com subdomain, or a
+    // path proxied from the marketing site. Until one exists, self-
+    // referential is the only honest answer. The page stays out of the brand
+    // sitemaps either way, so nothing is pushing six copies at anyone.
     keywords:    ['drawing grid tool', 'grid method drawing', 'photo grid for artists', 'canvas grid maker'],
   })
 
