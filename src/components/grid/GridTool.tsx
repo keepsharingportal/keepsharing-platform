@@ -13,66 +13,80 @@
 //
 // So the canvas dimensions fix the frame's aspect ratio, the photo is panned
 // and zoomed inside that frame (never stretched), and the grid divides the
-// frame. The cells are square by construction, and the grid on screen is the
-// same grid the artist pencils onto the canvas — just at a different scale.
-// The tool can therefore state, in inches, exactly what to draw on the canvas.
+// frame into a plain number of columns and rows.
+//
+// ── Why there is no "square cells" requirement ──────────────────────────────
+// The frame is ALREADY the canvas's shape, so 4 x 5 cells on the photo and
+// 4 x 5 cells on the canvas are rectangles of the same proportion. The
+// transfer is exact whether or not they happen to be square. Insisting on
+// square cells is what forces the column-nudging and the leftover stub row;
+// dropping it means the artist asks for four rows and gets four rows.
+//
+// ── The output that matters ─────────────────────────────────────────────────
+// Not the gridded picture — the MEASUREMENTS. The artist is standing at a
+// canvas with a ruler, so the tool lists exactly where each line falls along
+// each edge, in sixteenths of an inch, because no ruler is marked 3.2.
 //
 // ── Everything stays on the device ──────────────────────────────────────────
 // The photo is read with FileReader and drawn to a <canvas>. It is never sent
-// anywhere. That is faster, works offline, and means a reference photo of
-// someone's family doesn't land on a server.
+// anywhere. Faster, works offline, and a reference photo of someone's family
+// doesn't land on a server.
 //
 // ── One draw function ───────────────────────────────────────────────────────
 // The preview and the exported file call the same drawScene() at different
-// resolutions, with a transform stored in resolution-independent terms. They
+// resolutions, with the transform stored in resolution-independent terms. They
 // cannot drift apart: what you compose is what you download.
+//
+// ── Neutral by design ───────────────────────────────────────────────────────
+// Explicit slate colours rather than the app's brand tokens, so the tool
+// carries no publication's identity wherever it is mounted.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Upload, Download, Printer, RotateCcw, RefreshCw, Grid3x3,
-  Image as ImageIcon, ChevronDown, Maximize2,
+  Upload, Download, Printer, RotateCcw, RefreshCw, Ruler,
+  Image as ImageIcon, ChevronDown, Maximize2, Check,
 } from 'lucide-react'
 import {
   type Unit, toInches, fromInches,
-  gridFromColumns, gridFromSquareSize, perfectFitSquareSizes,
+  linePositions, squareRowsFor, formatRuler,
   coverTransform, clamp01, formatSize, columnLabel, rowLabel,
   printedLineWidthMm,
 } from '@/lib/grid-tool/geometry'
 
-// ── Canvas presets ──────────────────────────────────────────────────────────
 // Stretcher-bar and paper sizes people actually buy. Stored in inches; the cm
-// view converts, so a metric artist sees 30.5 × 40.6 rather than a different
+// view converts, so a metric artist sees 30.5 x 40.6 rather than a different
 // and subtly wrong set of "metric" sizes.
-const PRESETS: { label: string; w: number; h: number; group: string }[] = [
-  { label: '5 × 7',   w: 5,    h: 7,     group: 'Canvas' },
-  { label: '8 × 10',  w: 8,    h: 10,    group: 'Canvas' },
-  { label: '9 × 12',  w: 9,    h: 12,    group: 'Canvas' },
-  { label: '11 × 14', w: 11,   h: 14,    group: 'Canvas' },
-  { label: '12 × 16', w: 12,   h: 16,    group: 'Canvas' },
-  { label: '16 × 20', w: 16,   h: 20,    group: 'Canvas' },
-  { label: '18 × 24', w: 18,   h: 24,    group: 'Canvas' },
-  { label: '24 × 30', w: 24,   h: 30,    group: 'Canvas' },
-  { label: '24 × 36', w: 24,   h: 36,    group: 'Canvas' },
-  { label: '12 × 12', w: 12,   h: 12,    group: 'Square' },
-  { label: '20 × 20', w: 20,   h: 20,    group: 'Square' },
-  { label: 'Letter',  w: 8.5,  h: 11,    group: 'Paper'  },
-  { label: 'A4',      w: 8.27, h: 11.69, group: 'Paper'  },
-  { label: 'A3',      w: 11.69, h: 16.54, group: 'Paper' },
+const PRESETS: { label: string; w: number; h: number }[] = [
+  { label: '5 × 7',   w: 5,     h: 7     },
+  { label: '8 × 10',  w: 8,     h: 10    },
+  { label: '9 × 12',  w: 9,     h: 12    },
+  { label: '11 × 14', w: 11,    h: 14    },
+  { label: '12 × 16', w: 12,    h: 16    },
+  { label: '16 × 20', w: 16,    h: 20    },
+  { label: '18 × 24', w: 18,    h: 24    },
+  { label: '24 × 30', w: 24,    h: 30    },
+  { label: '24 × 36', w: 24,    h: 36    },
+  { label: '12 × 12', w: 12,    h: 12    },
+  { label: '20 × 20', w: 20,    h: 20    },
+  { label: 'Letter',  w: 8.5,   h: 11    },
+  { label: 'A4',      w: 8.27,  h: 11.69 },
+  { label: 'A3',      w: 11.69, h: 16.54 },
 ]
 
 /** Long edge of the exported PNG. 3000px prints cleanly to ~10in at 300dpi. */
 const EXPORT_LONG_EDGE = 3000
 
-const SETTINGS_KEY = 'ks-grid-tool-settings-v1'
+const SETTINGS_KEY = 'ks-grid-tool-settings-v2'
 
 interface Settings {
   unit:        Unit
   canvasW:     number   // always stored in inches
   canvasH:     number
-  gridMode:    'cols' | 'size'
   cols:        number
-  squareIn:    number   // square size in inches
-  lineWidth:   number   // px at the preview's reference width (see drawScene)
+  rows:        number
+  /** Convenience: picks the row count that makes cells nearest to square. */
+  squareCells: boolean
+  lineWidth:   number   // px against a 1000px-wide frame; scales with output
   lineColor:   string
   lineOpacity: number   // 0..1
   showLabels:  boolean
@@ -85,7 +99,7 @@ interface Settings {
 
 const DEFAULTS: Settings = {
   unit: 'in', canvasW: 16, canvasH: 20,
-  gridMode: 'cols', cols: 8, squareIn: 2,
+  cols: 4, rows: 5, squareCells: false,
   lineWidth: 4, lineColor: '#ff0000', lineOpacity: 1,
   showLabels: true, showDiagonals: false,
   bw: false, valueIntensity: 100, brightness: 100, posterize: 0,
@@ -122,8 +136,6 @@ function drawScene(
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, totalW, totalH)
 
-  // Line weight is authored against a 1000px-wide frame and scaled from there,
-  // so the preview and a 3000px export show the same visual weight.
   const k  = frameW / 1000
   const lw = Math.max(0.5, o.lineWidth * k)
 
@@ -137,7 +149,7 @@ function drawScene(
     ctx.clip()
 
     // Grayscale, brightness and contrast go through the canvas filter: it is
-    // hardware-accelerated and both the preview and the export use it, so any
+    // hardware-accelerated, and both the preview and the export use it, so any
     // browser quirk applies equally to what you see and what you save.
     const parts: string[] = []
     if (o.bw) parts.push('grayscale(1)')
@@ -159,11 +171,12 @@ function drawScene(
   }
 
   // ── Grid ──────────────────────────────────────────────────────────────────
-  const spec = o.gridMode === 'cols'
-    ? gridFromColumns(o.canvasW, o.canvasH, o.cols)
-    : gridFromSquareSize(o.canvasW, o.canvasH, o.squareIn)
-
-  const cellPx = frameW / spec.cols
+  // Columns and rows are independent, so every cell is a full cell and the
+  // lines land exactly where the measurement list says they do.
+  const cols = Math.max(1, Math.round(o.cols))
+  const rows = Math.max(1, Math.round(o.rows))
+  const cw = frameW / cols
+  const ch = frameH / rows
 
   ctx.save()
   ctx.globalAlpha = o.lineOpacity
@@ -172,17 +185,15 @@ function drawScene(
   ctx.lineCap     = 'butt'
 
   ctx.beginPath()
-  // Verticals. Half-pixel offset keeps a 1px line crisp instead of smeared
-  // across two pixel columns.
-  for (let c = 1; c < spec.cols; c++) {
-    const x = Math.round(gutter + c * cellPx) + (lw % 2 ? 0.5 : 0)
+  // Half-pixel offset keeps an odd-width line crisp instead of smeared across
+  // two pixel columns.
+  for (let c = 1; c < cols; c++) {
+    const x = Math.round(gutter + c * cw) + (lw % 2 ? 0.5 : 0)
     ctx.moveTo(x, gutter)
     ctx.lineTo(x, gutter + frameH)
   }
-  // Horizontals, including the stub row's line when the squares don't divide
-  // the height evenly — the artist needs to see where the short row starts.
-  for (let r = 1; r * cellPx < frameH - 0.5; r++) {
-    const y = Math.round(gutter + r * cellPx) + (lw % 2 ? 0.5 : 0)
+  for (let r = 1; r < rows; r++) {
+    const y = Math.round(gutter + r * ch) + (lw % 2 ? 0.5 : 0)
     ctx.moveTo(gutter, y)
     ctx.lineTo(gutter + frameW, y)
   }
@@ -192,40 +203,37 @@ function drawScene(
   ctx.strokeRect(gutter + lw / 2, gutter + lw / 2, frameW - lw, frameH - lw)
 
   if (o.showDiagonals) {
-    // Corner-to-corner guides. Cheap, and they catch a drawing that is
-    // drifting out of proportion long before the grid squares do.
+    // Corner-to-corner guides. Cheap, and they catch a drawing drifting out of
+    // proportion long before the cells do.
     ctx.globalAlpha = o.lineOpacity * 0.55
     ctx.beginPath()
-    ctx.moveTo(gutter, gutter);                   ctx.lineTo(gutter + frameW, gutter + frameH)
-    ctx.moveTo(gutter + frameW, gutter);          ctx.lineTo(gutter, gutter + frameH)
+    ctx.moveTo(gutter, gutter);          ctx.lineTo(gutter + frameW, gutter + frameH)
+    ctx.moveTo(gutter + frameW, gutter); ctx.lineTo(gutter, gutter + frameH)
     ctx.stroke()
   }
   ctx.restore()
 
   // ── Labels ────────────────────────────────────────────────────────────────
-  // Drawn in the gutter rather than over the picture, so they never sit on top
-  // of the thing being copied.
+  // In the gutter rather than over the picture, so they never sit on top of
+  // the thing being copied.
   if (o.showLabels && gutter > 0) {
-    const fontPx = Math.min(gutter * 0.62, cellPx * 0.6)
+    const fontPx = Math.min(gutter * 0.62, Math.min(cw, ch) * 0.6)
     ctx.save()
     ctx.fillStyle    = '#334155'
     ctx.font         = `600 ${fontPx}px ui-sans-serif, system-ui, -apple-system, sans-serif`
     ctx.textAlign    = 'center'
     ctx.textBaseline = 'middle'
-
-    for (let c = 0; c < spec.cols; c++) {
-      const x = gutter + (c + 0.5) * cellPx
+    for (let c = 0; c < cols; c++) {
+      const x = gutter + (c + 0.5) * cw
       const t = columnLabel(c)
       ctx.fillText(t, x, gutter * 0.5)
       ctx.fillText(t, x, gutter + frameH + gutter * 0.5)
     }
-    const rowsDrawn = Math.ceil(frameH / cellPx)
-    for (let r = 0; r < rowsDrawn; r++) {
-      const yc = gutter + (r + 0.5) * cellPx
-      if (yc > gutter + frameH) break
+    for (let r = 0; r < rows; r++) {
+      const y = gutter + (r + 0.5) * ch
       const t = rowLabel(r)
-      ctx.fillText(t, gutter * 0.5, yc)
-      ctx.fillText(t, gutter + frameW + gutter * 0.5, yc)
+      ctx.fillText(t, gutter * 0.5, y)
+      ctx.fillText(t, gutter + frameW + gutter * 0.5, y)
     }
     ctx.restore()
   }
@@ -270,8 +278,9 @@ export function GridTool() {
   const [panY, setPanY] = useState(0.5)
   const [dragOver, setDragOver] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [printSrc, setPrintSrc] = useState<string>('')
-  const [openSection, setOpenSection] = useState<string | null>('canvas')
+  const [openSection, setOpenSection] = useState<string | null>('grid')
 
   const wrapRef   = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -279,7 +288,16 @@ export function GridTool() {
   const [boxW, setBoxW] = useState(640)
 
   const set = useCallback(<K extends keyof Settings>(k: K, v: Settings[K]) => {
-    setS(prev => ({ ...prev, [k]: v }))
+    setS(prev => {
+      const next = { ...prev, [k]: v }
+      // Keeping cells square is a convenience, so it re-derives the rows
+      // whenever anything it depends on moves. Turning it off leaves the rows
+      // where they are rather than snapping back.
+      if (next.squareCells && (k === 'cols' || k === 'canvasW' || k === 'canvasH' || k === 'squareCells')) {
+        next.rows = squareRowsFor(next.canvasW, next.canvasH, next.cols)
+      }
+      return next
+    })
   }, [])
 
   // Restore settings (never the photo — that would mean holding someone's
@@ -295,8 +313,8 @@ export function GridTool() {
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)) } catch { /* ignore */ }
   }, [s])
 
-  // Track the available width so the preview fills it on a phone and doesn't
-  // overflow on a laptop.
+  // Track available width so the preview fills a phone and doesn't overflow a
+  // laptop.
   useEffect(() => {
     const el = wrapRef.current
     if (!el) return
@@ -306,20 +324,15 @@ export function GridTool() {
     return () => ro.disconnect()
   }, [])
 
-  // ── Derived geometry ──────────────────────────────────────────────────────
-  const spec = useMemo(
-    () => s.gridMode === 'cols'
-      ? gridFromColumns(s.canvasW, s.canvasH, s.cols)
-      : gridFromSquareSize(s.canvasW, s.canvasH, s.squareIn),
-    [s.gridMode, s.canvasW, s.canvasH, s.cols, s.squareIn],
-  )
-
-  const suggestions = useMemo(
-    () => perfectFitSquareSizes(
-      fromInches(s.canvasW, s.unit), fromInches(s.canvasH, s.unit), s.unit,
-    ),
-    [s.canvasW, s.canvasH, s.unit],
-  )
+  // ── Derived ───────────────────────────────────────────────────────────────
+  const u       = s.unit
+  const cwDisp  = fromInches(s.canvasW, u)
+  const chDisp  = fromInches(s.canvasH, u)
+  const cellW   = cwDisp / Math.max(1, s.cols)
+  const cellH   = chDisp / Math.max(1, s.rows)
+  const acrossMarks = useMemo(() => linePositions(cwDisp, s.cols), [cwDisp, s.cols])
+  const downMarks   = useMemo(() => linePositions(chDisp, s.rows), [chDisp, s.rows])
+  const nearSquare  = Math.abs(cellW - cellH) < 0.02
 
   // Preview size: fit the canvas aspect into the available box, leaving room
   // for the label gutter.
@@ -330,7 +343,6 @@ export function GridTool() {
     let fw = maxW, fh = maxW / ar
     if (fh > maxH) { fh = maxH; fw = maxH * ar }
     const gutter = s.showLabels ? Math.max(18, Math.min(fw, fh) * 0.06) : 0
-    // The gutter is extra, so shrink the frame to keep the whole thing inside.
     const shrink = Math.min(1, maxW / (fw + gutter * 2))
     return { fw: fw * shrink, fh: fh * shrink, gutter: gutter * shrink }
   }, [boxW, s.canvasW, s.canvasH, s.showLabels])
@@ -362,10 +374,7 @@ export function GridTool() {
     const reader = new FileReader()
     reader.onload = () => {
       const im = new Image()
-      im.onload = () => {
-        setImg(im)
-        setZoom(1); setPanX(0.5); setPanY(0.5)
-      }
+      im.onload = () => { setImg(im); setZoom(1); setPanX(0.5); setPanY(0.5) }
       im.src = String(reader.result)
     }
     reader.readAsDataURL(file)
@@ -373,10 +382,7 @@ export function GridTool() {
   }, [])
 
   // ── Pan and pinch ─────────────────────────────────────────────────────────
-  // Pointer events cover mouse, trackpad and single-finger touch in one path;
-  // two-finger pinch needs the touch events because pointer events give one
-  // pointer at a time.
-  const drag = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
+  const drag  = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
   const pinch = useRef<{ dist: number; zoom: number } | null>(null)
 
   const overflow = useMemo(() => {
@@ -393,8 +399,8 @@ export function GridTool() {
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const d = drag.current
     if (!d || !img) return
-    // Dragging right should move the picture right, which means revealing more
-    // of its left — hence the minus.
+    // Dragging right moves the picture right, which means revealing more of
+    // its left — hence the minus.
     const nx = overflow.x > 0 ? d.px - (e.clientX - d.x) / overflow.x : 0.5
     const ny = overflow.y > 0 ? d.py - (e.clientY - d.y) / overflow.y : 0.5
     setPanX(clamp01(nx)); setPanY(clamp01(ny))
@@ -402,27 +408,20 @@ export function GridTool() {
   const endDrag = () => { drag.current = null }
 
   const onTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (e.touches.length === 2) {
-      drag.current = null
-      pinch.current = { dist: touchDist(e), zoom }
-    }
+    if (e.touches.length === 2) { drag.current = null; pinch.current = { dist: touchDist(e), zoom } }
   }
   const onTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
     const p = pinch.current
-    if (p && e.touches.length === 2) {
-      e.preventDefault()
-      const ratio = touchDist(e) / (p.dist || 1)
-      setZoom(clampZoom(p.zoom * ratio))
-    }
+    if (p && e.touches.length === 2) setZoom(clampZoom(p.zoom * (touchDist(e) / (p.dist || 1))))
   }
   const onTouchEnd = () => { pinch.current = null }
 
   // Wheel-to-zoom needs a NON-passive listener, attached by hand.
   //
   // React attaches its onWheel passively, so preventDefault() inside it is
-  // ignored: the canvas would zoom and the page would scroll out from under
-  // it at the same time, which makes framing a crop almost impossible. Only
-  // bound while a photo is loaded, so the empty state scrolls normally.
+  // ignored: the canvas would zoom and the page would scroll out from under it
+  // at the same time, which makes framing a crop almost impossible. Only bound
+  // while a photo is loaded, so the empty state scrolls normally.
   useEffect(() => {
     const cv = canvasRef.current
     if (!cv || !img) return
@@ -463,14 +462,12 @@ export function GridTool() {
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `grid-${formatSize(fromInches(s.canvasW, s.unit))}x${formatSize(fromInches(s.canvasH, s.unit))}${s.unit}-${spec.cols}col.png`
+        a.download = `grid-${formatSize(cwDisp)}x${formatSize(chDisp)}${u}-${s.cols}x${s.rows}.png`
         a.click()
         URL.revokeObjectURL(url)
       }, 'image/png')
-    } finally {
-      setBusy(false)
-    }
-  }, [img, renderFull, s.canvasW, s.canvasH, s.unit, spec.cols])
+    } finally { setBusy(false) }
+  }, [img, renderFull, cwDisp, chDisp, u, s.cols, s.rows])
 
   const print = useCallback(async () => {
     if (!img) return
@@ -482,33 +479,39 @@ export function GridTool() {
       setPrintSrc(cv.toDataURL('image/png'))
       // Let React commit the <img> before the print dialog snapshots the page.
       setTimeout(() => window.print(), 120)
-    } finally {
-      setBusy(false)
-    }
+    } finally { setBusy(false) }
   }, [img, renderFull])
 
-  // ── Readouts ──────────────────────────────────────────────────────────────
-  const u          = s.unit
-  const cellDisp   = fromInches(spec.cellSize, u)
-  const cwDisp     = fromInches(s.canvasW, u)
-  const chDisp     = fromInches(s.canvasH, u)
-  const exportW    = s.canvasW >= s.canvasH ? EXPORT_LONG_EDGE : EXPORT_LONG_EDGE * (s.canvasW / s.canvasH)
-  const printedMm  = printedLineWidthMm(s.lineWidth * (exportW / 1000), exportW, 10)
+  const measurementText = useMemo(() => [
+    `Canvas ${formatSize(cwDisp)} × ${formatSize(chDisp)}${u} — ${s.cols} columns × ${s.rows} rows`,
+    `Each cell ${formatRuler(cellW, u)} × ${formatRuler(cellH, u)}`,
+    `Across the top: ${acrossMarks.map(m => formatRuler(m, u)).join('  ') || '(no interior lines)'}`,
+    `Down the side: ${downMarks.map(m => formatRuler(m, u)).join('  ') || '(no interior lines)'}`,
+  ].join('\n'), [cwDisp, chDisp, u, s.cols, s.rows, cellW, cellH, acrossMarks, downMarks])
+
+  const copyMeasurements = useCallback(() => {
+    navigator.clipboard?.writeText(measurementText).then(
+      () => { setCopied(true); setTimeout(() => setCopied(false), 1600) },
+      () => { /* clipboard blocked — the list is on screen anyway */ },
+    )
+  }, [measurementText])
+
+  const exportW   = s.canvasW >= s.canvasH ? EXPORT_LONG_EDGE : EXPORT_LONG_EDGE * (s.canvasW / s.canvasH)
+  const printedMm = printedLineWidthMm(s.lineWidth * (exportW / 1000), exportW, 10)
 
   const setCanvasDim = (which: 'w' | 'h', raw: string) => {
     const v = parseFloat(raw)
     if (!isFinite(v) || v <= 0) return
-    const inches = toInches(Math.min(200, v), u)
-    set(which === 'w' ? 'canvasW' : 'canvasH', inches)
+    set(which === 'w' ? 'canvasW' : 'canvasH', toInches(Math.min(200, v), u))
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[320px_1fr] print:block">
+    <div className="grid gap-6 lg:grid-cols-[340px_1fr] print:block">
 
       {/* ── Preview ─────────────────────────────────────────────────────── */}
-      {/* First in the DOM on mobile: the picture is the thing you look at,
-          and burying it under a settings panel on a phone means scrolling
-          past the controls every time you nudge the crop. */}
+      {/* First in the DOM on mobile: the picture is the thing you look at, and
+          burying it under a settings panel means scrolling past the controls
+          every time you nudge the crop. */}
       <section className="lg:order-2 print:hidden">
         <div
           ref={wrapRef}
@@ -519,8 +522,8 @@ export function GridTool() {
             const f = e.dataTransfer.files?.[0]
             if (f) loadFile(f)
           }}
-          className={`rounded-xl border-2 border-dashed p-3 sm:p-4 transition-colors ${
-            dragOver ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'
+          className={`rounded-xl border-2 border-dashed p-3 transition-colors sm:p-4 ${
+            dragOver ? 'border-slate-900 bg-slate-100' : 'border-slate-300 bg-slate-100/60'
           }`}
         >
           {!img ? (
@@ -529,9 +532,9 @@ export function GridTool() {
               onClick={() => fileRef.current?.click()}
               className="flex w-full flex-col items-center justify-center gap-3 rounded-lg py-16 text-center"
             >
-              <ImageIcon className="h-10 w-10 text-muted-foreground" aria-hidden />
-              <span className="text-base font-semibold">Choose a photo</span>
-              <span className="max-w-xs text-sm text-muted-foreground">
+              <ImageIcon className="h-10 w-10 text-slate-400" aria-hidden />
+              <span className="text-base font-semibold text-slate-900">Choose a photo</span>
+              <span className="max-w-xs text-sm text-slate-500">
                 Or drag one here. Your photo stays on your device — it is never uploaded.
               </span>
             </button>
@@ -549,42 +552,78 @@ export function GridTool() {
                 className="max-w-full cursor-grab touch-none rounded-md shadow-sm active:cursor-grabbing"
                 aria-label="Gridded reference photo. Drag to reposition, pinch or scroll to zoom."
               />
-              <p className="mt-3 text-center text-xs text-muted-foreground">
-                Drag to reposition · {typeof navigator !== 'undefined' && 'ontouchstart' in window
-                  ? 'Pinch to zoom' : 'Scroll to zoom'}
+              <p className="mt-3 text-center text-xs text-slate-500">
+                Drag to reposition · pinch or scroll to zoom
               </p>
             </div>
           )}
         </div>
 
-        {/* The number that matters: what to pencil onto the actual canvas. */}
+        {/* ── The measurements ────────────────────────────────────────────
+            The actual product. Everything above is how you decide what these
+            numbers should be; this is what you carry to the canvas. */}
         {img && (
-          <div className="mt-4 rounded-xl border border-border bg-card p-4">
-            <h2 className="flex items-center gap-2 text-sm font-bold">
-              <Grid3x3 className="h-4 w-4 text-primary" aria-hidden />
-              On your {formatSize(cwDisp)} × {formatSize(chDisp)}{u} canvas
-            </h2>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Draw <strong className="text-foreground">{spec.cols} columns × {spec.rows} rows</strong> of{' '}
-              <strong className="text-foreground">{formatSize(cellDisp)}{u}</strong> squares.
+          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <Ruler className="h-4 w-4" aria-hidden />
+                Mark your {formatSize(cwDisp)} × {formatSize(chDisp)}{u} canvas
+              </h2>
+              <button
+                type="button" onClick={copyMeasurements}
+                className="shrink-0 rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              >
+                {copied ? <><Check className="mr-1 inline h-3 w-3" aria-hidden />Copied</> : 'Copy'}
+              </button>
+            </div>
+
+            <dl className="mt-3 space-y-3">
+              <div>
+                <dt className="text-xs font-medium text-slate-500">
+                  Across the top — {s.cols} columns, {acrossMarks.length} line{acrossMarks.length === 1 ? '' : 's'}
+                </dt>
+                <dd className="mt-1 flex flex-wrap gap-1.5">
+                  {acrossMarks.length === 0
+                    ? <span className="text-sm text-slate-400">No interior lines</span>
+                    : acrossMarks.map((m, i) => (
+                        <span key={i} className="rounded bg-slate-100 px-2 py-1 font-mono text-sm tabular-nums text-slate-900">
+                          {formatRuler(m, u)}
+                        </span>
+                      ))}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-slate-500">
+                  Down the side — {s.rows} rows, {downMarks.length} line{downMarks.length === 1 ? '' : 's'}
+                </dt>
+                <dd className="mt-1 flex flex-wrap gap-1.5">
+                  {downMarks.length === 0
+                    ? <span className="text-sm text-slate-400">No interior lines</span>
+                    : downMarks.map((m, i) => (
+                        <span key={i} className="rounded bg-slate-100 px-2 py-1 font-mono text-sm tabular-nums text-slate-900">
+                          {formatRuler(m, u)}
+                        </span>
+                      ))}
+                </dd>
+              </div>
+            </dl>
+
+            <p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
+              Each cell {formatRuler(cellW, u)} × {formatRuler(cellH, u)}
+              {nearSquare && ' — square'}
             </p>
-            {!spec.exactFit && (
-              <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                Leaves a {formatSize(fromInches(spec.remainder, u))}{u} strip along the bottom.
-                {suggestions.length > 0 && <> For whole squares try {suggestions.slice(0, 3).map(formatSize).join(', ')}{u}.</>}
-              </p>
-            )}
+
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <button
                 type="button" onClick={download} disabled={busy}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
               >
                 <Download className="h-4 w-4" aria-hidden />
                 {busy ? 'Preparing…' : 'Download PNG'}
               </button>
               <button
                 type="button" onClick={print} disabled={busy}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-50"
               >
                 <Printer className="h-4 w-4" aria-hidden /> Print
               </button>
@@ -601,21 +640,46 @@ export function GridTool() {
         />
         <button
           type="button" onClick={() => fileRef.current?.click()}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm font-semibold hover:bg-accent"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50"
         >
           <Upload className="h-4 w-4" aria-hidden />
           {img ? 'Change photo' : 'Upload photo'}
         </button>
-        {fileName && <p className="truncate px-1 text-xs text-muted-foreground">{fileName}</p>}
+        {fileName && <p className="truncate px-1 text-xs text-slate-500">{fileName}</p>}
+
+        {/* ── Grid ────────────────────────────────────────────────────── */}
+        <Section id="grid" title="Grid" open={openSection} onToggle={setOpenSection}>
+          <Stepper
+            label="Columns across" value={s.cols} min={1} max={24}
+            onChange={v => set('cols', v)}
+          />
+          <Stepper
+            label="Rows down" value={s.rows} min={1} max={24}
+            onChange={v => set('rows', v)} disabled={s.squareCells}
+            hint={s.squareCells ? 'Set by “keep cells square”' : undefined}
+          />
+          <Toggle
+            label="Keep cells square"
+            checked={s.squareCells}
+            onChange={v => set('squareCells', v)}
+          />
+          <p className="mt-3 rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-600">
+            {s.cols} × {s.rows} cells of {formatRuler(cellW, u)} × {formatRuler(cellH, u)}
+            {nearSquare && ' (square)'}. Every cell is a full cell — no leftover strip.
+          </p>
+
+          <Toggle label="Row and column labels" checked={s.showLabels} onChange={v => set('showLabels', v)} />
+          <Toggle label="Diagonal guides" checked={s.showDiagonals} onChange={v => set('showDiagonals', v)} />
+        </Section>
 
         {/* ── Canvas size ─────────────────────────────────────────────── */}
         <Section id="canvas" title="Canvas size" open={openSection} onToggle={setOpenSection}>
-          <div className="flex gap-1 rounded-lg bg-muted p-1">
+          <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
             {(['in', 'cm'] as Unit[]).map(x => (
               <button
                 key={x} type="button" onClick={() => set('unit', x)}
                 className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${
-                  u === x ? 'bg-background shadow-sm' : 'text-muted-foreground'
+                  u === x ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
                 }`}
               >{x === 'in' ? 'Inches' : 'Centimetres'}</button>
             ))}
@@ -624,105 +688,48 @@ export function GridTool() {
           <div className="mt-3 flex items-end gap-2">
             <Field label="Width">
               <input
-                type="number" min={1} max={200} step="0.1"
-                value={round2(cwDisp)}
+                type="number" min={1} max={200} step="0.1" value={round2(cwDisp)}
                 onChange={e => setCanvasDim('w', e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
               />
             </Field>
             <button
               type="button"
               onClick={() => setS(p => ({ ...p, canvasW: p.canvasH, canvasH: p.canvasW }))}
               title="Swap width and height"
-              className="mb-1 rounded-md border border-border p-2 hover:bg-accent"
+              className="mb-1 rounded-md border border-slate-300 p-2 text-slate-700 hover:bg-slate-50"
             >
               <RefreshCw className="h-4 w-4" aria-hidden />
               <span className="sr-only">Swap orientation</span>
             </button>
             <Field label="Height">
               <input
-                type="number" min={1} max={200} step="0.1"
-                value={round2(chDisp)}
+                type="number" min={1} max={200} step="0.1" value={round2(chDisp)}
                 onChange={e => setCanvasDim('h', e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
               />
             </Field>
           </div>
 
-          <p className="mt-3 mb-1.5 text-xs font-medium text-muted-foreground">Common sizes</p>
+          <p className="mt-3 mb-1.5 text-xs font-medium text-slate-500">Common sizes</p>
           <div className="flex flex-wrap gap-1.5">
             {PRESETS.map(p => {
               const active = Math.abs(p.w - s.canvasW) < 0.02 && Math.abs(p.h - s.canvasH) < 0.02
               return (
                 <button
                   key={p.label} type="button"
-                  onClick={() => setS(prev => ({ ...prev, canvasW: p.w, canvasH: p.h }))}
+                  onClick={() => setS(prev => {
+                    const next = { ...prev, canvasW: p.w, canvasH: p.h }
+                    if (next.squareCells) next.rows = squareRowsFor(p.w, p.h, next.cols)
+                    return next
+                  })}
                   className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
-                    active ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-accent'
+                    active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-700 hover:bg-slate-50'
                   }`}
                 >{p.label}</button>
               )
             })}
           </div>
-        </Section>
-
-        {/* ── Grid ────────────────────────────────────────────────────── */}
-        <Section id="grid" title="Grid" open={openSection} onToggle={setOpenSection}>
-          <div className="flex gap-1 rounded-lg bg-muted p-1">
-            {([['cols', 'By count'], ['size', 'By square size']] as const).map(([k, label]) => (
-              <button
-                key={k} type="button" onClick={() => set('gridMode', k)}
-                className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${
-                  s.gridMode === k ? 'bg-background shadow-sm' : 'text-muted-foreground'
-                }`}
-              >{label}</button>
-            ))}
-          </div>
-
-          {s.gridMode === 'cols' ? (
-            <Slider
-              label="Columns across" value={s.cols} min={2} max={40} step={1}
-              onChange={v => set('cols', v)} suffix={` → ${spec.rows} rows`}
-            />
-          ) : (
-            <>
-              <Field label={`Square size (${u})`} className="mt-3">
-                <input
-                  type="number" min={0.1} step="0.25"
-                  value={round2(fromInches(s.squareIn, u))}
-                  onChange={e => {
-                    const v = parseFloat(e.target.value)
-                    if (isFinite(v) && v > 0) set('squareIn', toInches(v, u))
-                  }}
-                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-                />
-              </Field>
-              {suggestions.length > 0 && (
-                <>
-                  <p className="mt-3 mb-1.5 text-xs font-medium text-muted-foreground">
-                    Sizes that give whole squares
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {suggestions.map(sz => (
-                      <button
-                        key={sz} type="button"
-                        onClick={() => set('squareIn', toInches(sz, u))}
-                        className="rounded-md border border-border px-2.5 py-1 text-xs font-medium hover:bg-accent"
-                      >{formatSize(sz)}{u}</button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
-          )}
-
-          <p className="mt-3 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-            {spec.cols} × {spec.rows} grid of {formatSize(cellDisp)}{u} squares
-            {spec.exactFit ? ' — perfect fit' : ` + a ${formatSize(fromInches(spec.remainder, u))}${u} strip`}
-          </p>
-
-          <Toggle label="Row and column labels" checked={s.showLabels} onChange={v => set('showLabels', v)} />
-          <Toggle label="Diagonal guides" checked={s.showDiagonals} onChange={v => set('showDiagonals', v)} />
         </Section>
 
         {/* ── Lines ───────────────────────────────────────────────────── */}
@@ -732,32 +739,29 @@ export function GridTool() {
             onChange={v => set('lineWidth', v)}
             suffix={` · ≈${printedMm.toFixed(1)}mm printed 10in wide`}
           />
-          <div className="mt-3 flex items-center gap-3">
-            <Field label="Colour" className="flex-1">
-              <div className="flex items-center gap-2">
-                <input
-                  type="color" value={s.lineColor}
-                  onChange={e => set('lineColor', e.target.value)}
-                  className="h-9 w-14 cursor-pointer rounded border border-border bg-background"
-                />
-                <div className="flex flex-wrap gap-1">
-                  {['#ff0000', '#000000', '#ffffff', '#00e5ff', '#39ff14', '#ff00ff'].map(c => (
-                    <button
-                      key={c} type="button" onClick={() => set('lineColor', c)}
-                      style={{ background: c }}
-                      className="h-6 w-6 rounded border border-border"
-                      title={c}
-                    ><span className="sr-only">{c}</span></button>
-                  ))}
-                </div>
+          <Field label="Colour" className="mt-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="color" value={s.lineColor}
+                onChange={e => set('lineColor', e.target.value)}
+                className="h-9 w-14 cursor-pointer rounded border border-slate-300 bg-white"
+              />
+              <div className="flex flex-wrap gap-1">
+                {['#ff0000', '#000000', '#ffffff', '#00e5ff', '#39ff14', '#ff00ff'].map(c => (
+                  <button
+                    key={c} type="button" onClick={() => set('lineColor', c)}
+                    style={{ background: c }}
+                    className="h-6 w-6 rounded border border-slate-300" title={c}
+                  ><span className="sr-only">{c}</span></button>
+                ))}
               </div>
-            </Field>
-          </div>
+            </div>
+          </Field>
           <Slider
             label="Opacity" value={Math.round(s.lineOpacity * 100)} min={10} max={100} step={5}
             onChange={v => set('lineOpacity', v / 100)} suffix="%"
           />
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-xs text-slate-500">
             Lines need to read from across the room. Thickness scales with the download, so what
             you see here is what prints.
           </p>
@@ -775,22 +779,20 @@ export function GridTool() {
             onChange={v => set('brightness', v)} suffix="%"
           />
           <div className="mt-4">
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              Value steps (posterise)
-            </label>
+            <span className="mb-1.5 block text-xs font-medium text-slate-500">Value steps (posterise)</span>
             <div className="flex flex-wrap gap-1.5">
               {[0, 2, 3, 4, 5, 6, 8, 10].map(n => (
                 <button
                   key={n} type="button" onClick={() => set('posterize', n)}
                   className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
-                    s.posterize === n ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-accent'
+                    s.posterize === n ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-700 hover:bg-slate-50'
                   }`}
                 >{n === 0 ? 'Off' : n}</button>
               ))}
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Flattens the photo into a few tones so you can see the big shapes of light and
-              dark instead of the detail.
+            <p className="mt-2 text-xs text-slate-500">
+              Flattens the photo into a few tones so you can see the big shapes of light and dark
+              instead of the detail.
             </p>
           </div>
         </Section>
@@ -803,20 +805,19 @@ export function GridTool() {
           />
           <div className="mt-3 flex gap-2">
             <button
-              type="button"
-              onClick={() => { setZoom(1); setPanX(0.5); setPanY(0.5) }}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-accent"
+              type="button" onClick={() => { setZoom(1); setPanX(0.5); setPanY(0.5) }}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
             >
               <Maximize2 className="h-4 w-4" aria-hidden /> Fit to canvas
             </button>
             <button
               type="button" onClick={() => setS(DEFAULTS)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-accent"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
             >
               <RotateCcw className="h-4 w-4" aria-hidden /> Reset all
             </button>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-xs text-slate-500">
             The photo is cropped to your canvas shape, never squashed. Drag it to choose what
             stays in.
           </p>
@@ -824,15 +825,13 @@ export function GridTool() {
       </section>
 
       {/* Print-only output. A hidden node in the page prints far more reliably
-          than opening a new window, which pop-up blockers eat. */}
+          than opening a new window, which pop-up blockers eat. The measurements
+          go with it — on paper, next to the easel, they are the point. */}
       {printSrc && (
         <div className="hidden print:block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={printSrc} alt="Gridded reference" className="w-full" />
-          <p className="mt-2 text-center text-xs">
-            {formatSize(cwDisp)} × {formatSize(chDisp)}{u} canvas · {spec.cols} × {spec.rows} grid
-            of {formatSize(cellDisp)}{u} squares
-          </p>
+          <p className="mt-3 whitespace-pre-line text-center text-xs">{measurementText}</p>
         </div>
       )}
     </div>
@@ -847,17 +846,15 @@ function Section({ id, title, open, onToggle, children }: {
 }) {
   const isOpen = open === id
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
       <button
-        type="button"
-        onClick={() => onToggle(isOpen ? null : id)}
-        aria-expanded={isOpen}
-        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-bold hover:bg-accent/50"
+        type="button" onClick={() => onToggle(isOpen ? null : id)} aria-expanded={isOpen}
+        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-bold text-slate-900 hover:bg-slate-50"
       >
         {title}
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden />
       </button>
-      {isOpen && <div className="border-t border-border px-4 pb-4 pt-3">{children}</div>}
+      {isOpen && <div className="border-t border-slate-200 px-4 pb-4 pt-3">{children}</div>}
     </div>
   )
 }
@@ -867,9 +864,49 @@ function Field({ label, children, className = '' }: {
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>
+      <span className="mb-1.5 block text-xs font-medium text-slate-500">{label}</span>
       {children}
     </label>
+  )
+}
+
+/**
+ * A number with big +/- buttons either side.
+ *
+ * Not a slider: "I want four rows" is an exact intention, and hitting exactly
+ * 4 on a slider with a fingertip on a phone is a game. The buttons are 44px so
+ * they are a real touch target.
+ */
+function Stepper({ label, value, min, max, onChange, disabled, hint }: {
+  label: string; value: number; min: number; max: number
+  onChange: (v: number) => void; disabled?: boolean; hint?: string
+}) {
+  const clamp = (n: number) => Math.max(min, Math.min(max, n))
+  return (
+    <div className="mt-4 first:mt-0">
+      <div className="mb-1.5 flex items-baseline justify-between gap-2">
+        <span className="text-xs font-medium text-slate-500">{label}</span>
+        {hint && <span className="text-[11px] text-slate-400">{hint}</span>}
+      </div>
+      <div className={`flex items-stretch gap-2 ${disabled ? 'opacity-50' : ''}`}>
+        <button
+          type="button" disabled={disabled} onClick={() => onChange(clamp(value - 1))}
+          className="h-11 w-11 shrink-0 rounded-lg border border-slate-300 text-lg font-semibold text-slate-900 hover:bg-slate-50 disabled:cursor-not-allowed"
+          aria-label={`Fewer ${label}`}
+        >−</button>
+        <input
+          type="number" min={min} max={max} value={value} disabled={disabled}
+          onChange={e => { const n = parseInt(e.target.value, 10); if (isFinite(n)) onChange(clamp(n)) }}
+          className="h-11 w-full rounded-lg border border-slate-300 bg-white text-center text-lg font-semibold tabular-nums text-slate-900"
+          aria-label={label}
+        />
+        <button
+          type="button" disabled={disabled} onClick={() => onChange(clamp(value + 1))}
+          className="h-11 w-11 shrink-0 rounded-lg border border-slate-300 text-lg font-semibold text-slate-900 hover:bg-slate-50 disabled:cursor-not-allowed"
+          aria-label={`More ${label}`}
+        >+</button>
+      </div>
+    </div>
   )
 }
 
@@ -880,13 +917,13 @@ function Slider({ label, value, min, max, step, onChange, suffix = '' }: {
   return (
     <div className="mt-4 first:mt-0">
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        <span className="text-xs tabular-nums text-muted-foreground">{value}{suffix}</span>
+        <span className="text-xs font-medium text-slate-500">{label}</span>
+        <span className="text-xs tabular-nums text-slate-500">{value}{suffix}</span>
       </div>
       <input
         type="range" min={min} max={max} step={step} value={value}
         onChange={e => onChange(parseFloat(e.target.value))}
-        className="h-6 w-full cursor-pointer accent-primary"
+        className="h-6 w-full cursor-pointer accent-slate-900"
         aria-label={label}
       />
     </div>
@@ -898,11 +935,10 @@ function Toggle({ label, checked, onChange }: {
 }) {
   return (
     <label className="mt-4 flex cursor-pointer items-center justify-between gap-3">
-      <span className="text-sm font-medium">{label}</span>
+      <span className="text-sm font-medium text-slate-900">{label}</span>
       <input
-        type="checkbox" checked={checked}
-        onChange={e => onChange(e.target.checked)}
-        className="h-5 w-5 cursor-pointer accent-primary"
+        type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)}
+        className="h-5 w-5 cursor-pointer accent-slate-900"
       />
     </label>
   )
@@ -910,14 +946,8 @@ function Toggle({ label, checked, onChange }: {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function clampZoom(z: number): number {
-  return Math.max(1, Math.min(4, z))
-}
-
-function round2(n: number): number {
-  return Math.round(n * 100) / 100
-}
-
+function clampZoom(z: number): number { return Math.max(1, Math.min(4, z)) }
+function round2(n: number): number { return Math.round(n * 100) / 100 }
 function touchDist(e: React.TouchEvent): number {
   const [a, b] = [e.touches[0], e.touches[1]]
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)

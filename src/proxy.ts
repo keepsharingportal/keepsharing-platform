@@ -97,6 +97,13 @@ export async function proxy(request: NextRequest) {
         // the public handler keeps those existing prints alive; the
         // handler itself redirects to NEXT_PUBLIC_SITE_URL.
         || p.startsWith('/go/')
+        // The drawing grid tool. It lives on this host deliberately —
+        // it is a utility, not magazine content, and it carries no
+        // publication's branding. Without this exemption the rewrite
+        // turns it into /admin/grid-tool and the auth gate 307s it to
+        // the admin login. It holds no data and has no endpoint of its
+        // own, so there is nothing here for the gate to protect.
+        || p === '/grid-tool'
   }
 
   if (host === 'app.keepsharing.com' && !isPassThrough(originalPath) && !isAppHostPublicPreview(originalPath)) {

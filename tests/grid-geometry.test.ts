@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   toInches, fromInches,
-  gridFromColumns, gridFromSquareSize, perfectFitSquareSizes,
+  linePositions, squareRowsFor, formatRuler,
   coverTransform, rowLabel, columnLabel, printedLineWidthMm,
 } from '@/lib/grid-tool/geometry'
 
@@ -16,78 +16,84 @@ test('units round-trip', () => {
   assert.ok(Math.abs(fromInches(1, 'cm') - 2.54) < 1e-9)
 })
 
-test('columns give square cells and the right row count', () => {
-  // 16 x 20 canvas, 8 columns -> 2in squares -> exactly 10 rows.
-  const g = gridFromColumns(16, 20, 8)
-  assert.equal(g.cols, 8)
-  assert.equal(g.cellSize, 2)
-  assert.equal(g.rows, 10)
-  assert.equal(g.exactFit, true)
-  assert.equal(g.remainder, 0)
+// ── Line positions — the numbers the artist measures ──────────────────────
+
+test('4 columns across 16in puts lines at 4, 8, 12', () => {
+  assert.deepEqual(linePositions(16, 4), [4, 8, 12])
 })
 
-test('a stub row is reported, not hidden', () => {
-  // 16 x 20 with 6 columns -> 2.667in squares -> 7.5 rows.
-  const g = gridFromColumns(16, 20, 6)
-  assert.equal(g.rows, 7)
-  assert.ok(Math.abs(g.rowsExact - 7.5) < 1e-9)
-  assert.equal(g.exactFit, false)
-  assert.ok(g.remainder > 0)
+test('5 rows down 20in puts lines at 4, 8, 12, 16', () => {
+  assert.deepEqual(linePositions(20, 5), [4, 8, 12, 16])
 })
 
-test('square size is honoured to the nearest whole column', () => {
-  // You cannot draw a third of a column, so 3in squares on 16in become 5
-  // columns of 3.2in rather than a fractional grid.
-  const g = gridFromSquareSize(16, 20, 3)
-  assert.equal(g.cols, 5)
-  assert.ok(Math.abs(g.cellSize - 3.2) < 1e-9)
-})
-
-test('an exact square size stays exact', () => {
-  const g = gridFromSquareSize(16, 20, 2)
-  assert.equal(g.cols, 8)
-  assert.equal(g.cellSize, 2)
-  assert.equal(g.rows, 10)
-  assert.equal(g.exactFit, true)
-})
-
-test('perfect-fit suggestions divide both sides evenly', () => {
-  const sizes = perfectFitSquareSizes(16, 20, 'in')
-  assert.ok(sizes.length > 0, 'expected suggestions for 16x20')
-  for (const s of sizes) {
-    assert.ok(Math.abs((16 / s) - Math.round(16 / s)) < 1e-6, `${s} does not divide 16`)
-    assert.ok(Math.abs((20 / s) - Math.round(20 / s)) < 1e-6, `${s} does not divide 20`)
-  }
-  // 2in is the obvious answer for 16x20 and must be offered.
-  assert.ok(sizes.some(s => Math.abs(s - 2) < 1e-9), `2in missing from ${sizes.join(', ')}`)
-})
-
-test('suggestions stay inside a usable column count', () => {
-  // Nobody wants a 200-column grid, or a 2-column one.
-  for (const s of perfectFitSquareSizes(16, 20, 'in')) {
-    const cols = 16 / s
-    assert.ok(cols >= 3 && cols <= 40, `${s}in gives ${cols} columns`)
+test('n divisions give n-1 interior lines, never a line on the border', () => {
+  for (const n of [1, 2, 3, 7, 12, 24]) {
+    const p = linePositions(16, n)
+    assert.equal(p.length, n - 1, `${n} divisions`)
+    for (const x of p) {
+      assert.ok(x > 0 && x < 16, `line at ${x} is on or outside the border`)
+    }
   }
 })
 
-test('fractional canvas sizes still produce suggestions', () => {
-  // 11.5 x 16 — a real panel size, and the kind of number that breaks a
-  // naive integer-divisor approach.
-  const sizes = perfectFitSquareSizes(11.5, 16, 'in')
-  for (const s of sizes) {
-    assert.ok(Math.abs((11.5 / s) - Math.round(11.5 / s)) < 1e-6)
-    assert.ok(Math.abs((16 / s) - Math.round(16 / s)) < 1e-6)
+test('one division has no interior lines', () => {
+  assert.deepEqual(linePositions(16, 1), [])
+})
+
+test('positions are evenly spaced even when they do not divide evenly', () => {
+  // 16 / 5 = 3.2 — a perfectly good grid, and the old square-cell model would
+  // have refused it or left a stub.
+  const p = linePositions(16, 5)
+  assert.equal(p.length, 4)
+  for (let i = 1; i < p.length; i++) {
+    assert.ok(Math.abs((p[i] - p[i - 1]) - 3.2) < 1e-9)
   }
 })
 
-test('a canvas with no common divisor reports none rather than lying', () => {
-  // Nothing sensible divides both, so the UI must not claim a perfect fit.
-  const sizes = perfectFitSquareSizes(7, 13, 'in', { minCols: 3, maxCols: 40 })
-  for (const s of sizes) {
-    assert.ok(Math.abs((7 / s) - Math.round(7 / s)) < 1e-6)
-    assert.ok(Math.abs((13 / s) - Math.round(13 / s)) < 1e-6)
-  }
+// ── Ruler formatting — an imperial ruler has no 3.2 on it ──────────────────
+
+test('whole inches read as whole numbers', () => {
+  assert.equal(formatRuler(4, 'in'), '4"')
+  assert.equal(formatRuler(12, 'in'), '12"')
 })
+
+test('fractions reduce to the lowest terms a ruler is marked in', () => {
+  assert.equal(formatRuler(2.5, 'in'),   '2 1/2"')
+  assert.equal(formatRuler(3.25, 'in'),  '3 1/4"')
+  assert.equal(formatRuler(1.125, 'in'), '1 1/8"')
+  assert.equal(formatRuler(0.0625, 'in'), '1/16"')
+})
+
+test('3.2in becomes the number on the ruler, not the decimal', () => {
+  // 3.2 * 16 = 51.2 -> 51/16 -> 3 3/16
+  assert.equal(formatRuler(3.2, 'in'), '3 3/16"')
+})
+
+test('a bare fraction drops the leading zero', () => {
+  assert.equal(formatRuler(0.5, 'in'), '1/2"')
+})
+
+test('centimetres stay decimal, because a metric ruler is', () => {
+  assert.equal(formatRuler(8.128, 'cm'), '8.1 cm')
+  assert.equal(formatRuler(10, 'cm'), '10 cm')
+})
+
+// ── Square cells as a convenience, not a constraint ────────────────────────
+
+test('square rows match the canvas proportion', () => {
+  assert.equal(squareRowsFor(16, 20, 4), 5)   // 4in cells, exactly square
+  assert.equal(squareRowsFor(16, 20, 8), 10)
+  assert.equal(squareRowsFor(12, 12, 6), 6)
+})
+
+test('square rows round rather than refuse', () => {
+  // 11 x 14 with 4 columns -> 4 * 14/11 = 5.09 -> 5 rows. Slightly off square,
+  // and the UI quotes the real cell size rather than claiming otherwise.
+  assert.equal(squareRowsFor(11, 14, 4), 5)
+  assert.ok(squareRowsFor(11, 14, 1) >= 1)
+})
+
+// ── Framing ────────────────────────────────────────────────────────────────
 
 test('cover transform never leaves a gap in the frame', () => {
   // A landscape photo in a portrait frame is the case that exposes a

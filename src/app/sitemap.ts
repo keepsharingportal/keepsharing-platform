@@ -72,6 +72,7 @@ const PRIVATE_PREFIXES = [
   // parenting-magazine sitemaps. Promote it deliberately if it ever earns a
   // place in one.
   '/grid',
+  '/grid-tool',
 ]
 const SKIP_DIR_PREFIX = ['_', '(', '@']
 

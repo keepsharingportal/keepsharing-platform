@@ -6,13 +6,22 @@
 // ── The model ───────────────────────────────────────────────────────────────
 // The canvas size is the source of truth. It fixes the frame's aspect ratio;
 // the photo is panned and zoomed INSIDE that frame (never stretched); and the
-// grid divides the frame. Because the frame is the canvas shape and the cells
-// are square by construction, the grid on screen and the grid the artist
-// pencils onto the canvas are the same grid at a different scale.
+// grid divides the frame into a plain number of columns and rows.
 //
-// This is the opposite of asking the artist to nudge the column count until
-// the cells happen to come out square, which is what the tools that start
-// from the PHOTO's shape have to do.
+// ── Why square cells are not required ───────────────────────────────────────
+// Grid tools tend to insist on square cells, which forces the artist to nudge
+// the column count until the arithmetic happens to work and usually leaves a
+// stub row along one edge.
+//
+// It is unnecessary. The frame is ALREADY the canvas's shape, so dividing it
+// into 4 x 5 gives identical rectangles, and dividing the canvas into 4 x 5
+// gives identical rectangles of the same proportion. The transfer is exact
+// whether or not those rectangles happen to be square. Square cells are a
+// convention, not a requirement.
+//
+// So the artist says "4 columns, 5 rows", gets exactly that, and never sees a
+// partial cell. Square cells remain available as a convenience that picks the
+// row count for them.
 
 /** Units the artist thinks in. Everything internal is inches. */
 export type Unit = 'in' | 'cm'
@@ -27,115 +36,34 @@ export function fromInches(inches: number, unit: Unit): number {
   return unit === 'cm' ? inches * CM_PER_INCH : inches
 }
 
-export interface GridSpec {
-  /** Columns across the canvas. Whole number. */
-  cols:      number
-  /** Full rows that fit. Whole number. */
-  rows:      number
-  /** Side of one cell, in the unit the caller passed in. */
-  cellSize:  number
-  /** Rows including the partial one, e.g. 10.67. */
-  rowsExact: number
-  /**
-   * True when the squares divide the canvas height evenly, so there is no
-   * stub row along the bottom.
-   *
-   * A stub is not an error — plenty of artists grid a canvas that way — but
-   * it is worth telling them, because a perfect fit is usually one column
-   * either side and makes counting squares on the canvas much easier.
-   */
-  exactFit:  boolean
-  /** Height of the leftover strip along the bottom, in the caller's unit. */
-  remainder: number
-}
-
-/** Tolerance for "divides evenly" — a sixty-fourth of an inch. */
-const EPS = 1 / 64
-
 /**
- * Grid from a column count.
+ * Where the interior lines fall along one edge.
  *
- * Cells are square, so the column count alone determines everything: the cell
- * is canvasW/cols on a side, and however many of those fit down the height is
- * the row count.
+ * `divisions` cells means `divisions - 1` lines inside the border, evenly
+ * spaced. Returned in the same unit as `size`.
+ *
+ * This is the number the artist actually needs: it is what they measure along
+ * the edge of the canvas with a ruler before joining the marks up. Everything
+ * else the tool shows is a means to this list.
  */
-export function gridFromColumns(
-  canvasW: number, canvasH: number, cols: number,
-): GridSpec {
-  const c = Math.max(1, Math.round(cols))
-  const cellSize = canvasW / c
-  return finish(canvasW, canvasH, c, cellSize)
-}
-
-/**
- * Grid from a square size — "I want two-inch squares".
- *
- * The size artists reach for first, because it is the one they will actually
- * measure on the canvas with a ruler.
- */
-export function gridFromSquareSize(
-  canvasW: number, canvasH: number, size: number,
-): GridSpec {
-  const s = Math.max(1e-6, size)
-  // Columns must be whole, so the requested size is honoured as closely as a
-  // whole number of columns allows. Asking for 3in squares on a 16in canvas
-  // gives 5 columns of 3.2in, not 5.33 columns of exactly 3in — you cannot
-  // draw a third of a square.
-  const cols = Math.max(1, Math.round(canvasW / s))
-  return finish(canvasW, canvasH, cols, canvasW / cols)
-}
-
-function finish(canvasW: number, canvasH: number, cols: number, cellSize: number): GridSpec {
-  const rowsExact = canvasH / cellSize
-  const rows      = Math.floor(rowsExact + EPS)
-  const remainder = canvasH - rows * cellSize
-  return {
-    cols,
-    rows,
-    cellSize,
-    rowsExact,
-    exactFit:  remainder < EPS || Math.abs(remainder - cellSize) < EPS,
-    remainder: remainder < EPS ? 0 : remainder,
-  }
-}
-
-function gcd(a: number, b: number): number {
-  while (b) { [a, b] = [b, a % b] }
-  return a
-}
-
-/**
- * Square sizes that divide the canvas evenly in BOTH directions.
- *
- * Offered as one-tap suggestions, because "what square size gives me whole
- * squares on a 16 × 20 canvas?" is arithmetic nobody should do by hand, and
- * getting it wrong is what produces the stub row.
- *
- * Works on a fine integer lattice (eighths of an inch, or millimetres) so
- * fractional canvas sizes like 11.5in still work, then keeps the sizes that
- * land in a usable column count.
- */
-export function perfectFitSquareSizes(
-  canvasW: number, canvasH: number, unit: Unit,
-  { minCols = 3, maxCols = 40 }: { minCols?: number; maxCols?: number } = {},
-): number[] {
-  // Lattice fine enough to express the sizes artists use: 1/8in, or 1mm.
-  const perUnit = unit === 'cm' ? 10 : 8
-  const w = Math.round(canvasW * perUnit)
-  const h = Math.round(canvasH * perUnit)
-  if (w < 1 || h < 1) return []
-
-  const g = gcd(w, h)
+export function linePositions(size: number, divisions: number): number[] {
+  const n = Math.max(1, Math.round(divisions))
+  const step = size / n
   const out: number[] = []
-  for (let d = 1; d <= g; d++) {
-    if (g % d !== 0) continue
-    const cols = w / d
-    if (cols < minCols || cols > maxCols) continue
-    out.push(d / perUnit)
-  }
-  // Largest squares first: fewer, bigger cells is the friendlier default, and
-  // it puts the sizes a painter actually wants at the front of the list.
-  return out.sort((a, b) => b - a).slice(0, 6)
+  for (let i = 1; i < n; i++) out.push(i * step)
+  return out
+}
+
+/**
+ * Row count that makes the cells as close to square as whole rows allow.
+ *
+ * A convenience, not a constraint — see the note at the top of the file. The
+ * rounding means the cells can be a touch off square; the UI quotes the real
+ * cell size rather than claiming they are perfect.
+ */
+export function squareRowsFor(canvasW: number, canvasH: number, cols: number): number {
+  const c = Math.max(1, Math.round(cols))
+  return Math.max(1, Math.round(c * (canvasH / canvasW)))
 }
 
 export interface CoverTransform {
@@ -183,10 +111,31 @@ export function formatSize(n: number): string {
 }
 
 /**
+ * A measurement as it reads on a ruler.
+ *
+ * Inches in sixteenths, because an imperial ruler has no 3.2 on it — the
+ * artist standing at the canvas wants 3 3/16, and converting in their head is
+ * exactly the friction this tool exists to remove. Centimetres stay decimal,
+ * which is how a metric ruler is marked.
+ */
+export function formatRuler(valueInUnit: number, unit: Unit): string {
+  if (!isFinite(valueInUnit)) return '—'
+  if (unit === 'cm') return `${Math.round(valueInUnit * 10) / 10} cm`
+
+  const sixteenths = Math.round(valueInUnit * 16)
+  const whole = Math.floor(sixteenths / 16)
+  let num = sixteenths % 16
+  if (num === 0) return `${whole}"`
+  let den = 16
+  while (num % 2 === 0) { num /= 2; den /= 2 }
+  return whole === 0 ? `${num}/${den}"` : `${whole} ${num}/${den}"`
+}
+
+/**
  * Column labels: 1, 2, 3 … Row labels: A, B … Z, AA, AB.
  *
- * Numbers across and letters down is the convention the printed grid guides
- * use, so a cell is "C4" to the artist without them having to learn anything.
+ * Numbers across and letters down is the convention printed grid guides use,
+ * so a cell is "C4" to the artist without them having to learn anything.
  */
 export function columnLabel(i: number): string {
   return String(i + 1)
