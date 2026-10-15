@@ -18,18 +18,18 @@
 // rate-limit.
 
 import type { Metadata, Viewport } from 'next'
-import { Grid3x3 } from 'lucide-react'
+import { Grid3x3, ShieldCheck } from 'lucide-react'
 import { GridTool } from '@/components/grid/GridTool'
-import { PwaSetup } from '@/components/grid/PwaSetup'
+import { InstallButton } from '@/components/grid/PwaSetup'
 
 export const revalidate = 86400
 
 const DESCRIPTION =
-  'Put a grid over any photo to draw or paint it. Set your canvas size, choose how many ' +
+  'Squared puts a grid over any photo so you can draw or paint it. Set your canvas size, choose how many ' +
   'columns and rows, and get the exact measurements to mark on your canvas.'
 
 export const metadata: Metadata = {
-  title: 'Grid Tool',
+  title: 'Squared — Grid Drawing for Artists',
   description: DESCRIPTION,
   // Not indexed: an internal utility on the application host, not a public
   // landing page, and app.keepsharing.com is the CRM backend. Nothing links
@@ -44,16 +44,16 @@ export const metadata: Metadata = {
   // itself carries no branding; pasting the link into a message would have
   // put it back. Explicitly no image, so nothing inherits a masthead.
   openGraph: {
-    title:       'Grid Tool',
+    title:       'Squared — Grid Drawing for Artists',
     description: DESCRIPTION,
     url:         'https://app.keepsharing.com/grid-tool',
-    siteName:    'Grid Tool',
+    siteName:    'Squared',
     type:        'website',
     images:      [],
   },
   twitter: {
     card:        'summary',
-    title:       'Grid Tool',
+    title:       'Squared — Grid Drawing for Artists',
     description: DESCRIPTION,
     images:      [],
   },
@@ -65,7 +65,10 @@ export const metadata: Metadata = {
   manifest: '/grid-tool/manifest.webmanifest',
   appleWebApp: {
     capable: true,
-    title: 'Grid Tool',
+    // Just the name: this is the label under the home-screen icon, and iOS
+    // truncates to roughly a dozen characters. The tagline belongs in the
+    // store listing and the page header, not under a 60px icon.
+    title: 'Squared',
     // Dark status bar text on the light page behind it.
     statusBarStyle: 'default',
   },
@@ -89,18 +92,34 @@ export const viewport: Viewport = {
   maximumScale: 5,
 }
 
-export default function GridToolPage() {
+export default function SquaredPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Its own header — a name and nothing else. No publication, no nav. */}
+      {/* Its own header — name, tagline, install. No publication, no nav. */}
       <header className="border-b border-slate-200 bg-white print:hidden">
-        <div className="mx-auto flex max-w-6xl items-center gap-2.5 px-4 py-4 sm:px-6">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900">
-            <Grid3x3 className="h-4 w-4 text-white" aria-hidden />
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6 sm:py-4">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-900">
+            <Grid3x3 className="h-5 w-5 text-white" aria-hidden />
           </span>
-          <span className="text-base font-bold tracking-tight">Grid Tool</span>
-          <span className="ml-auto hidden text-xs text-slate-500 sm:inline">
-            Nothing is uploaded — it all runs in your browser
+          <span className="min-w-0">
+            <span className="block text-base font-bold leading-tight tracking-tight sm:text-lg">
+              Squared
+            </span>
+            <span className="block truncate text-[11px] leading-tight text-slate-500 sm:text-xs">
+              Grid Drawing for Artists
+            </span>
+          </span>
+
+          {/* The reassurance people actually want before handing a tool a
+              photo of their family: not "no upload" as a technical fact, but
+              that the picture stays theirs. Stated plainly and early. */}
+          <span className="ml-auto hidden items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 md:inline-flex">
+            <ShieldCheck className="h-4 w-4" aria-hidden />
+            Your photo stays on your device
+          </span>
+
+          <span className="ml-auto md:ml-0">
+            <InstallButton />
           </span>
         </div>
       </header>
@@ -114,9 +133,17 @@ export default function GridToolPage() {
             Tell it your canvas size and how many columns and rows you want. It spreads them
             evenly and gives you the exact measurements to mark along each edge with a ruler.
           </p>
+          {/* Repeated below the fold of the header, where it is visible on a
+              phone — the header badge is desktop-only for room. */}
+          <p className="mt-3 inline-flex items-start gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-900 md:text-sm">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              <strong className="font-semibold">Your photo never leaves this device.</strong>{' '}
+              It is opened by your browser and never sent anywhere — not to us, not to anyone.
+              There is no account, and nothing is stored.
+            </span>
+          </p>
         </div>
-
-        <PwaSetup />
 
         <GridTool />
 
