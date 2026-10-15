@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import Script from 'next/script'
 import { ViewTracker } from '@/components/ViewTracker'
 import { loadBrandContext } from '@/lib/brand-context'
@@ -108,6 +109,15 @@ export async function generateMetadata(): Promise<Metadata> {
 const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Routes that are not one of the magazines and supply their own PWA
+  // identity. The brand manifest, apple-touch-icon and theme colour below
+  // are raw tags that a page cannot override, so installing the grid tool
+  // to a home screen produced River Region's logo under the tool's name.
+  //
+  // Fails safe: no header means false means exactly the behaviour every
+  // other page has today.
+  const pathname = (await headers()).get('x-pathname') ?? ''
+  const ownsItsPwaIdentity = pathname === '/grid-tool' || pathname.startsWith('/grid-tool/')
   // Site-wide structured data. NewsMediaOrganization tells Google we
   // are a legitimate local-news publisher (vs a generic Organization);
   // WebSite registers a SearchAction so Google can show a sitelinks
@@ -181,8 +191,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             without a manual subscribe step. */}
         <link rel="alternate" type="application/rss+xml" title={`${ctx.market.displayName} — Latest`} href="/feed.xml" />
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
-        <link rel="manifest" href="/manifest.webmanifest" />
-        <meta name="theme-color" content={seoCfg.brandColor} />
+        {!ownsItsPwaIdentity && <>
+          <link rel="manifest" href="/manifest.webmanifest" />
+          <meta name="theme-color" content={seoCfg.brandColor} />
+        </>}
 
         {/* Performance — preconnect / DNS-prefetch hints for the
             third-party origins we hit on every page. Real Core Web
@@ -206,13 +218,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         {/* Apple touch icons + favicon variants. iOS pulls these for
             the home-screen shortcut + Safari tabs. */}
-        {brandIcon && <>
+        {brandIcon && !ownsItsPwaIdentity && <>
           <link rel="apple-touch-icon" sizes="180x180" href={brandIcon} />
           <link rel="icon" type="image/png" sizes="32x32" href={brandIcon} />
           <link rel="icon" type="image/png" sizes="16x16" href={brandIcon} />
           <link rel="mask-icon" href={brandIcon} color={seoCfg.brandColor} />
         </>}
-        <meta name="apple-mobile-web-app-title" content={ctx.market.displayName} />
+        {!ownsItsPwaIdentity && <meta name="apple-mobile-web-app-title" content={ctx.market.displayName} />}
         <meta name="application-name" content={ctx.market.displayName} />
         <meta name="format-detection" content="telephone=no" />
       </head>

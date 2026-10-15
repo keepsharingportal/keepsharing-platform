@@ -1,0 +1,20 @@
+{
+  "name": "Grid Tool",
+  "short_name": "Grid Tool",
+  "description": "Grid a reference photo to draw or paint it. Set your canvas size, choose columns and rows, and get the exact measurements to mark on the canvas.",
+  "start_url": "/grid-tool",
+  "scope": "/grid-tool",
+  "id": "/grid-tool",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "lang": "en-US",
+  "categories": ["graphics", "productivity", "utilities"],
+  "icons": [
+    { "src": "/grid-tool/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/grid-tool/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/grid-tool/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/grid-tool/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

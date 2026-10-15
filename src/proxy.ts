@@ -103,7 +103,14 @@ export async function proxy(request: NextRequest) {
         // turns it into /admin/grid-tool and the auth gate 307s it to
         // the admin login. It holds no data and has no endpoint of its
         // own, so there is nothing here for the gate to protect.
+        //
+        // The subtree matters as much as the page: the PWA manifest, service
+        // worker and icons live at /grid-tool/*. Exempting only the exact
+        // path sends those to /admin/grid-tool/... and the auth gate, so the
+        // tool stays installable on a brand host and silently fails to
+        // install on this one.
         || p === '/grid-tool'
+        || p.startsWith('/grid-tool/')
   }
 
   if (host === 'app.keepsharing.com' && !isPassThrough(originalPath) && !isAppHostPublicPreview(originalPath)) {
@@ -165,6 +172,16 @@ export async function proxy(request: NextRequest) {
   const brandSlug = resolveBrand(request)
   const forwardedHeaders = new Headers(request.headers)
   forwardedHeaders.set('x-brand-slug', brandSlug)
+
+  // The request path, for the root layout.
+  //
+  // A layout cannot see the pathname, and the root layout emits the
+  // brand PWA manifest, apple-touch-icon and theme colour as raw <link>
+  // tags — which a page cannot override, because both end up in the head
+  // and the browser takes the first manifest it finds. A standalone tool
+  // with its own identity therefore needs the layout to stand down, and
+  // this is how it knows to.
+  forwardedHeaders.set('x-pathname', originalPath)
 
   // ── Guide preview flag ─────────────────────────────────────────────────
   // Guide trees with their own sub-routes (Birthday Party, Family Resource,

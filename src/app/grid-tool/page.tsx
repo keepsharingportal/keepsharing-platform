@@ -17,9 +17,10 @@
 // Nothing is uploaded, so there is no endpoint here to abuse and nothing to
 // rate-limit.
 
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Grid3x3 } from 'lucide-react'
 import { GridTool } from '@/components/grid/GridTool'
+import { PwaSetup } from '@/components/grid/PwaSetup'
 
 export const revalidate = 86400
 
@@ -57,6 +58,35 @@ export const metadata: Metadata = {
     images:      [],
   },
   alternates: { canonical: 'https://app.keepsharing.com/grid-tool' },
+
+  // Installable to a phone's home screen. The manifest is scoped to
+  // /grid-tool and is NOT the site-wide one at /manifest.webmanifest —
+  // installing this must give you the tool, not a magazine.
+  manifest: '/grid-tool/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'Grid Tool',
+    // Dark status bar text on the light page behind it.
+    statusBarStyle: 'default',
+  },
+  icons: {
+    icon: [
+      { url: '/grid-tool/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/grid-tool/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/grid-tool/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+}
+
+// Installed, the tool fills the screen, so the status bar should match the
+// header rather than leaving a white strip above a dark bar.
+export const viewport: Viewport = {
+  themeColor: '#0f172a',
+  width: 'device-width',
+  initialScale: 1,
+  // The canvas is a drag surface; letting the page zoom underneath it turns
+  // every attempt to reposition the photo into a pinch-zoom of the whole UI.
+  maximumScale: 5,
 }
 
 export default function GridToolPage() {
@@ -85,6 +115,8 @@ export default function GridToolPage() {
             evenly and gives you the exact measurements to mark along each edge with a ruler.
           </p>
         </div>
+
+        <PwaSetup />
 
         <GridTool />
 
