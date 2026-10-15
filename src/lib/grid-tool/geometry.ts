@@ -93,22 +93,62 @@ function rotatedFrameExtent(frameW: number, frameH: number, angleRad: number) {
   return { w: frameW * c + frameH * s, h: frameW * s + frameH * c }
 }
 
+/** The image's own bounding box once rotated — how much room it needs. */
+function rotatedImageExtent(imgW: number, imgH: number, angleRad: number) {
+  const c = Math.abs(Math.cos(angleRad))
+  const s = Math.abs(Math.sin(angleRad))
+  return { w: imgW * c + imgH * s, h: imgW * s + imgH * c }
+}
+
+/**
+ * How far the zoom can travel, where 1 is "fills the frame".
+ *
+ * ── Why zooming out past 1 has to be allowed ────────────────────────────────
+ * Cover was the floor at first, on the reasoning that a gap is a blank patch
+ * with nothing useful to paint in. That is true of a gap you did not ask for
+ * and wrong as a hard limit: a tall photo on a wide canvas is cropped to
+ * ribbons at cover, and the artist cannot even SEE the composition they are
+ * choosing between. Deciding what to leave out requires looking at the whole
+ * picture first.
+ *
+ * So `min` is the scale at which the entire photo sits inside the frame —
+ * letterboxed, deliberately, and visibly. Anything from there to 4x is the
+ * artist's call.
+ *
+ * It is a ratio of two scales that both track the frame size, so it depends
+ * on the frame's SHAPE and not its resolution: the preview and the export
+ * agree about what "fit" means.
+ */
+export function zoomBounds(
+  frameW: number, frameH: number, imgW: number, imgH: number, angleDeg = 0,
+): { min: number; max: number } {
+  const angle = (angleDeg * Math.PI) / 180
+  const fext  = rotatedFrameExtent(frameW, frameH, angle)
+  const iext  = rotatedImageExtent(imgW, imgH, angle)
+  const cover   = Math.max(fext.w / imgW, fext.h / imgH)
+  const contain = Math.min(frameW / iext.w, frameH / iext.h)
+  if (!isFinite(cover) || cover <= 0) return { min: 1, max: 4 }
+  return { min: Math.min(1, contain / cover), max: 4 }
+}
+
 /**
  * Place the photo inside the frame, at any rotation.
  *
- * Always covers. A gap would become a blank wedge on the reference and there
- * is nothing useful to paint there — and a tilted photo is exactly where that
- * goes wrong, because the corners swing outside the frame long before the
- * edges do. Scaling to the rotated frame's bounding box is slightly generous
- * (at some angles you could pan a touch further) and is never wrong, which is
- * the right way round for this.
+ * zoom 1 covers exactly: no gap at any corner. Above 1 crops in further.
+ * Below 1 is allowed down to zoomBounds().min, where the whole photo is
+ * visible and the frame is letterboxed on purpose — see that function for
+ * why refusing to zoom out was wrong.
  *
- * zoom 1 is the tightest fit that still covers at the current angle, so
- * straightening a horizon pushes the photo in rather than opening a corner.
+ * The cover at zoom 1 is computed against the rotated frame's bounding box.
+ * A tilted photo is where a naive fit fails, because the corners swing
+ * outside the frame long before the edges do; scaling to the bounding box is
+ * slightly generous (at some angles you could pan a touch further) and is
+ * never wrong, which is the right way round for this. Straightening a horizon
+ * therefore pushes the photo in rather than opening a corner.
  *
  * panX/panY are 0..1 across whatever overflow is left, so the framing survives
  * a change of resolution — the preview and the exported file frame
- * identically.
+ * identically. Zoomed out there is no overflow, so the photo simply centres.
  */
 export function placeImage(
   frameW: number, frameH: number,
@@ -119,7 +159,8 @@ export function placeImage(
   const angle = (angleDeg * Math.PI) / 180
   const ext   = rotatedFrameExtent(frameW, frameH, angle)
   const base  = Math.max(ext.w / imgW, ext.h / imgH)
-  const s     = base * Math.max(1, zoom)
+  const { min } = zoomBounds(frameW, frameH, imgW, imgH, angleDeg)
+  const s     = base * Math.max(min, zoom)
   const dw    = imgW * s
   const dh    = imgH * s
   const overflowX = Math.max(0, dw - ext.w)

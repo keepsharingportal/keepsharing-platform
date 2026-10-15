@@ -50,7 +50,7 @@ import {
 import {
   type Unit, toInches, fromInches,
   linePositions, squareRowsFor, formatRuler,
-  placeImage, dragToPan, clamp01, formatSize, columnLabel, rowLabel,
+  placeImage, dragToPan, zoomBounds, clamp01, formatSize, columnLabel, rowLabel,
   printedLineWidthMm,
 } from '@/lib/grid-tool/geometry'
 
@@ -299,7 +299,7 @@ export function GridTool() {
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
   const [printSrc, setPrintSrc] = useState<string>('')
-  const [openSection, setOpenSection] = useState<string | null>('grid')
+  const [openSection, setOpenSection] = useState<string | null>('canvas')
 
   const wrapRef   = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -411,6 +411,23 @@ export function GridTool() {
   const drag  = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
   const pinch = useRef<{ dist: number; zoom: number } | null>(null)
 
+  // How far out the photo can go before the whole of it is visible. Depends
+  // on the frame SHAPE and the angle, so it moves when either does.
+  const zb = useMemo(() => (
+    img ? zoomBounds(preview.fw, preview.fh, img.naturalWidth, img.naturalHeight, angle)
+        : { min: 1, max: 4 }
+  ), [img, preview.fw, preview.fh, angle])
+
+  // A tilt or a turn can raise the floor under the current zoom — if it
+  // does, follow it up rather than leaving the photo smaller than the frame.
+  useEffect(() => { setZoom(z => (z < zb.min ? zb.min : z)) }, [zb.min])
+
+  // The wheel listener is bound once per photo, so it cannot close over the
+  // current floor. A ref keeps it reading the live value rather than the one
+  // that happened to be in scope when it was attached.
+  const zbRef = useRef(zb.min)
+  useEffect(() => { zbRef.current = zb.min }, [zb.min])
+
   const overflow = useMemo(() => {
     if (!img) return { x: 0, y: 0 }
     const p = placeImage(preview.fw, preview.fh, img.naturalWidth, img.naturalHeight,
@@ -443,7 +460,7 @@ export function GridTool() {
   }
   const onTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
     const p = pinch.current
-    if (p && e.touches.length === 2) setZoom(clampZoom(p.zoom * (touchDist(e) / (p.dist || 1))))
+    if (p && e.touches.length === 2) setZoom(clampZoom(p.zoom * (touchDist(e) / (p.dist || 1)), zbRef.current))
   }
   const onTouchEnd = () => { pinch.current = null }
 
@@ -458,7 +475,7 @@ export function GridTool() {
     if (!cv || !img) return
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
-      setZoom(z => clampZoom(z * (e.deltaY < 0 ? 1.08 : 1 / 1.08)))
+      setZoom(z => clampZoom(z * (e.deltaY < 0 ? 1.08 : 1 / 1.08), zbRef.current))
     }
     cv.addEventListener('wheel', onWheel, { passive: false })
     return () => cv.removeEventListener('wheel', onWheel)
@@ -679,31 +696,6 @@ export function GridTool() {
         {fileName && <p className="truncate px-1 text-xs text-slate-500">{fileName}</p>}
 
         {/* ── Grid ────────────────────────────────────────────────────── */}
-        <Section id="grid" title="Grid" open={openSection} onToggle={setOpenSection}>
-          <Stepper
-            label="Columns across" value={s.cols} min={1} max={24}
-            onChange={v => set('cols', v)}
-          />
-          <Stepper
-            label="Rows down" value={s.rows} min={1} max={24}
-            onChange={v => set('rows', v)} disabled={s.squareCells}
-            hint={s.squareCells ? 'Set by “keep cells square”' : undefined}
-          />
-          <Toggle
-            label="Keep cells square"
-            checked={s.squareCells}
-            onChange={v => set('squareCells', v)}
-          />
-          <p className="mt-3 rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-600">
-            {s.cols} × {s.rows} cells of {formatRuler(cellW, u)} × {formatRuler(cellH, u)}
-            {nearSquare && ' (square)'}. Every cell is a full cell — no leftover strip.
-          </p>
-
-          <Toggle label="Row and column labels" checked={s.showLabels} onChange={v => set('showLabels', v)} />
-          <Toggle label="Diagonal guides" checked={s.showDiagonals} onChange={v => set('showDiagonals', v)} />
-        </Section>
-
-        {/* ── Canvas size ─────────────────────────────────────────────── */}
         <Section id="canvas" title="Canvas size" open={openSection} onToggle={setOpenSection}>
           <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
             {(['in', 'cm'] as Unit[]).map(x => (
@@ -763,77 +755,68 @@ export function GridTool() {
           </div>
         </Section>
 
-        {/* ── Lines ───────────────────────────────────────────────────── */}
-        <Section id="lines" title="Lines" open={openSection} onToggle={setOpenSection}>
-          <Slider
-            label="Thickness" value={s.lineWidth} min={1} max={16} step={0.5}
-            onChange={v => set('lineWidth', v)}
-            suffix={` · ≈${printedMm.toFixed(1)}mm printed 10in wide`}
+        <Section id="grid" title="Grid" open={openSection} onToggle={setOpenSection}>
+          <Stepper
+            label="Columns across" value={s.cols} min={1} max={24}
+            onChange={v => set('cols', v)}
           />
-          <Field label="Colour" className="mt-4">
-            <div className="flex items-center gap-2">
-              <input
-                type="color" value={s.lineColor}
-                onChange={e => set('lineColor', e.target.value)}
-                className="h-9 w-14 cursor-pointer rounded border border-slate-300 bg-white"
-              />
-              <div className="flex flex-wrap gap-1">
-                {['#ff0000', '#000000', '#ffffff', '#00e5ff', '#39ff14', '#ff00ff'].map(c => (
-                  <button
-                    key={c} type="button" onClick={() => set('lineColor', c)}
-                    style={{ background: c }}
-                    className="h-6 w-6 rounded border border-slate-300" title={c}
-                  ><span className="sr-only">{c}</span></button>
-                ))}
-              </div>
-            </div>
-          </Field>
-          <Slider
-            label="Opacity" value={Math.round(s.lineOpacity * 100)} min={10} max={100} step={5}
-            onChange={v => set('lineOpacity', v / 100)} suffix="%"
+          <Stepper
+            label="Rows down" value={s.rows} min={1} max={24}
+            onChange={v => set('rows', v)} disabled={s.squareCells}
+            hint={s.squareCells ? 'Set by “keep cells square”' : undefined}
           />
-          <p className="mt-2 text-xs text-slate-500">
-            Lines need to read from across the room. Thickness scales with the download, so what
-            you see here is what prints.
+          <Toggle
+            label="Keep cells square"
+            checked={s.squareCells}
+            onChange={v => set('squareCells', v)}
+          />
+          <p className="mt-3 rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-600">
+            {s.cols} × {s.rows} cells of {formatRuler(cellW, u)} × {formatRuler(cellH, u)}
+            {nearSquare && ' (square)'}. Every cell is a full cell — no leftover strip.
           </p>
+
+          <Toggle label="Row and column labels" checked={s.showLabels} onChange={v => set('showLabels', v)} />
+          <Toggle label="Diagonal guides" checked={s.showDiagonals} onChange={v => set('showDiagonals', v)} />
         </Section>
 
-        {/* ── Photo ───────────────────────────────────────────────────── */}
-        <Section id="photo" title="Photo" open={openSection} onToggle={setOpenSection}>
-          <Toggle label="Black &amp; white" checked={s.bw} onChange={v => set('bw', v)} />
-          <Slider
-            label="Value intensity" value={s.valueIntensity} min={0} max={200} step={5}
-            onChange={v => set('valueIntensity', v)} suffix="%"
-          />
-          <Slider
-            label="Brightness" value={s.brightness} min={40} max={160} step={5}
-            onChange={v => set('brightness', v)} suffix="%"
-          />
-          <div className="mt-4">
-            <span className="mb-1.5 block text-xs font-medium text-slate-500">Value steps (posterise)</span>
-            <div className="flex flex-wrap gap-1.5">
-              {[0, 2, 3, 4, 5, 6, 8, 10].map(n => (
-                <button
-                  key={n} type="button" onClick={() => set('posterize', n)}
-                  className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
-                    s.posterize === n ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-700 hover:bg-slate-50'
-                  }`}
-                >{n === 0 ? 'Off' : n}</button>
-              ))}
-            </div>
-            <p className="mt-2 text-xs text-slate-500">
-              Flattens the photo into a few tones so you can see the big shapes of light and dark
-              instead of the detail.
-            </p>
-          </div>
-        </Section>
-
-        {/* ── Framing ─────────────────────────────────────────────────── */}
         <Section id="framing" title="Framing" open={openSection} onToggle={setOpenSection}>
-          <Slider
-            label="Zoom" value={Math.round(zoom * 100)} min={100} max={400} step={5}
-            onChange={v => setZoom(v / 100)} suffix="%"
-          />
+          {/* Zoom runs from "the whole photo fits" to 4x, not from "fills
+              the frame". A tall photo on a wide canvas is cropped to ribbons
+              at fill, and you cannot choose what to leave out without first
+              seeing what there is. */}
+          <div>
+            <div className="mb-1.5 flex items-baseline justify-between gap-2">
+              <span className="text-xs font-medium text-slate-500">Zoom</span>
+              <span className="text-xs tabular-nums text-slate-500">
+                {Math.round(zoom * 100)}%{Math.abs(zoom - zb.min) < 0.005 && zb.min < 0.999 ? " · whole photo" : ""}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={Math.round(zb.min * 100)} max={400} step={1}
+              value={Math.round(zoom * 100)}
+              onChange={e => setZoom(parseFloat(e.target.value) / 100)}
+              className="h-6 w-full cursor-pointer accent-slate-900"
+              aria-label="Zoom"
+            />
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button" onClick={() => { setZoom(zb.min); setPanX(0.5); setPanY(0.5) }}
+                disabled={zb.min >= 0.999}
+                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-900 hover:bg-slate-50 disabled:opacity-40"
+              >Fit whole photo</button>
+              <button
+                type="button" onClick={() => { setZoom(1); setPanX(0.5); setPanY(0.5) }}
+                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-900 hover:bg-slate-50"
+              >Fill canvas</button>
+            </div>
+            {zoom < 0.999 && (
+              <p className="mt-2 rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-600">
+                Zoomed out past the canvas shape, so the photo does not reach the edges. The
+                blank margin prints white.
+              </p>
+            )}
+          </div>
 
           {/* ── Rotate ──────────────────────────────────────────────────
               Quarter turns and a fine tilt are different jobs: one is "this
@@ -933,6 +916,81 @@ export function GridTool() {
             any angle — a tilt zooms in rather than opening a gap in the corner.
           </p>
         </Section>
+
+        <Section id="lines" title="Lines" open={openSection} onToggle={setOpenSection}>
+          <Slider
+            label="Thickness" value={s.lineWidth} min={1} max={16} step={0.5}
+            onChange={v => set('lineWidth', v)}
+            suffix={` · ≈${printedMm.toFixed(1)}mm printed 10in wide`}
+          />
+          <Field label="Colour" className="mt-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="color" value={s.lineColor}
+                onChange={e => set('lineColor', e.target.value)}
+                className="h-9 w-14 cursor-pointer rounded border border-slate-300 bg-white"
+              />
+              <div className="flex flex-wrap gap-1">
+                {['#ff0000', '#000000', '#ffffff', '#00e5ff', '#39ff14', '#ff00ff'].map(c => (
+                  <button
+                    key={c} type="button" onClick={() => set('lineColor', c)}
+                    style={{ background: c }}
+                    className="h-6 w-6 rounded border border-slate-300" title={c}
+                  ><span className="sr-only">{c}</span></button>
+                ))}
+              </div>
+            </div>
+          </Field>
+          <Slider
+            label="Opacity" value={Math.round(s.lineOpacity * 100)} min={10} max={100} step={5}
+            onChange={v => set('lineOpacity', v / 100)} suffix="%"
+          />
+          <p className="mt-2 text-xs text-slate-500">
+            Lines need to read from across the room. Thickness scales with the download, so what
+            you see here is what prints.
+          </p>
+        </Section>
+
+        <Section id="photo" title="Photo" open={openSection} onToggle={setOpenSection}>
+          <Toggle label="Black &amp; white" checked={s.bw} onChange={v => set('bw', v)} />
+          <Slider
+            label="Value intensity" value={s.valueIntensity} min={0} max={200} step={5}
+            onChange={v => set('valueIntensity', v)} suffix="%"
+          />
+          <Slider
+            label="Brightness" value={s.brightness} min={40} max={160} step={5}
+            onChange={v => set('brightness', v)} suffix="%"
+          />
+          <div className="mt-4">
+            <span className="mb-1.5 block text-xs font-medium text-slate-500">Value steps (posterise)</span>
+            <div className="flex flex-wrap gap-1.5">
+              {[0, 2, 3, 4, 5, 6, 8, 10].map(n => (
+                <button
+                  key={n} type="button" onClick={() => set('posterize', n)}
+                  className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
+                    s.posterize === n ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >{n === 0 ? 'Off' : n}</button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Flattens the photo into a few tones so you can see the big shapes of light and dark
+              instead of the detail.
+            </p>
+          </div>
+        </Section>
+
+        {/* ── Canvas size ─────────────────────────────────────────────── */}
+
+
+        {/* ── Lines ───────────────────────────────────────────────────── */}
+
+
+        {/* ── Photo ───────────────────────────────────────────────────── */}
+
+
+        {/* ── Framing ─────────────────────────────────────────────────── */}
+
       </section>
 
       {/* Print-only output. A hidden node in the page prints far more reliably
@@ -1057,7 +1115,7 @@ function Toggle({ label, checked, onChange }: {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function clampZoom(z: number): number { return Math.max(1, Math.min(4, z)) }
+function clampZoom(z: number, min = 1): number { return Math.max(min, Math.min(4, z)) }
 function round2(n: number): number { return Math.round(n * 100) / 100 }
 function touchDist(e: React.TouchEvent): number {
   const [a, b] = [e.touches[0], e.touches[1]]

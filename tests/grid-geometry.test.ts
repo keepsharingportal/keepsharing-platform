@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import {
   toInches, fromInches,
   linePositions, squareRowsFor, formatRuler,
-  placeImage, framePointIsCovered, dragToPan, normalizeAngle,
+  placeImage, framePointIsCovered, dragToPan, normalizeAngle, zoomBounds,
   rowLabel, columnLabel, printedLineWidthMm,
 } from '@/lib/grid-tool/geometry'
 
@@ -153,10 +153,46 @@ test('a 90° turn swaps which dimension has to cover which', () => {
   }
 })
 
-test('zoom below 1 is clamped — cover is the floor', () => {
-  const a = placeImage(800, 1000, 4000, 3000, 0.2, 0.5, 0.5, 20)
-  const b = placeImage(800, 1000, 4000, 3000, 1, 0.5, 0.5, 20)
-  assert.equal(a.dw, b.dw)
+test('zoom stops at fit, not at cover', () => {
+  // Cover used to be the floor, which meant a tall photo on a wide canvas
+  // was cropped to ribbons and the composition could not even be SEEN.
+  const b = zoomBounds(800, 1000, 4000, 3000, 0)
+  assert.ok(b.min < 1, 'should be able to zoom out past cover')
+  const out = placeImage(800, 1000, 4000, 3000, 0.01, 0.5, 0.5, 0)
+  const fit = placeImage(800, 1000, 4000, 3000, b.min, 0.5, 0.5, 0)
+  assert.ok(Math.abs(out.dw - fit.dw) < 1e-6, 'below the floor clamps to fit')
+})
+
+test('at the fit end the WHOLE photo is inside the frame', () => {
+  // The point of zooming out: nothing of the photo is cropped away.
+  for (const [fw, fh] of [[800, 1000], [1000, 800], [900, 900]] as const) {
+    for (const [iw, ih] of [[4032, 3024], [3024, 4032], [6000, 2000]] as const) {
+      for (const deg of [0, 90, 23]) {
+        const b = zoomBounds(fw, fh, iw, ih, deg)
+        const p = placeImage(fw, fh, iw, ih, b.min, 0.5, 0.5, deg)
+        // The rotated photo's bounding box must sit inside the frame.
+        const a = (deg * Math.PI) / 180
+        const c = Math.abs(Math.cos(a)), sn = Math.abs(Math.sin(a))
+        const bw = p.dw * c + p.dh * sn
+        const bh = p.dw * sn + p.dh * c
+        assert.ok(bw <= fw + 1e-6, `photo ${bw} wider than frame ${fw} at ${deg}°`)
+        assert.ok(bh <= fh + 1e-6, `photo ${bh} taller than frame ${fh} at ${deg}°`)
+      }
+    }
+  }
+})
+
+test('fit never exceeds fill', () => {
+  for (const [fw, fh] of [[800, 1000], [1000, 800], [900, 900]] as const) {
+    for (const [iw, ih] of [[4032, 3024], [3024, 4032], [2000, 2000]] as const) {
+      assert.ok(zoomBounds(fw, fh, iw, ih, 0).min <= 1 + 1e-9)
+    }
+  }
+})
+
+test('a square photo on a square canvas needs no zooming out', () => {
+  // Nothing is cropped at cover, so fit and fill are the same thing.
+  assert.ok(Math.abs(zoomBounds(900, 900, 2000, 2000, 0).min - 1) < 1e-9)
 })
 
 test('framing is resolution independent, rotated too', () => {
