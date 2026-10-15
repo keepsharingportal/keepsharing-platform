@@ -43,13 +43,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Upload, Download, Printer, RotateCcw, RefreshCw, Ruler,
+  Upload, Download, Printer, RotateCcw, RotateCw, RefreshCw, Ruler,
+  FlipHorizontal, FlipVertical,
   Image as ImageIcon, ChevronDown, Maximize2, Check,
 } from 'lucide-react'
 import {
   type Unit, toInches, fromInches,
   linePositions, squareRowsFor, formatRuler,
-  coverTransform, clamp01, formatSize, columnLabel, rowLabel,
+  placeImage, dragToPan, clamp01, formatSize, columnLabel, rowLabel,
   printedLineWidthMm,
 } from '@/lib/grid-tool/geometry'
 
@@ -114,6 +115,10 @@ interface SceneOpts extends Settings {
   zoom:   number
   panX:   number
   panY:   number
+  /** Total rotation in degrees: quarter turns plus the straighten tilt. */
+  angle:  number
+  flipH:  boolean
+  flipV:  boolean
 }
 
 /**
@@ -157,8 +162,16 @@ function drawScene(
     if (o.valueIntensity !== 100) parts.push(`contrast(${o.valueIntensity}%)`)
     ctx.filter = parts.length ? parts.join(' ') : 'none'
 
-    const t = coverTransform(frameW, frameH, img.naturalWidth, img.naturalHeight, o.zoom, o.panX, o.panY)
-    ctx.drawImage(img, gutter + t.dx, gutter + t.dy, t.dw, t.dh)
+    // Rotate about the FRAME centre, then offset, then flip about the
+    // image centre. placeImage has already scaled the photo up enough that
+    // the rotated corners still cover — see its header.
+    const p = placeImage(frameW, frameH, img.naturalWidth, img.naturalHeight,
+                         o.zoom, o.panX, o.panY, o.angle)
+    ctx.translate(gutter + frameW / 2, gutter + frameH / 2)
+    ctx.rotate(p.angle)
+    ctx.translate(p.offsetX, p.offsetY)
+    ctx.scale(o.flipH ? -1 : 1, o.flipV ? -1 : 1)
+    ctx.drawImage(img, -p.dw / 2, -p.dh / 2, p.dw, p.dh)
     ctx.filter = 'none'
     ctx.restore()
 
@@ -276,6 +289,12 @@ export function GridTool() {
   const [zoom, setZoom] = useState(1)
   const [panX, setPanX] = useState(0.5)
   const [panY, setPanY] = useState(0.5)
+  // Rotation belongs to the PHOTO, not to the preferences, so it lives
+  // beside zoom and pan and resets when a new photo is loaded.
+  const [quarter, setQuarter] = useState(0)   // 0..3 quarter turns
+  const [tilt, setTilt]       = useState(0)   // -45..45 straightening
+  const [flipH, setFlipH]     = useState(false)
+  const [flipV, setFlipV]     = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -286,6 +305,13 @@ export function GridTool() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileRef   = useRef<HTMLInputElement>(null)
   const [boxW, setBoxW] = useState(640)
+
+  const angle = quarter * 90 + tilt
+
+  const resetFraming = useCallback(() => {
+    setZoom(1); setPanX(0.5); setPanY(0.5)
+    setQuarter(0); setTilt(0); setFlipH(false); setFlipV(false)
+  }, [])
 
   const set = useCallback(<K extends keyof Settings>(k: K, v: Settings[K]) => {
     setS(prev => {
@@ -364,9 +390,9 @@ export function GridTool() {
     drawScene(ctx, img, {
       ...s,
       frameW: preview.fw, frameH: preview.fh, gutter: preview.gutter,
-      zoom, panX, panY,
+      zoom, panX, panY, angle, flipH, flipV,
     })
-  }, [img, s, preview, zoom, panX, panY])
+  }, [img, s, preview, zoom, panX, panY, angle, flipH, flipV])
 
   // ── Loading a photo ───────────────────────────────────────────────────────
   const loadFile = useCallback((file: File) => {
@@ -374,7 +400,7 @@ export function GridTool() {
     const reader = new FileReader()
     reader.onload = () => {
       const im = new Image()
-      im.onload = () => { setImg(im); setZoom(1); setPanX(0.5); setPanY(0.5) }
+      im.onload = () => { setImg(im); resetFraming() }
       im.src = String(reader.result)
     }
     reader.readAsDataURL(file)
@@ -387,9 +413,10 @@ export function GridTool() {
 
   const overflow = useMemo(() => {
     if (!img) return { x: 0, y: 0 }
-    const t = coverTransform(preview.fw, preview.fh, img.naturalWidth, img.naturalHeight, zoom, panX, panY)
-    return { x: Math.max(0, t.dw - preview.fw), y: Math.max(0, t.dh - preview.fh) }
-  }, [img, preview.fw, preview.fh, zoom, panX, panY])
+    const p = placeImage(preview.fw, preview.fh, img.naturalWidth, img.naturalHeight,
+                         zoom, panX, panY, angle)
+    return { x: p.overflowX, y: p.overflowY }
+  }, [img, preview.fw, preview.fh, zoom, panX, panY, angle])
 
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!img) return
@@ -399,11 +426,15 @@ export function GridTool() {
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const d = drag.current
     if (!d || !img) return
-    // Dragging right moves the picture right, which means revealing more of
-    // its left — hence the minus.
-    const nx = overflow.x > 0 ? d.px - (e.clientX - d.x) / overflow.x : 0.5
-    const ny = overflow.y > 0 ? d.py - (e.clientY - d.y) / overflow.y : 0.5
-    setPanX(clamp01(nx)); setPanY(clamp01(ny))
+    // Pan lives in the photo's own rotated axes, so a screen drag has to be
+    // rotated into them — otherwise a turned photo slides sideways when you
+    // pull it down. Dragging right reveals more of the image's left, hence
+    // the minus.
+    const { dPanX, dPanY } = dragToPan(
+      e.clientX - d.x, e.clientY - d.y, angle, overflow.x, overflow.y,
+    )
+    setPanX(clamp01(d.px - dPanX))
+    setPanY(clamp01(d.py - dPanY))
   }
   const endDrag = () => { drag.current = null }
 
@@ -444,9 +475,9 @@ export function GridTool() {
     cv.height = Math.round(frameH + gutter * 2)
     const ctx = cv.getContext('2d')
     if (!ctx) return null
-    drawScene(ctx, img, { ...s, frameW, frameH, gutter, zoom, panX, panY })
+    drawScene(ctx, img, { ...s, frameW, frameH, gutter, zoom, panX, panY, angle, flipH, flipV })
     return cv
-  }, [s, img, zoom, panX, panY])
+  }, [s, img, zoom, panX, panY, angle, flipH, flipV])
 
   const download = useCallback(async () => {
     if (!img) return
@@ -803,23 +834,103 @@ export function GridTool() {
             label="Zoom" value={Math.round(zoom * 100)} min={100} max={400} step={5}
             onChange={v => setZoom(v / 100)} suffix="%"
           />
-          <div className="mt-3 flex gap-2">
+
+          {/* ── Rotate ──────────────────────────────────────────────────
+              Quarter turns and a fine tilt are different jobs: one is "this
+              photo is the wrong way round", the other is "the horizon is
+              off". Separate controls, because a slider that has to do both
+              can do neither precisely. */}
+          <div className="mt-4">
+            <span className="mb-1.5 block text-xs font-medium text-slate-500">Rotate</span>
+            <div className="flex gap-2">
+              <button
+                type="button" onClick={() => setQuarter(q => (q + 3) % 4)}
+                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-900 hover:bg-slate-50"
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden /> 90° left
+              </button>
+              <button
+                type="button" onClick={() => setQuarter(q => (q + 1) % 4)}
+                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-900 hover:bg-slate-50"
+              >
+                <RotateCw className="h-4 w-4" aria-hidden /> 90° right
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="mb-1.5 flex items-baseline justify-between gap-2">
+              <span className="text-xs font-medium text-slate-500">Straighten</span>
+              <span className="text-xs tabular-nums text-slate-500">
+                {tilt > 0 ? '+' : ''}{tilt}°
+              </span>
+            </div>
+            <input
+              type="range" min={-45} max={45} step={0.5} value={tilt}
+              onChange={e => setTilt(parseFloat(e.target.value))}
+              className="h-6 w-full cursor-pointer accent-slate-900"
+              aria-label="Straighten"
+            />
+            {tilt !== 0 && (
+              <button
+                type="button" onClick={() => setTilt(0)}
+                className="mt-1 text-xs font-medium text-slate-600 underline hover:text-slate-900"
+              >
+                Level it
+              </button>
+            )}
+          </div>
+
+          {/* ── Flip ────────────────────────────────────────────────────
+              Mirroring a reference is an old studio trick: the composition
+              arrives fresh and the errors you had stopped seeing jump out.
+              Worth having next to the crop controls rather than buried with
+              the photo effects. */}
+          <div className="mt-4">
+            <span className="mb-1.5 block text-xs font-medium text-slate-500">Flip</span>
+            <div className="flex gap-2">
+              <button
+                type="button" onClick={() => setFlipH(v => !v)}
+                aria-pressed={flipH}
+                className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border text-sm font-medium ${
+                  flipH ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <FlipHorizontal className="h-4 w-4" aria-hidden /> Mirror
+              </button>
+              <button
+                type="button" onClick={() => setFlipV(v => !v)}
+                aria-pressed={flipV}
+                className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border text-sm font-medium ${
+                  flipV ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <FlipVertical className="h-4 w-4" aria-hidden /> Upside down
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Mirroring the reference is a quick way to check a composition — the errors you have
+              stopped noticing tend to jump straight out.
+            </p>
+          </div>
+
+          <div className="mt-4 flex gap-2">
             <button
-              type="button" onClick={() => { setZoom(1); setPanX(0.5); setPanY(0.5) }}
+              type="button" onClick={resetFraming}
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
             >
-              <Maximize2 className="h-4 w-4" aria-hidden /> Fit to canvas
+              <Maximize2 className="h-4 w-4" aria-hidden /> Reset framing
             </button>
             <button
-              type="button" onClick={() => setS(DEFAULTS)}
+              type="button" onClick={() => { setS(DEFAULTS); resetFraming() }}
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
             >
               <RotateCcw className="h-4 w-4" aria-hidden /> Reset all
             </button>
           </div>
           <p className="mt-2 text-xs text-slate-500">
-            The photo is cropped to your canvas shape, never squashed. Drag it to choose what
-            stays in.
+            The photo is cropped to your canvas shape, never squashed, and it stays covered at
+            any angle — a tilt zooms in rather than opening a gap in the corner.
           </p>
         </Section>
       </section>

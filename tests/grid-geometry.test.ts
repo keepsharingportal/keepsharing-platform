@@ -3,7 +3,8 @@ import assert from 'node:assert/strict'
 import {
   toInches, fromInches,
   linePositions, squareRowsFor, formatRuler,
-  coverTransform, rowLabel, columnLabel, printedLineWidthMm,
+  placeImage, framePointIsCovered, dragToPan, normalizeAngle,
+  rowLabel, columnLabel, printedLineWidthMm,
 } from '@/lib/grid-tool/geometry'
 
 // The whole point of the tool is that the grid on the screen and the grid the
@@ -93,43 +94,119 @@ test('square rows round rather than refuse', () => {
   assert.ok(squareRowsFor(11, 14, 1) >= 1)
 })
 
-// ── Framing ────────────────────────────────────────────────────────────────
+// ── Framing, at any rotation ──────────────────────────────────────────────
+//
+// Rotation is where a cover-fit quietly breaks: the CORNERS of a tilted photo
+// swing outside the frame long before its edges do, leaving blank wedges that
+// there is nothing useful to paint in. So these check the corners directly
+// rather than trusting the width and height.
 
-test('cover transform never leaves a gap in the frame', () => {
-  // A landscape photo in a portrait frame is the case that exposes a
-  // fit-instead-of-cover bug: it letterboxes, and the artist gets blank bands
-  // to paint.
+/** The four frame corners, relative to the frame centre. */
+function corners(fw: number, fh: number): Array<[number, number]> {
+  return [[-fw / 2, -fh / 2], [fw / 2, -fh / 2], [fw / 2, fh / 2], [-fw / 2, fh / 2]]
+}
+
+test('every frame corner stays covered at every angle', () => {
+  const angles = [0, 1, 7, 15, 30, 45, 60, 89, 90, 91, 135, 180, 237, 270, 359, -12, -45]
   for (const [fw, fh] of [[800, 1000], [1000, 800], [900, 900]] as const) {
-    for (const [iw, ih] of [[4000, 3000], [3000, 4000], [2000, 2000]] as const) {
-      for (const zoom of [1, 1.5, 3]) {
-        for (const pan of [0, 0.5, 1]) {
-          const t = coverTransform(fw, fh, iw, ih, zoom, pan, pan)
-          assert.ok(t.dw >= fw - 1e-6 && t.dh >= fh - 1e-6, 'image smaller than frame')
-          assert.ok(t.dx <= 1e-6 && t.dy <= 1e-6, 'gap at top/left')
-          assert.ok(t.dx + t.dw >= fw - 1e-6, 'gap at right')
-          assert.ok(t.dy + t.dh >= fh - 1e-6, 'gap at bottom')
+    for (const [iw, ih] of [[4032, 3024], [3024, 4032], [2000, 2000], [6000, 2000]] as const) {
+      for (const deg of angles) {
+        for (const zoom of [1, 1.6, 3]) {
+          for (const pan of [0, 0.5, 1]) {
+            const p = placeImage(fw, fh, iw, ih, zoom, pan, pan, deg)
+            for (const [x, y] of corners(fw, fh)) {
+              assert.ok(
+                framePointIsCovered(p, x, y, 1e-6),
+                `gap at corner (${x},${y}) — frame ${fw}x${fh} img ${iw}x${ih} ${deg}° zoom ${zoom} pan ${pan}`,
+              )
+            }
+          }
         }
       }
     }
   }
 })
 
-test('zoom below 1 is clamped — cover is the floor', () => {
-  const a = coverTransform(800, 1000, 4000, 3000, 0.2, 0.5, 0.5)
-  const b = coverTransform(800, 1000, 4000, 3000, 1, 0.5, 0.5)
-  assert.equal(a.dw, b.dw)
-  assert.equal(a.dh, b.dh)
+test('a tilted photo is scaled up, not left with holes', () => {
+  // The whole point: at 45° the image must grow to keep the corners inside.
+  const flat    = placeImage(800, 1000, 4000, 3000, 1, 0.5, 0.5, 0)
+  const tilted  = placeImage(800, 1000, 4000, 3000, 1, 0.5, 0.5, 45)
+  assert.ok(tilted.dw > flat.dw, 'tilt should require a larger draw')
 })
 
-test('framing is resolution independent', () => {
+test('zero rotation matches the un-rotated placement', () => {
+  // Backwards compatibility: adding rotation must not move an untilted photo.
+  const p = placeImage(800, 1000, 4000, 3000, 1, 0.5, 0.5, 0)
+  assert.ok(Math.abs(p.dh - 1000) < 1e-6 || p.dh >= 1000)
+  assert.equal(p.angle, 0)
+  assert.ok(Math.abs(p.offsetX) < 1e-9, 'centred pan should not offset')
+})
+
+test('a 90° turn swaps which dimension has to cover which', () => {
+  // A landscape photo turned upright has to cover the frame's HEIGHT with its
+  // width, so it is scaled very differently from flat.
+  const flat = placeImage(800, 1000, 4000, 3000, 1, 0.5, 0.5, 0)
+  const turned = placeImage(800, 1000, 4000, 3000, 1, 0.5, 0.5, 90)
+  assert.notEqual(Math.round(flat.dw), Math.round(turned.dw))
+  for (const [x, y] of corners(800, 1000)) {
+    assert.ok(framePointIsCovered(turned, x, y), 'gap after a quarter turn')
+  }
+})
+
+test('zoom below 1 is clamped — cover is the floor', () => {
+  const a = placeImage(800, 1000, 4000, 3000, 0.2, 0.5, 0.5, 20)
+  const b = placeImage(800, 1000, 4000, 3000, 1, 0.5, 0.5, 20)
+  assert.equal(a.dw, b.dw)
+})
+
+test('framing is resolution independent, rotated too', () => {
   // The exported file must frame exactly like the preview, or the artist
   // composes one picture and downloads another.
-  const small = coverTransform(400, 500, 4000, 3000, 1.7, 0.3, 0.8)
-  const big   = coverTransform(2400, 3000, 4000, 3000, 1.7, 0.3, 0.8)
   const k = 6
-  assert.ok(Math.abs(small.dx * k - big.dx) < 1e-6)
-  assert.ok(Math.abs(small.dy * k - big.dy) < 1e-6)
+  const small = placeImage(400, 500, 4000, 3000, 1.7, 0.3, 0.8, 17)
+  const big   = placeImage(400 * k, 500 * k, 4000, 3000, 1.7, 0.3, 0.8, 17)
   assert.ok(Math.abs(small.dw * k - big.dw) < 1e-6)
+  assert.ok(Math.abs(small.offsetX * k - big.offsetX) < 1e-6)
+  assert.ok(Math.abs(small.offsetY * k - big.offsetY) < 1e-6)
+  assert.equal(small.angle, big.angle)
+})
+
+test('pan 0 and 1 reach opposite edges', () => {
+  const lo = placeImage(800, 1000, 6000, 2000, 1, 0, 0.5, 0)
+  const hi = placeImage(800, 1000, 6000, 2000, 1, 1, 0.5, 0)
+  assert.ok(lo.offsetX > 0, 'pan 0 should push the image right')
+  assert.ok(hi.offsetX < 0, 'pan 1 should push the image left')
+  assert.ok(Math.abs(lo.offsetX + hi.offsetX) < 1e-9, 'should be symmetric')
+})
+
+// ── Dragging a rotated photo ──────────────────────────────────────────────
+
+test('a drag on an unrotated photo pans on the matching axis', () => {
+  const d = dragToPan(100, 0, 0, 200, 200)
+  assert.ok(Math.abs(d.dPanX - 0.5) < 1e-9)
+  assert.ok(Math.abs(d.dPanY) < 1e-9)
+})
+
+test('a horizontal drag on a 90° photo pans vertically', () => {
+  // Without this the picture slides sideways when you pull it down, which
+  // feels broken the instant you try it.
+  const d = dragToPan(100, 0, 90, 200, 200)
+  assert.ok(Math.abs(d.dPanX) < 1e-9, `expected no x pan, got ${d.dPanX}`)
+  assert.ok(Math.abs(Math.abs(d.dPanY) - 0.5) < 1e-9, `expected y pan, got ${d.dPanY}`)
+})
+
+test('dragging with no overflow does nothing rather than dividing by zero', () => {
+  const d = dragToPan(100, 100, 30, 0, 0)
+  assert.equal(d.dPanX, 0)
+  assert.equal(d.dPanY, 0)
+})
+
+test('angles normalise into one turn', () => {
+  assert.equal(normalizeAngle(0), 0)
+  assert.equal(normalizeAngle(360), 0)
+  assert.equal(normalizeAngle(450), 90)
+  assert.equal(normalizeAngle(-90), 270)
+  assert.equal(normalizeAngle(-450), 270)
 })
 
 test('labels follow the printed-grid convention', () => {

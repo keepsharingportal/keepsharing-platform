@@ -66,37 +66,115 @@ export function squareRowsFor(canvasW: number, canvasH: number, cols: number): n
   return Math.max(1, Math.round(c * (canvasH / canvasW)))
 }
 
-export interface CoverTransform {
-  /** Where to draw the image, relative to the frame's top-left corner. */
-  dx: number
-  dy: number
+export interface Placement {
+  /** Drawn size of the image, before rotation. */
   dw: number
   dh: number
+  /** Rotation in radians, applied about the frame's centre. */
+  angle: number
+  /** Image centre relative to the frame centre, in the ROTATED frame. */
+  offsetX: number
+  offsetY: number
+  /** How far the image can travel on each axis before a gap appears. */
+  overflowX: number
+  overflowY: number
 }
 
 /**
- * Place the photo inside the frame.
+ * The frame's bounding box measured in the image's own rotated axes.
  *
- * Always covers: the frame can never show a bare corner, because a gap would
- * become a blank patch on the reference and there is nothing useful to paint
- * there. zoom 1 is the tightest fit that still covers; panX/panY are 0..1
- * across whatever overflow that leaves, so the framing survives a change of
- * resolution — the on-screen preview and the exported file frame identically.
+ * Rotating the image by θ is the same as rotating the frame by −θ and leaving
+ * the image alone. A frame of w × h, so rotated, needs a box this big — which
+ * is why a tilted photo has to be scaled UP to keep the corners covered.
  */
-export function coverTransform(
+function rotatedFrameExtent(frameW: number, frameH: number, angleRad: number) {
+  const c = Math.abs(Math.cos(angleRad))
+  const s = Math.abs(Math.sin(angleRad))
+  return { w: frameW * c + frameH * s, h: frameW * s + frameH * c }
+}
+
+/**
+ * Place the photo inside the frame, at any rotation.
+ *
+ * Always covers. A gap would become a blank wedge on the reference and there
+ * is nothing useful to paint there — and a tilted photo is exactly where that
+ * goes wrong, because the corners swing outside the frame long before the
+ * edges do. Scaling to the rotated frame's bounding box is slightly generous
+ * (at some angles you could pan a touch further) and is never wrong, which is
+ * the right way round for this.
+ *
+ * zoom 1 is the tightest fit that still covers at the current angle, so
+ * straightening a horizon pushes the photo in rather than opening a corner.
+ *
+ * panX/panY are 0..1 across whatever overflow is left, so the framing survives
+ * a change of resolution — the preview and the exported file frame
+ * identically.
+ */
+export function placeImage(
   frameW: number, frameH: number,
   imgW:   number, imgH:   number,
   zoom:   number, panX:   number, panY: number,
-): CoverTransform {
-  const base = Math.max(frameW / imgW, frameH / imgH)
-  const s    = base * Math.max(1, zoom)
-  const dw   = imgW * s
-  const dh   = imgH * s
+  angleDeg = 0,
+): Placement {
+  const angle = (angleDeg * Math.PI) / 180
+  const ext   = rotatedFrameExtent(frameW, frameH, angle)
+  const base  = Math.max(ext.w / imgW, ext.h / imgH)
+  const s     = base * Math.max(1, zoom)
+  const dw    = imgW * s
+  const dh    = imgH * s
+  const overflowX = Math.max(0, dw - ext.w)
+  const overflowY = Math.max(0, dh - ext.h)
   return {
-    dw, dh,
-    dx: -(dw - frameW) * clamp01(panX),
-    dy: -(dh - frameH) * clamp01(panY),
+    dw, dh, angle, overflowX, overflowY,
+    // 0.5 is centred; 0 pushes the image right to reveal its left edge.
+    offsetX: (0.5 - clamp01(panX)) * overflowX,
+    offsetY: (0.5 - clamp01(panY)) * overflowY,
   }
+}
+
+/**
+ * Is a frame corner actually covered by the placed image?
+ *
+ * Used by the tests. Takes a point relative to the frame centre, undoes the
+ * placement, and asks whether it lands inside the image rectangle.
+ */
+export function framePointIsCovered(
+  p: Placement, x: number, y: number, tolerance = 1e-6,
+): boolean {
+  const cos = Math.cos(-p.angle)
+  const sin = Math.sin(-p.angle)
+  // Into the rotated frame, then relative to the image centre.
+  const rx = x * cos - y * sin - p.offsetX
+  const ry = x * sin + y * cos - p.offsetY
+  return Math.abs(rx) <= p.dw / 2 + tolerance
+      && Math.abs(ry) <= p.dh / 2 + tolerance
+}
+
+/**
+ * Turn a drag in screen pixels into a change in pan.
+ *
+ * Pan lives in the image's rotated axes, so on a photo turned 90° a horizontal
+ * drag is a vertical pan. Without this the picture slides sideways when you
+ * pull it down, which feels broken immediately.
+ */
+export function dragToPan(
+  dxScreen: number, dyScreen: number, angleDeg: number,
+  overflowX: number, overflowY: number,
+): { dPanX: number; dPanY: number } {
+  const a   = (angleDeg * Math.PI) / 180
+  const cos = Math.cos(-a)
+  const sin = Math.sin(-a)
+  const dx  = dxScreen * cos - dyScreen * sin
+  const dy  = dxScreen * sin + dyScreen * cos
+  return {
+    dPanX: overflowX > 0 ? dx / overflowX : 0,
+    dPanY: overflowY > 0 ? dy / overflowY : 0,
+  }
+}
+
+/** Normalise any angle to 0..359.999. */
+export function normalizeAngle(deg: number): number {
+  return ((deg % 360) + 360) % 360
 }
 
 export function clamp01(n: number): number {
