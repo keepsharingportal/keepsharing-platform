@@ -4,14 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "tsc --noEmit && next build",
     "start": "next start",
     "lint": "eslint",
     "seed:family-guide": "npx tsx scripts/seed-family-guide-from-csv.ts",
     "import-articles": "npx tsx scripts/import-articles.ts",
     "import-guides": "npx tsx --env-file=.env.local scripts/import-guides.ts",
     "fetch-event-images": "npx tsx --env-file=.env.local scripts/fetch-event-images.ts",
-    "download-heroes": "npx tsx scripts/download-hero-images.ts"
+    "download-heroes": "npx tsx scripts/download-hero-images.ts",
+    "build:nocheck": "next build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",

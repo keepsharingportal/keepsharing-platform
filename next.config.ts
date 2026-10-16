@@ -1,6 +1,32 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // ── Type checking runs BEFORE the build, not inside it ────────────────────
+  //
+  // Vercel killed the build with SIGKILL during "Running TypeScript": a
+  // container out-of-memory, not a type error. The repo is ~1,500 TS/TSX
+  // files, and `next build` type-checks them in a worker while the compiled
+  // output is still resident, so peak memory lands above the build
+  // container's ceiling.
+  //
+  // Raising --max-old-space-size would make it WORSE. A Node heap limit
+  // reports "JavaScript heap out of memory"; SIGKILL is the kernel's OOM
+  // killer taking the process because the CONTAINER filled up. Giving Node a
+  // bigger heap just lets it grow further before GC and hit that wall sooner.
+  //
+  // So the check is not skipped — it is moved. `npm run build` is
+  // `tsc --noEmit && next build`, which runs the same compiler over the same
+  // files and fails the deploy exactly as before, but as its own process that
+  // exits and frees its memory before the build starts. Two modest peaks
+  // instead of one large one.
+  //
+  // Next's OWN compile step is untouched and still runs here. That is the
+  // half that catches the Next-specific rules tsc cannot see — a client-only
+  // option in a Server Component, a bad `use client` boundary — which is the
+  // half that has broken production before. "Compiled successfully" in the
+  // log above the crash is that step passing.
+  typescript: { ignoreBuildErrors: true },
+
   images: {
     remotePatterns: [
       {
