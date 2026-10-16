@@ -59,7 +59,12 @@ export default async function OG() {
             people WHERE we cover, not just what we are. */}
         <div
           style={{
-            display:        'inline-flex',
+            // Satori (next/og) rejects `inline-flex`. The allowed display
+            // values are flex, block, contents, none, and -webkit-box —
+            // anything else throws and the route 500s, so every share card
+            // loses its image. `flex` plus alignSelf shrink-wraps the pill
+            // the same way inline-flex did in a browser.
+            display:        'flex',
             alignSelf:      'flex-start',
             backgroundColor: brandColor,
             color:          'white',

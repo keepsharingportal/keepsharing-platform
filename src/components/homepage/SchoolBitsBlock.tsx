@@ -2,6 +2,7 @@
 // Shows: featured School Bits article + 3 supporting cards + CTA to School Zone hub.
 // Server component. Surfaces image-bearing articles first.
 
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 import { theRegion } from '@/lib/brandify'
 import { currentBrandSlug } from '@/lib/current-brand'
@@ -22,36 +23,44 @@ type Article = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+// Brand is an argument, not read from headers(), so this can live in the
+// data cache. The homepage is dynamic (the layout reads the brand header);
+// without this cache the block queried Supabase on every request.
+const loadSchoolArticles = unstable_cache(async (brandSlug: string): Promise<Article[]> => {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+  // Trashed articles set deleted_at + flip published=false. Filter on
+  // both so a half-trashed row (someone updated deleted_at directly
+  // without going through the API) still gets excluded. Migration 076
+  // added deleted_at — if the column is missing the .is() filter
+  // errors out, the outer try/catch returns [], and the block hides.
+  // Brand filter: these blocks render inside the homepage, which is served
+  // on every brand's domain from one deployment. Without it a Greater
+  // Pensacola reader sees River Region's school news.
+  const { data, error } = await supabase
+    .from('guide_articles')
+    .select('id, slug, title, excerpt, hero_image_url, published_at, column_slug, editorial_notes')
+    .in('column_slug', ['school-bits', 'teacher-of-month', 'student-spotlights'])
+    .eq('published', true)
+    .is('deleted_at', null)
+    .or(articleBrandFilter(brandSlug))
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .limit(16)
+
+  if (error) throw new Error(error.message)
+  if (!data?.length) return []
+  // Surface image-bearing articles first
+  const withImg = data.filter(a => a.hero_image_url)
+  const noImg   = data.filter(a => !a.hero_image_url)
+  return [...withImg, ...noImg].slice(0, 5)
+}, ['homepage-school-articles'], { revalidate: 600 })
+
 async function getSchoolArticles(): Promise<Article[]> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    )
-    // Trashed articles set deleted_at + flip published=false. Filter on
-    // both so a half-trashed row (someone updated deleted_at directly
-    // without going through the API) still gets excluded. Migration 076
-    // added deleted_at — if the column is missing the .is() filter
-    // errors out, the outer try/catch returns [], and the block hides.
-    // Brand filter: these blocks render inside the homepage, which is served
-    // on every brand's domain from one deployment. Without it a Greater
-    // Pensacola reader sees River Region's school news.
     const brandSlug = (await currentBrandSlug()) ?? 'rrp'
-    const { data } = await supabase
-      .from('guide_articles')
-      .select('id, slug, title, excerpt, hero_image_url, published_at, column_slug, editorial_notes')
-      .in('column_slug', ['school-bits', 'teacher-of-month', 'student-spotlights'])
-      .eq('published', true)
-      .is('deleted_at', null)
-      .or(articleBrandFilter(brandSlug))
-      .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(16)
-
-    if (!data?.length) return []
-    // Surface image-bearing articles first
-    const withImg = data.filter(a => a.hero_image_url)
-    const noImg   = data.filter(a => !a.hero_image_url)
-    return [...withImg, ...noImg].slice(0, 5)
+    return await loadSchoolArticles(brandSlug)
   } catch { return [] }
 }
 

@@ -31,13 +31,19 @@ export interface MarketScope {
   active: boolean
 }
 
-/** Scope for one table on this request. */
+/** Scope for one table on this request.
+ *
+ *  Pass `marketOverride` when the caller already knows the brand and must
+ *  not read headers() — notably inside `unstable_cache`, which rejects
+ *  request APIs. Omit it and the request's stamped brand is used, as before.
+ */
 export const marketScope = cache(async (
   supabase: SupabaseClient,
   table:    string,
+  marketOverride?: string,
 ): Promise<MarketScope> => {
   const [market, active] = await Promise.all([
-    currentBrandSlug(),
+    marketOverride !== undefined ? Promise.resolve(marketOverride) : currentBrandSlug(),
     tableIsScoped(supabase, table),
   ])
   return { market: market ?? 'rrp', active }

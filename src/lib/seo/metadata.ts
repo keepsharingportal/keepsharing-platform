@@ -13,9 +13,11 @@
 // URL building, default image fallback) flows from defaults.
 
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { brandifyCopy } from '@/lib/brandify'
 import { loadBrandContext } from '@/lib/brand-context'
 import { chromeForBrand } from '@/lib/brands'
+import { metadataBaseForRequest } from '@/lib/markets'
 
 export interface BuildPageMetadataInput {
   /** Page title — used as-is for og:title + twitter:title. The browser
@@ -73,6 +75,16 @@ export async function buildPageMetadata(input: BuildPageMetadataInput): Promise<
   const brandName = ctx.market.displayName
   void chromeForBrand(ctx.brand)
   const origin    = input.publicOrigin ?? ctx.publicOrigin
+  // Where this deployment is actually reachable. Canonical URLs stay on
+  // `origin` (the brand's public domain). Share-image URLs have to be on
+  // the host that runs /opengraph-image and /api/og-image, which is not
+  // the canonical domain while that domain still points elsewhere.
+  const requestHeaders = await headers()
+  const served = metadataBaseForRequest(
+    origin,
+    requestHeaders.get('host'),
+    requestHeaders.get('x-forwarded-proto'),
+  )
 
   // Per-route overrides (page_metadata_overrides table). Loaded for
   // EVERY page so editors can tune social sharing copy on static routes
@@ -122,15 +134,23 @@ export async function buildPageMetadata(input: BuildPageMetadataInput): Promise<
   const canConvert = (u: string) =>
     /(^https?:\/\/[^/]*\.supabase\.co\/)|(^https?:\/\/([^/]*\.)?riverregionparents\.com\/)/i.test(u)
   const socialImage = imageAbsolute && canConvert(imageAbsolute)
-    ? `${origin}/api/og-image?src=${encodeURIComponent(imageAbsolute)}`
+    ? `${served}/api/og-image?src=${encodeURIComponent(imageAbsolute)}`
     : imageAbsolute
+
+  // A page that sets openGraph without `images` replaces the root file
+  // image instead of inheriting it (Next merges openGraph by replacement).
+  // About, the calendar, and the articles index were sharing with no image
+  // at all. When the page has no hero, point at the branded
+  // /opengraph-image on the host that serves it.
+  const cardImage = socialImage ?? `${served}/opengraph-image`
+  const cardType  = socialImage ? 'image/jpeg' : 'image/png'
 
   // Twitter inherits OG unless explicitly overridden.
   const twitterTitle = override?.twitterTitle?.trim()       || resolvedTitle
   const twitterDesc  = override?.twitterDescription?.trim() || resolvedDescription
   const twitterImg   = override?.twitterImageUrl?.trim()
     ? (override.twitterImageUrl.startsWith('http') ? override.twitterImageUrl : absoluteUrl(override.twitterImageUrl, origin))
-    : socialImage
+    : cardImage
   const twitterCard  = override?.twitterCardType ?? 'summary_large_image'
 
   const md: Metadata = {
@@ -148,18 +168,16 @@ export async function buildPageMetadata(input: BuildPageMetadataInput): Promise<
       title:       resolvedTitle,
       description: resolvedDescription,
       locale:      'en_US',
-      ...(socialImage && {
-        images: [{
-          url:    socialImage,
-          alt:    imageAlt,
-          // True now: /api/og-image produces exactly this. When the source is
-          // off-site and passed through unconverted these are a best guess, as
-          // they always were.
-          width:  1200,
-          height: 630,
-          type:   'image/jpeg',
-        }],
-      }),
+      images: [{
+        url:    cardImage,
+        alt:    imageAlt,
+        // True for /api/og-image, which produces exactly this. The generated
+        // fallback is a 1200×630 PNG. An off-site URL passed through
+        // unconverted is still a best guess, as it always was.
+        width:  1200,
+        height: 630,
+        type:   cardType,
+      }],
       ...(input.type === 'article' && {
         publishedTime: input.publishedTime,
         modifiedTime:  input.modifiedTime,
@@ -170,9 +188,7 @@ export async function buildPageMetadata(input: BuildPageMetadataInput): Promise<
       card:        twitterCard,
       title:       twitterTitle,
       description: twitterDesc,
-      ...(twitterImg && {
-        images: [{ url: twitterImg, alt: imageAlt }],
-      }),
+      images: [{ url: twitterImg, alt: imageAlt }],
     },
     robots: resolvedNoIndex
       ? { index: false, follow: false }

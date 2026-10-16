@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 import { guideMarketCopy } from '@/lib/guides/market-copy'
 import Link from 'next/link'
@@ -30,6 +31,11 @@ import { marketScope, scopeToMarket, scopeToMarketOrShared } from '@/lib/market-
 import { chromeForBrand } from '@/lib/brands'
 import { FiftyPlusHomePage } from '@/components/fifty-plus/HomePage'
 
+// Ten minutes. This does not cache the HTML: the root layout reads
+// headers() to pick the brand, which opts the route into dynamic
+// rendering. A path-keyed ISR entry would also be wrong here — every
+// brand is served from `/` on this one deployment. The data cache below
+// is what actually honors the window, keyed per brand.
 export const revalidate = 600
 
 // Page-level metadata removed in migration 162 so the brand-aware
@@ -101,11 +107,11 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
   // Scope resolution is per-table because migration 232 adds the column to
   // some of them — see lib/market-scope.ts.
   const [adScope, trendScope, eventScope, magScope, cfgScope] = await Promise.all([
-    marketScope(supabase, 'ad_placements'),
-    marketScope(supabase, 'trending_items'),
-    marketScope(supabase, 'calendar_events'),
-    marketScope(supabase, 'magazine_issues'),
-    marketScope(supabase, 'guide_configs'),
+    marketScope(supabase, 'ad_placements', brandSlug),
+    marketScope(supabase, 'trending_items', brandSlug),
+    marketScope(supabase, 'calendar_events', brandSlug),
+    marketScope(supabase, 'magazine_issues', brandSlug),
+    marketScope(supabase, 'guide_configs', brandSlug),
   ])
   // Rotation slugs: brand-configured override OR the RRP legacy defaults
   // (with their historic alternate-spelling siblings to catch old rows).
@@ -288,7 +294,7 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
         hero_image_url: cfg.homepage_image_url ?? cfg.hero_image_url ?? gt.hero_image_url,
         // cfg.subtitle is already per-brand (guide_configs is scoped);
         // gt.pitch is River Region's, so it goes through market-copy.
-        pitch:          cfg.subtitle ?? (await guideMarketCopy(gt.slug, gt as Record<string, unknown>)).pitch ?? null,
+        pitch:          cfg.subtitle ?? (await guideMarketCopy(gt.slug, gt as Record<string, unknown>, brandSlug)).pitch ?? null,
       }
     }
   }
@@ -436,6 +442,19 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
   if (autoTrendingRes.error) {
     console.warn('[homepage] trending_paths_7d query failed:', autoTrendingRes.error.message)
   }
+  // Story queries failing is different from "this brand has no rows yet".
+  // An empty-but-successful result is safe to cache. An error is not —
+  // caching it would pin a blank homepage for the whole revalidate window.
+  if (rotationRes.error) {
+    console.warn('[homepage] rotation query failed:', rotationRes.error.message)
+  }
+  if (articlesRes.error) {
+    console.warn('[homepage] articles query failed:', articlesRes.error.message)
+  }
+  if (eventsRes.error) {
+    console.warn('[homepage] events query failed:', eventsRes.error.message)
+  }
+  const degraded = Boolean(rotationRes.error || articlesRes.error || eventsRes.error)
 
   // ── Hybrid trending merge ────────────────────────────────────────────────
   // Pinned items always win, ordered by display_order. Remaining slots
@@ -509,8 +528,42 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
     bottomAd,
     featuredCategories,
     magazineIssues,
+    degraded,
   }
 }
+
+const HOMEPAGE_DEGRADED = 'HOMEPAGE_DATA_DEGRADED'
+
+// Keyed by brand + rotation columns. See the note on `revalidate` above:
+// the HTML stays dynamic so brands don't share a path cache, and this is
+// the copy that is reused. 600s matches the segment config. A stale entry
+// is returned immediately while the next one is filled in the background,
+// so a crawler does not wait on the Supabase fan-out.
+const getCachedHomepageData = unstable_cache(
+  async (brandSlug: string, rotationKey: string) => {
+    const rotationColumns = rotationKey ? rotationKey.split('|') : []
+    const data = await getHomepageData(brandSlug, rotationColumns)
+    if (data.degraded) {
+      // unstable_cache does not store a thrown result, so the next request
+      // tries again instead of serving a blank page for 10 minutes.
+      const err = new Error(HOMEPAGE_DEGRADED) as Error & { payload: typeof data }
+      err.payload = data
+      throw err
+    }
+    return data
+  },
+  ['homepage-data'],
+  { revalidate: 600 },
+)
+
+const getCachedSuperintendentPhotos = unstable_cache(
+  async () => {
+    const { loadSuperintendentPhotos } = await import('@/lib/education-matters/superintendent-photos')
+    return loadSuperintendentPhotos(getSupabase())
+  },
+  ['homepage-superintendent-photos'],
+  { revalidate: 600 },
+)
 
 function fmtEventDate(d: string) {
   const dt = new Date(d + 'T12:00:00')
@@ -537,18 +590,27 @@ export default async function HomePage() {
   }
 
   const brandChrome = chromeForBrand(brandCtx.brand)
+  const rotationKey = brandChrome.homepageRotationColumns.join('|')
+  // Photos are independent of the rest of the homepage payload, so a
+  // cache miss on one does not wait out the other.
+  const [homepage, emSuperintendentPhotos] = await Promise.all([
+    getCachedHomepageData(brandCtx.slug, rotationKey).catch((err: unknown) => {
+      const payload = err instanceof Error
+        ? (err as Error & { payload?: Awaited<ReturnType<typeof getHomepageData>> }).payload
+        : undefined
+      if (payload) return payload
+      if (err instanceof Error && err.message === HOMEPAGE_DEGRADED) {
+        return getHomepageData(brandCtx.slug, rotationKey ? rotationKey.split('|') : [])
+      }
+      throw err
+    }),
+    getCachedSuperintendentPhotos(),
+  ])
   const {
     trending, mainFeature, featuredGuide, spotlights, events, articles,
     inlineAd, sidebarAd, businessSpotlight, bottomAd, momKnowsPosts, bloggers,
     featuredCategories, magazineIssues,
-  } = await getHomepageData(brandCtx.slug, brandChrome.homepageRotationColumns)
-
-  // Superintendent photos for the branded EM cards in Latest Stories.
-  // One query for all 4 rows; passed down to ArticleCard so cards
-  // without an uploaded hero can show the real superintendent's face
-  // instead of the district-logo fallback.
-  const { loadSuperintendentPhotos } = await import('@/lib/education-matters/superintendent-photos')
-  const emSuperintendentPhotos = await loadSuperintendentPhotos(getSupabase())
+  } = homepage
 
   const fallbackTrending = [
     { id: '1', label: 'Summer Camp Guide 2026',           href: '/summer-camp-guide',      emoji: '⛺' },
