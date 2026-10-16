@@ -2,6 +2,7 @@
 // as SchoolBitsBlock — one lead article + 3 supporting cards + CTA to
 // the Best Of column. Pulls articles with column_slug='frg-best-of'.
 
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 import { loadBrandContext } from '@/lib/brand-context'
 import { currentBrandSlug } from '@/lib/current-brand'
@@ -17,29 +18,34 @@ interface Article {
   hero_image_url: string | null; published_at: string | null
 }
 
+// Same cache window as the rest of the homepage. Brand is an argument so
+// the cached function does not read headers() (unstable_cache forbids it)
+// and Greater Pensacola never receives River Region's lists.
+const loadBestOfArticles = unstable_cache(async (brandSlug: string): Promise<Article[]> => {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+  const { data, error } = await supabase
+    .from('guide_articles')
+    .select('id, slug, title, excerpt, subtitle, hero_image_url, published_at')
+    .eq('column_slug', 'frg-best-of')
+    .eq('published', true)
+    .or(articleBrandFilter(brandSlug))
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .limit(8)
+
+  if (error) throw new Error(error.message)
+  if (!data?.length) return []
+  const withImg = data.filter(a => a.hero_image_url)
+  const noImg   = data.filter(a => !a.hero_image_url)
+  return [...withImg, ...noImg].slice(0, 4)
+}, ['homepage-best-of-articles'], { revalidate: 600 })
+
 async function getBestOfArticles(): Promise<Article[]> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    )
-    // Brand filter: these blocks render inside the homepage, which is served
-    // on every brand's domain from one deployment. Without it a Greater
-    // Pensacola reader sees River Region's school news.
     const brandSlug = (await currentBrandSlug()) ?? 'rrp'
-    const { data } = await supabase
-      .from('guide_articles')
-      .select('id, slug, title, excerpt, subtitle, hero_image_url, published_at')
-      .eq('column_slug', 'frg-best-of')
-      .eq('published', true)
-      .or(articleBrandFilter(brandSlug))
-      .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(8)
-
-    if (!data?.length) return []
-    const withImg = data.filter(a => a.hero_image_url)
-    const noImg   = data.filter(a => !a.hero_image_url)
-    return [...withImg, ...noImg].slice(0, 4)
+    return await loadBestOfArticles(brandSlug)
   } catch { return [] }
 }
 

@@ -7,6 +7,7 @@ import { loadBrandContext } from '@/lib/brand-context'
 import { BrandCopyProvider } from '@/components/BrandCopyProvider'
 import { theRegion } from '@/lib/brandify'
 import { chromeForBrand } from '@/lib/brands'
+import { metadataBaseForRequest } from '@/lib/markets'
 import { newsMediaOrganizationJsonLd, websiteJsonLd, jsonLdScript } from '@/lib/seo/jsonld'
 import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 import './globals.css'
@@ -48,9 +49,21 @@ function brandIconFor(slug: string, logoUrl: string | null): string | null {
 
 export async function generateMetadata(): Promise<Metadata> {
   const ctx = await loadBrandContext()
+  const h = await headers()
   const chrome = chromeForBrand(ctx.brand)
+  // File-based /opengraph-image is resolved against metadataBase. The
+  // canonical public origin is right when that host serves this app
+  // (www.riverregionparents.com). It is wrong while a brand's domain still
+  // points at the previous site — Greater Pensacola's og:image was an
+  // absolute URL on the WordPress host, which 404s. Use the host that
+  // actually handled the request in that case.
+  const metadataBase = metadataBaseForRequest(
+    ctx.publicOrigin,
+    h.get('host'),
+    h.get('x-forwarded-proto'),
+  )
   return {
-    metadataBase: new URL(ctx.publicOrigin),
+    metadataBase: new URL(metadataBase),
     title:       `${ctx.market.displayName} — Local Stories & Events`,
     description: chrome.tagline,
     // rrp-logo.png is River Region's mark. Serving it as every brand's

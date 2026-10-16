@@ -96,8 +96,7 @@ function sb() {
  * relation. In that window every field resolves to null and callers omit the
  * elements, which is the safe direction: no copy beats another brand's copy.
  */
-const loadRows = cache(async (guideTypeSlug: string): Promise<{ own?: Row; neutral?: Row }> => {
-  const market = (await currentBrandSlug()) ?? 'rrp'
+const loadRows = cache(async (guideTypeSlug: string, market: string): Promise<{ own?: Row; neutral?: Row }> => {
   const { data, error } = await sb()
     .from('guide_type_copy')
     .select('*')
@@ -121,9 +120,15 @@ const loadRows = cache(async (guideTypeSlug: string): Promise<{ own?: Row; neutr
 export async function guideMarketCopy(
   guideTypeSlug: string,
   legacy?: Partial<Row> | null,
+  /**
+   * Brand to resolve copy for. Omit on a normal request — the stamped
+   * brand is read then. Pass it from a cached function: `unstable_cache`
+   * cannot call headers(), which is how the request brand is normally read.
+   */
+  marketOverride?: string,
 ): Promise<GuideMarketCopy> {
-  const { own, neutral } = await loadRows(guideTypeSlug)
-  const market = (await currentBrandSlug()) ?? 'rrp'
+  const market = marketOverride ?? (await currentBrandSlug()) ?? 'rrp'
+  const { own, neutral } = await loadRows(guideTypeSlug, market)
   const legacyForThisBrand = market === LEGACY_COPY_MARKET ? legacy : null
 
   // Field-by-field rather than row-by-row: a brand may override the intro

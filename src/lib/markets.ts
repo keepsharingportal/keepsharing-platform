@@ -191,6 +191,41 @@ export function publicOriginForBrand(slug: string): string {
   return m ? `https://${m.publicHost}` : ''
 }
 
+/**
+ * Origin that is actually serving this request.
+ *
+ * publicOrigin is the brand's canonical domain. For a brand whose domain
+ * still points at the previous site (Greater Pensacola's canonical host is
+ * still WordPress), metadata resolved against that origin publishes an
+ * og:image URL the Next app never serves. File-based /opengraph-image and
+ * /api/og-image have to be fetched from the host that ran this deployment.
+ *
+ * When the request host already is the canonical host, this returns
+ * publicOrigin unchanged, so production River Region URLs stay as they are.
+ * A host that is not one of ours is ignored — a spoofed Host must not become
+ * the absolute URL we publish.
+ */
+export function metadataBaseForRequest(
+  publicOrigin: string,
+  hostHeader: string | null,
+  forwardedProto: string | null,
+): string {
+  if (!hostHeader) return publicOrigin
+  const host = hostHeader.split(',')[0].trim().toLowerCase()
+  let canonicalHost = ''
+  try { canonicalHost = new URL(publicOrigin).host.toLowerCase() } catch { return publicOrigin }
+  if (!host || host === canonicalHost) return publicOrigin
+  const bare = host.replace(/^www\./, '').split(':')[0]
+  const local = bare === 'localhost' || bare === '127.0.0.1'
+  const preview = bare.endsWith('.vercel.app')
+  if (!local && !preview && !isOwnBrandHost(bare)) return publicOrigin
+  if (local) {
+    const scheme = (forwardedProto ?? 'http').split(',')[0].trim() || 'http'
+    return `${scheme}://${host}`
+  }
+  return `https://${host}`
+}
+
 /** The parent domain our staging / pre-launch subdomains live on. */
 const STAGING_PARENT = 'keepsharing.com'
 
