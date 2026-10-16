@@ -26,10 +26,10 @@ export async function BestOfMasthead({ subtitle, action, size = 'default' }: Pro
   const { market } = await loadBrandContext()
   const region       = market.regionLabel
   const wordmarkCls = size === 'large'
-    ? 'text-6xl sm:text-7xl md:text-8xl'
-    : 'text-5xl sm:text-6xl md:text-7xl'
+    ? 'text-3xl sm:text-6xl sm:text-7xl md:text-8xl'
+    : 'text-3xl sm:text-5xl sm:text-6xl md:text-7xl'
   const ofCls = size === 'large'
-    ? 'text-4xl sm:text-5xl md:text-6xl'
+    ? 'text-3xl sm:text-4xl sm:text-5xl md:text-6xl'
     : 'text-3xl sm:text-4xl md:text-5xl'
 
   return (

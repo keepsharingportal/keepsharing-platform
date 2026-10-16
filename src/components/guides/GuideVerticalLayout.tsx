@@ -258,7 +258,7 @@ export async function GuideVerticalLayout({
             </div>
 
             {/* Title */}
-            <h1 className="text-5xl md:text-8xl font-black text-white mb-6 leading-tight tracking-tight uppercase [text-shadow:_0_4px_12px_rgba(0,0,0,0.5)]">
+            <h1 className="text-3xl sm:text-5xl md:text-8xl font-black text-white mb-6 leading-tight tracking-tight uppercase [text-shadow:_0_4px_12px_rgba(0,0,0,0.5)]">
               {heroTitle}
             </h1>
 
@@ -497,7 +497,7 @@ export async function GuideVerticalLayout({
                 <Badge variant="outline" className="mb-6 text-primary border-primary font-bold uppercase tracking-widest">
                   Guide Calendar
                 </Badge>
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Happening Around Town</h2>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight">Happening Around Town</h2>
                 <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
                   Don&apos;t miss out on local events specifically curated for {region} families.
                 </p>
@@ -639,7 +639,7 @@ export async function GuideVerticalLayout({
               <div className="hidden lg:flex w-80 h-80 bg-background/5 rounded-full border border-background/10 items-center justify-center backdrop-blur-sm shrink-0">
                 <div className="text-center p-8">
                   <TrendingUp className="h-16 w-16 text-primary mx-auto mb-4" />
-                  <div className="text-4xl font-bold text-background mb-1">15k+</div>
+                  <div className="text-3xl sm:text-4xl font-bold text-background mb-1">15k+</div>
                   <div className="text-xs font-bold uppercase tracking-widest text-background/50">Monthly Readers</div>
                 </div>
               </div>

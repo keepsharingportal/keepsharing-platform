@@ -31,7 +31,7 @@ export default async function BestOfSuggestPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-muted-foreground mb-1">
             The
           </p>
-          <h1 className="font-serif font-black leading-[0.9] tracking-tight text-foreground text-4xl sm:text-5xl mb-1">
+          <h1 className="font-serif font-black leading-[0.9] tracking-tight text-foreground text-3xl sm:text-4xl sm:text-5xl mb-1">
             BEST <span className="font-light italic text-muted-foreground text-2xl sm:text-3xl align-baseline">of</span>
           </h1>
           <p className="text-base md:text-lg font-bold tracking-wide italic mt-0.5 mb-4">

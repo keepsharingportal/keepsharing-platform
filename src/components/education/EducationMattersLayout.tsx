@@ -130,7 +130,7 @@ export function EducationMattersLayout({ article, district, superintendentProfil
           >
             {district.countyLabel}
           </span>
-          <h1 className="mt-5 max-w-2xl font-serif text-4xl font-bold leading-tight md:text-5xl" style={{ color: THEME.navy }}>
+          <h1 className="mt-5 max-w-2xl font-serif text-3xl sm:text-4xl font-bold leading-tight md:text-5xl" style={{ color: THEME.navy }}>
             {article.title}
           </h1>
           {article.deck && (
@@ -418,7 +418,7 @@ function EducationPullQuote({ quote, attribution }: { quote: string; attribution
     >
       <div className="absolute left-0 top-0 h-full w-1.5" style={{ backgroundColor: THEME.teal }} />
       <div className="pointer-events-none absolute -bottom-8 -right-6 h-28 w-28 rounded-full blur-2xl" style={{ backgroundColor: 'rgba(244,194,27,0.20)' }} />
-      <div className="relative mb-3 text-6xl font-black leading-none" style={{ color: THEME.gold }}>“</div>
+      <div className="relative mb-3 text-3xl sm:text-4xl md:text-6xl font-black leading-none" style={{ color: THEME.gold }}>“</div>
       <blockquote className="relative font-serif text-xl font-bold italic leading-snug md:text-2xl" style={{ color: THEME.navy }}>
         {quote}
       </blockquote>

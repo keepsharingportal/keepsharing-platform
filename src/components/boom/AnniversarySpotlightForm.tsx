@@ -108,7 +108,7 @@ export function AnniversarySpotlightForm() {
         department="Relationships"
       >
         <div className="text-center py-10 space-y-4">
-          <div className="text-5xl">💍</div>
+          <div className="text-3xl sm:text-4xl md:text-5xl">💍</div>
           <h2 className="text-2xl font-bold" style={{ color: CREAM }}>
             Congratulations!
           </h2>

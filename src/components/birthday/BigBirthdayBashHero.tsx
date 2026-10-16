@@ -52,7 +52,7 @@ export async function BigBirthdayBashHero({ heroImageUrl, title, subtitle, spons
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24 text-white">
         <div className="text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black leading-[1.05] tracking-tight">
+          <h1 className="text-3xl sm:text-4xl sm:text-5xl lg:text-7xl font-black leading-[1.05] tracking-tight">
             {titleHead}{titleTail && <> <span className="text-[#ff7a59]">{titleTail}</span></>}
           </h1>
           <p className="text-base sm:text-lg lg:text-xl text-white/90 mt-4 max-w-2xl mx-auto leading-relaxed">

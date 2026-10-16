@@ -215,7 +215,7 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
             <Sparkles className="h-4 w-4" />
             Daily Challenge
           </div>
-          <h1 className="text-5xl md:text-7xl font-black text-foreground mb-4 leading-[1.05]">Family Brain Games</h1>
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-foreground mb-4 leading-[1.05]">Family Brain Games</h1>
           <p className="text-lg md:text-xl font-semibold text-foreground/85 max-w-2xl mx-auto mb-6 leading-snug">
             {prizeHeadline()}. The most fun a parent can have in 15 minutes.
           </p>

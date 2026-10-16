@@ -125,7 +125,7 @@ export default async function ClaimSpotPage({ params, searchParams }: Props) {
 
       <div className="mt-6 bg-white border border-portal-border rounded-lg p-5">
         <div className="flex items-baseline gap-2">
-          <span className="text-4xl font-bold text-portal-text">${(product.price_cents / 100).toFixed(0)}</span>
+          <span className="text-3xl sm:text-4xl font-bold text-portal-text">${(product.price_cents / 100).toFixed(0)}</span>
           <span className="text-portal-sub">{product.interval ? `/ ${product.interval}` : 'one-time'}</span>
         </div>
         {placement.context_type && placement.context_slug && (

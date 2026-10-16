@@ -199,7 +199,7 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         title="Lunchbox Scramble"
         intro="Unscramble the parenting words to win!"
         prompts={rounds.map(r => ({ display: r.scrambled, answer: r.answer }))}
-        displayClass="text-5xl md:text-7xl font-black tracking-widest"
+        displayClass="text-3xl sm:text-5xl md:text-7xl font-black tracking-widest"
         labelOfRound="Word"
         onCorrect={handleCorrect}
         onFinish={finish}
@@ -217,7 +217,7 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         title="Emoji Decode"
         intro="Guess the parenting phrase!"
         prompts={rounds.map(r => ({ display: r.emoji, answer: r.answer }))}
-        displayClass="text-5xl md:text-7xl font-black tracking-widest"
+        displayClass="text-3xl sm:text-5xl md:text-7xl font-black tracking-widest"
         labelOfRound="Puzzle"
         onCorrect={handleCorrect}
         onFinish={finish}
@@ -521,7 +521,7 @@ function GuessAndCheck({
               <Sparkles className="h-5 w-5" /> Yes!
             </div>
             <div
-              className="text-4xl md:text-5xl font-black uppercase tracking-tight celebrate-pop"
+              className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight celebrate-pop"
               style={{ color: signatureBg ?? 'inherit' }}
             >
               {celebrating}

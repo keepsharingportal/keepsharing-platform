@@ -32,7 +32,7 @@ export function FiftyPlusFooter({ chrome, displayName, regionLabel }: Props) {
                   <span className="text-[11px] font-bold tracking-[0.18em] uppercase text-primary-foreground/80 mb-1">
                     {eyebrow}
                   </span>
-                  <span className="font-heading text-4xl md:text-5xl font-extrabold tracking-tighter leading-none flex items-baseline gap-1">
+                  <span className="font-heading text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tighter leading-none flex items-baseline gap-1">
                     <span className="text-primary-foreground">{eyebrow ? '' : ''}</span>
                     <span className="text-secondary">{accent}</span>
                   </span>

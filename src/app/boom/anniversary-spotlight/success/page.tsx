@@ -9,7 +9,7 @@ export default function AnniversarySpotlightSuccessPage() {
       style={{ backgroundColor: '#0B1829', color: '#F4EFE4', fontFamily: 'Georgia, serif' }}
     >
       <div className="max-w-lg">
-        <div className="text-6xl mb-6">💍</div>
+        <div className="text-3xl sm:text-4xl md:text-6xl mb-6">💍</div>
         <div className="text-xs font-bold uppercase tracking-[0.2em] mb-3" style={{ color: '#C9A84B' }}>
           River Region Boom
         </div>

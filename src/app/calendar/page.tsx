@@ -202,7 +202,7 @@ export default async function CalendarPage() {
           </div>
 
           {/* Two-tone title — "Family" white, "Calendar" coral */}
-          <h1 className="text-5xl md:text-7xl font-black text-white leading-[1.05] mb-4 drop-shadow-sm">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-white leading-[1.05] mb-4 drop-shadow-sm">
             <SplitColoredTitle title="Family Calendar" />
           </h1>
           <p className="text-base md:text-lg text-white/90 leading-snug max-w-2xl mx-auto mb-10 md:mb-12">

@@ -150,7 +150,7 @@ function TypographyLogoFallback({ shortName, compact }: { shortName: string; com
   return (
     <div className="text-white">
       <div
-        className={`font-black leading-none tracking-tight ${compact ? 'text-2xl' : 'text-4xl md:text-5xl'}`}
+        className={`font-black leading-none tracking-tight ${compact ? 'text-2xl' : 'text-3xl sm:text-4xl md:text-5xl'}`}
         style={{ fontFamily: 'ui-serif, Georgia, serif' }}
       >
         {shortName}

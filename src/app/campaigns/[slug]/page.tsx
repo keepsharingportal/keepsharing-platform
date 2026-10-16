@@ -71,7 +71,7 @@ export default async function CampaignLanding({ params }: Props) {
           <p className="text-xs font-bold uppercase tracking-widest mb-3 opacity-80">
             {new Date(campaign.month + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })} · {ctx.market.displayName}
           </p>
-          <h1 className="text-4xl md:text-6xl font-black mb-4">{campaign.themeTitle}</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black mb-4">{campaign.themeTitle}</h1>
           {campaign.heroTagline && (
             <p className="text-lg md:text-xl opacity-90 max-w-3xl leading-relaxed">{campaign.heroTagline}</p>
           )}

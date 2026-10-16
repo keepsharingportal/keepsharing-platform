@@ -134,7 +134,7 @@ export default async function TownPage({ params }: Props) {
                 <MapPin className="h-3 w-3" /> {town.county}
               </p>
             )}
-            <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-3" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white leading-tight mb-3" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
               {town.name}
             </h1>
             {town.vibe_one_line && (

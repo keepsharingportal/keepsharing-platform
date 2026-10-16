@@ -109,7 +109,7 @@ export default async function BloggerProfilePage({ params }: Props) {
                   unoptimized={shouldSkipNextOptimizer(blogger.profile_image_url)}
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-4xl font-black text-primary/30 bg-primary/5">
+                <div className="absolute inset-0 flex items-center justify-center text-3xl sm:text-4xl font-black text-primary/30 bg-primary/5">
                   {blogger.display_name.slice(0, 1).toUpperCase()}
                 </div>
               )}

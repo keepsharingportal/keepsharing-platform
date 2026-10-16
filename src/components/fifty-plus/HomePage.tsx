@@ -539,7 +539,7 @@ export async function FiftyPlusHomePage({ brandCtx }: Props) {
               <CardContent className="p-7 text-center relative z-10">
                 <div className="flex flex-col items-center justify-center mb-5">
                   <div className="flex flex-col w-fit pb-2 mx-auto">
-                    <span className="font-heading text-4xl font-extrabold tracking-tighter leading-none flex items-baseline gap-1">
+                    <span className="font-heading text-3xl sm:text-4xl font-extrabold tracking-tighter leading-none flex items-baseline gap-1">
                       <span className="text-white text-2xl">{eyebrow}</span>
                       <span className="text-secondary">{accent}</span>
                     </span>

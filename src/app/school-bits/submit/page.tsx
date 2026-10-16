@@ -88,7 +88,7 @@ export default async function SubmitSchoolBitPage({ searchParams }: PageProps) {
           <div className="mb-5 flex justify-center">
             <SchoolBitsLogo size="md" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-foreground mb-4 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground mb-4 leading-tight">
             Share Your School&apos;s News
           </h1>
           <p className="text-lg md:text-xl text-foreground/80 leading-snug mb-2">

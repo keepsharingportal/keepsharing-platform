@@ -14,7 +14,7 @@ interface Props {
   withDivider?: boolean
   /**
    * md  — homepage feed headers (text-2xl, border-b divider)
-   * lg  — editorial section headers (text-4xl, eyebrow + description row)
+   * lg  — editorial section headers (text-3xl sm:text-4xl, eyebrow + description row)
    */
   size?: 'md' | 'lg'
   /** lg size only */
@@ -45,7 +45,7 @@ export function SectionHeader({
           {eyebrow && (
             <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">{eyebrow}</p>
           )}
-          <h2 className="text-4xl font-bold text-foreground tracking-tight flex items-center gap-3">
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight flex items-center gap-3">
             {Icon && <Icon className={`h-7 w-7 shrink-0 ${ICON_COLOR[iconColor]}`} />}
             {title}
           </h2>

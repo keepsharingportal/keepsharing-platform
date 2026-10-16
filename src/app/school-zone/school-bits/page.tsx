@@ -465,7 +465,7 @@ export default async function SchoolBitsPage(_props: PageParams) {
             <Sparkles className="h-4 w-4" />
             School Zone
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-foreground mb-3 leading-tight">School Bits</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground mb-3 leading-tight">School Bits</h1>
           <p className="text-base md:text-lg text-foreground/80 mb-6">
             Award winners, achievements, ribbon cuttings, and good news from across {regionPhrase}.
           </p>

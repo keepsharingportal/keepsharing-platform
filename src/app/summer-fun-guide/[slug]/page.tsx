@@ -89,7 +89,7 @@ export default async function CampListingPage({ params }: Props) {
               }>
               <div className="h-48 flex items-center justify-center relative"
                 style={{ background: `linear-gradient(135deg, ${cfg.bg} 0%, ${cfg.border} 100%)` }}>
-                <span className="text-7xl opacity-70">{cfg.icon}</span>
+                <span className="text-4xl sm:text-5xl md:text-7xl opacity-70">{cfg.icon}</span>
                 {/* Tier badge */}
                 {tier === "advertiser" && (
                   <div className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"

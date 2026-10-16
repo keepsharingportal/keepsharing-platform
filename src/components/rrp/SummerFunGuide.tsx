@@ -187,7 +187,7 @@ function CampCard({ camp, saved, onToggleSave }: {
           className="h-32 flex items-center justify-center relative"
           style={{ background: `linear-gradient(135deg, ${cfg.bg} 0%, ${cfg.border} 100%)` }}
         >
-          <span className="text-5xl opacity-75">{cfg.icon}</span>
+          <span className="text-3xl sm:text-4xl md:text-5xl opacity-75">{cfg.icon}</span>
           <button
             onClick={() => onToggleSave(camp.id)}
             className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-colors"
@@ -333,7 +333,7 @@ function EmailCaptureModal({ onClose, total }: { onClose: () => void; total: num
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={18} /></button>
         {done ? (
           <div className="text-center py-4">
-            <div className="text-4xl mb-3">📬</div>
+            <div className="text-3xl sm:text-4xl mb-3">📬</div>
             <div className="text-lg font-bold text-gray-900">You&apos;re on the list!</div>
             <p className="text-sm text-gray-500 mt-1">We&apos;ll email your PDF guide shortly.</p>
           </div>
@@ -460,7 +460,7 @@ function CampMapView({ camps, onCampClick }: { camps: Camp[]; onCampClick: (id: 
         <div className="absolute top-4 left-4 w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-10">
           <div className="h-20 flex items-center justify-center"
             style={{ background: `linear-gradient(135deg, ${CATEGORY_CONFIG[popup.category]?.bg ?? '#F9FAFB'} 0%, ${CATEGORY_CONFIG[popup.category]?.border ?? '#E5E7EB'} 100%)` }}>
-            <span className="text-4xl">{CATEGORY_CONFIG[popup.category]?.icon ?? '📍'}</span>
+            <span className="text-3xl sm:text-4xl">{CATEGORY_CONFIG[popup.category]?.icon ?? '📍'}</span>
           </div>
           <div className="p-3">
             <div className="text-sm font-bold text-gray-900 mb-0.5">{popup.business_name}</div>
@@ -718,7 +718,7 @@ export function SummerFunGuide({ initialCamps }: { initialCamps: Camp[] }) {
       <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white px-5 py-14">
         <div className="max-w-4xl mx-auto text-center">
           <div className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-3">River Region Parents</div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-3 leading-tight">2026 Summer Fun Guide</h1>
+          <h1 className="text-3xl sm:text-4xl sm:text-5xl font-extrabold mb-3 leading-tight">2026 Summer Fun Guide</h1>
           <p className="text-lg text-blue-100 mb-8">Everything happening this summer for River Region kids.</p>
           <div className="relative max-w-xl mx-auto">
             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -821,7 +821,7 @@ export function SummerFunGuide({ initialCamps }: { initialCamps: Camp[] }) {
             }} />
           ) : filtered.length === 0 ? (
             <div className="text-center py-16">
-              <div className="text-5xl mb-4">🏕️</div>
+              <div className="text-3xl sm:text-4xl md:text-5xl mb-4">🏕️</div>
               <div className="text-lg font-semibold text-gray-700 mb-2">No camps match your filters</div>
               <p className="text-sm text-gray-500 mb-4">Try broadening your search or clearing some filters.</p>
               <button onClick={clearAll} className="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors">

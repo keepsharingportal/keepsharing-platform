@@ -160,7 +160,7 @@ export default async function LocalGuidesPage() {
                         {a.hero_photo_url
                           ? <Image src={a.hero_photo_url} alt={a.business_name} fill style={{ objectFit: 'cover' }} unoptimized sizes="160px" className="group-hover:scale-105 transition-transform" />
                           : <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                              <span className="text-4xl font-bold text-primary/40">{a.business_name[0]}</span>
+                              <span className="text-3xl sm:text-4xl font-bold text-primary/40">{a.business_name[0]}</span>
                             </div>
                         }
                       </div>
@@ -205,7 +205,7 @@ export default async function LocalGuidesPage() {
                             className="group-hover:scale-105 transition-transform duration-700"
                             sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
-                        : <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center text-5xl">
+                        : <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center text-3xl sm:text-4xl md:text-5xl">
                             {emoji}
                           </div>
                       }

@@ -53,7 +53,7 @@ export default async function NeighborhoodPage({ params }: Props) {
       <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white px-5 py-14">
         <div className="max-w-3xl mx-auto text-center">
           <div className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-3">{brandName}</div>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-3">{meta.label}</h1>
+          <h1 className="text-3xl sm:text-4xl sm:text-5xl font-bold mb-3">{meta.label}</h1>
           <p className="text-lg text-blue-100">{meta.description}</p>
           <p className="text-sm text-blue-200 mt-2">{meta.county} &middot; {meta.schoolDistrict}</p>
         </div>

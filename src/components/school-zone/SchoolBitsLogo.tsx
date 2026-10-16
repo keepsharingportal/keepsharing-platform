@@ -9,14 +9,14 @@
 // Three sizes:
 //   sm — eyebrow on cards (text-lg)
 //   md — section header / lightbox header (text-2xl → text-3xl)
-//   lg — standalone hero / page mastheads (text-4xl → text-5xl)
+//   lg — standalone hero / page mastheads (text-3xl sm:text-4xl → text-3xl sm:text-4xl md:text-5xl)
 
 type Size = 'sm' | 'md' | 'lg'
 
 const SIZE_CLASSES: Record<Size, string> = {
   sm: 'text-lg leading-none',
   md: 'text-2xl md:text-3xl leading-none',
-  lg: 'text-4xl md:text-5xl leading-none',
+  lg: 'text-3xl sm:text-4xl md:text-5xl leading-none',
 }
 
 interface Props {

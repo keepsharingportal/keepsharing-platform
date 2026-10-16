@@ -318,7 +318,7 @@ export function SpotlightEyebrow({ spotlightType, columnSlug, logoUrl }: { spotl
             )}
             <h2 className="flex items-baseline gap-2 md:gap-3 leading-none">
               <span
-                className="font-[var(--font-allura)] text-5xl md:text-6xl lg:text-7xl"
+                className="font-[var(--font-allura)] text-3xl sm:text-5xl md:text-6xl lg:text-7xl"
                 style={{ color: wm.scriptColor ?? brand.primary, fontFamily: 'var(--font-allura), cursive', lineHeight: 1 }}
               >
                 {wm.script}

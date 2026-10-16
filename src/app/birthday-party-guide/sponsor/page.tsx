@@ -139,7 +139,7 @@ export default async function SponsorPackagesPage() {
             <ArrowLeft size={12} /> Birthday Bash
           </Link>
           <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#ff7a59] mb-3">For local businesses</div>
-          <h1 className="text-4xl sm:text-5xl font-black leading-[1.05]">
+          <h1 className="text-3xl sm:text-4xl sm:text-5xl font-black leading-[1.05]">
             Sponsor the <span className="text-[#ff7a59]">Big Birthday Bash</span>
           </h1>
           <p className="text-[15px] sm:text-base text-slate-300 mt-4 max-w-3xl leading-relaxed">

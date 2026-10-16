@@ -165,7 +165,7 @@ export default async function AuthorPage({ params }: Props) {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight mb-3">{displayName}</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground leading-tight mb-3">{displayName}</h1>
             <p className="text-base md:text-lg text-foreground/70 leading-relaxed max-w-2xl mb-3">
               {bio}
             </p>

@@ -48,7 +48,7 @@ export default async function GiftsHubPage() {
             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#ff7a59] mb-3 inline-flex items-center gap-1.5">
               <Gift size={12} /> Birthday Gift Guides
             </p>
-            <h1 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.05] mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-slate-900 leading-[1.05] mb-4">
               {total} gifts {region} parents stand behind.
             </h1>
             <p className="text-lg md:text-xl text-slate-600 leading-relaxed">

@@ -337,7 +337,7 @@ export default async function SubmitTypePage({
                 <Heart className="w-6 h-6" style={{ color: brand.wordmark.scriptColor ?? brand.primary, fill: (brand.wordmark.scriptColor ?? brand.primary) + '20' }} />
               )}
               <h2 className="flex items-baseline gap-2 leading-none">
-                <span className="text-4xl md:text-5xl" style={{ color: brand.wordmark.scriptColor ?? brand.primary, fontFamily: 'var(--font-allura), cursive', lineHeight: 1 }}>{brand.wordmark.script}</span>
+                <span className="text-3xl sm:text-4xl md:text-5xl" style={{ color: brand.wordmark.scriptColor ?? brand.primary, fontFamily: 'var(--font-allura), cursive', lineHeight: 1 }}>{brand.wordmark.script}</span>
                 <span className="font-black uppercase tracking-tight text-lg md:text-xl" style={{ color: brand.wordmark.tailColor ?? 'inherit' }}>{brand.wordmark.tail}</span>
               </h2>
             </div>
@@ -349,7 +349,7 @@ export default async function SubmitTypePage({
               {brand.label.toUpperCase()}
             </div>
           ) : (
-            <div className="text-6xl mb-5" aria-hidden="true">{config.emoji}</div>
+            <div className="text-3xl sm:text-4xl md:text-6xl mb-5" aria-hidden="true">{config.emoji}</div>
           )}
           <h1 className="text-3xl md:text-4xl font-black text-foreground leading-tight mb-3">
             Thank You!
@@ -693,7 +693,7 @@ function BrandedHero({
           )}
           <h2 className="flex items-baseline gap-2 md:gap-3 leading-none">
             <span
-              className="text-5xl md:text-6xl"
+              className="text-3xl sm:text-5xl md:text-6xl"
               style={{
                 color: wm.scriptColor ?? brand.primary,
                 fontFamily: 'var(--font-allura), cursive',

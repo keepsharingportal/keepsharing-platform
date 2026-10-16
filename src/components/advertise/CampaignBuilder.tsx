@@ -532,7 +532,7 @@ export function CampaignBuilder() {
           <div className="lg:sticky lg:top-20 order-first lg:order-last">
             <div className="rounded-2xl p-5 text-white shadow-lg" style={{ backgroundColor: TERRA }}>
               <div className="text-center mb-4">
-                <div className="text-4xl font-black mb-0.5">{formatMoney(monthlyRate)}</div>
+                <div className="text-3xl sm:text-4xl font-black mb-0.5">{formatMoney(monthlyRate)}</div>
                 <div className="text-sm opacity-75 font-medium">Estimated Monthly Investment</div>
                 <div className="text-xs opacity-55 mt-1">Based on your selection</div>
               </div>

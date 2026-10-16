@@ -147,7 +147,7 @@ export default async function RenewalPage({ params, searchParams }: Props) {
 
       <div className="mt-6 bg-white border border-portal-border rounded-lg p-5">
         <div className="flex items-baseline gap-2">
-          <span className="text-4xl font-bold text-portal-text">${(product.price_cents / 100).toFixed(0)}</span>
+          <span className="text-3xl sm:text-4xl font-bold text-portal-text">${(product.price_cents / 100).toFixed(0)}</span>
           <span className="text-portal-sub">/ {product.interval}</span>
         </div>
         <p className="text-[11px] text-portal-muted mt-1">

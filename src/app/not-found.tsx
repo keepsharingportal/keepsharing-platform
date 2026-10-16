@@ -33,7 +33,7 @@ export default async function NotFound() {
       <Navigation brandSlug={ctx.slug} chrome={chrome} />
       <main className="container py-16 md:py-24 max-w-2xl text-center">
         <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">404</p>
-        <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight mb-4">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground leading-tight mb-4">
           We can&apos;t find that page.
         </h1>
         <p className="text-base md:text-lg text-foreground/70 leading-relaxed mb-8">

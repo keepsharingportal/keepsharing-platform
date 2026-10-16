@@ -41,7 +41,7 @@ export default async function AboutPage() {
       <main className="container py-10 md:py-16 max-w-3xl">
 
         <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">About</p>
-        <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight mb-4">{seo.organizationName}</h1>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground leading-tight mb-4">{seo.organizationName}</h1>
         <p className="text-lg md:text-xl text-foreground/80 leading-relaxed mb-10">
           {seo.slogan}.
         </p>

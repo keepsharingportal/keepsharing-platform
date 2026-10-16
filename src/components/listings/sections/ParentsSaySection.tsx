@@ -23,7 +23,7 @@ export function ParentsSaySection({ section }: { section: ListingSection }) {
           <div className="space-y-4">
             {testimonials.map((t, i) => (
               <div key={i} className="relative bg-primary/5 border border-primary/10 rounded-2xl p-5">
-                <span className="absolute top-3 left-4 text-4xl text-primary/20 font-serif leading-none select-none">
+                <span className="absolute top-3 left-4 text-3xl sm:text-4xl text-primary/20 font-serif leading-none select-none">
                   &ldquo;
                 </span>
                 {t.quote && (

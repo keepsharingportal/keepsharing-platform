@@ -326,7 +326,7 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineAds, inline
         <figure key="lead-quote" className="my-6 md:my-8 px-2 sm:px-4">
           <span
             aria-hidden="true"
-            className="block text-[3rem] md:text-[3.5rem] font-black leading-none mb-1 select-none"
+            className="block text-[2.25rem] sm:text-[2.75rem] md:text-[3.5rem] font-black leading-none mb-1 select-none"
             style={{ color: brand.primary, opacity: 0.45, fontFamily: 'Georgia, "Times New Roman", serif' }}
           >
             &ldquo;
@@ -358,7 +358,7 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineAds, inline
         />
         <span
           aria-hidden="true"
-          className="relative block text-[3rem] md:text-[3.5rem] font-black not-italic leading-none mb-2 text-white/60"
+          className="relative block text-[2.25rem] sm:text-[2.75rem] md:text-[3.5rem] font-black not-italic leading-none mb-2 text-white/60"
           style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
         >
           &ldquo;
@@ -568,7 +568,7 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineAds, inline
             />
             <span
               aria-hidden="true"
-              className="relative block text-[3rem] md:text-[3.5rem] font-black not-italic leading-none mb-2 text-white/60"
+              className="relative block text-[2.25rem] sm:text-[2.75rem] md:text-[3.5rem] font-black not-italic leading-none mb-2 text-white/60"
               style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
             >
               &ldquo;
@@ -650,7 +650,7 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineAds, inline
           />
           <span
             aria-hidden="true"
-            className="block text-[3rem] md:text-[3.5rem] font-black not-italic leading-none mb-2"
+            className="block text-[2.25rem] sm:text-[2.75rem] md:text-[3.5rem] font-black not-italic leading-none mb-2"
             style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.5 }}
           >
             &ldquo;

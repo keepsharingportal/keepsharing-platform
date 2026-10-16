@@ -41,21 +41,31 @@ export function PageHeader({
   // overlay regardless of which guide / which photo is loaded.
   const titleClass = (
     size === 'lg'
-      ? 'text-4xl md:text-6xl font-bold mb-4 leading-tight'
-      : 'text-4xl md:text-5xl font-bold mb-4'
+      ? 'text-3xl sm:text-4xl md:text-6xl font-bold mb-4 leading-tight'
+      : 'text-3xl sm:text-4xl md:text-5xl font-bold mb-4'
   ) + (hasImage ? ' text-white' : ' text-foreground')
 
+  // Subtitle steps down with the title. At 20px under a 30px heading there
+  // was only 10px between them on a phone, which reads as two headings
+  // rather than a heading and its deck. 16px is also the floor worth
+  // holding: below it iOS starts zooming the page on focus.
   const subtitleClass = (
     size === 'lg'
-      ? 'text-xl leading-relaxed'
-      : 'text-xl max-w-2xl'
+      ? 'text-base sm:text-lg md:text-xl leading-relaxed'
+      : 'text-base sm:text-lg md:text-xl max-w-2xl'
   ) + (hasImage ? ' text-white/85' : ' text-muted-foreground')
 
   // Min-height makes the image have presence even when text is short.
-  // 16:5-ish ratio is generous without being a hero-takeover.
+  //
+  // These were a single value for every screen, so a 420px hero plus 64px of
+  // padding ate roughly two thirds of a phone before any content — the
+  // reason the page felt oversized and the heading sat so low. The desktop
+  // sizes at lg: are unchanged; only the phone and tablet steps come down.
   const heightClass = hasImage
-    ? (size === 'lg' ? 'min-h-[420px] py-16 lg:py-20' : 'min-h-[340px] py-12 lg:py-16')
-    : (size === 'lg' ? 'py-12 lg:py-16'               : 'py-12')
+    ? (size === 'lg'
+        ? 'min-h-[260px] py-10 sm:min-h-[340px] sm:py-14 lg:min-h-[420px] lg:py-20'
+        : 'min-h-[200px] py-8 sm:min-h-[280px] sm:py-12 lg:min-h-[340px] lg:py-16')
+    : (size === 'lg' ? 'py-8 sm:py-12 lg:py-16' : 'py-8 sm:py-12')
 
   return (
     <div className={`${hasImage ? 'bg-black' : VARIANT_BG[variant]} border-b border-border ${heightClass} relative overflow-hidden`}>

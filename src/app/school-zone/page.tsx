@@ -352,7 +352,7 @@ export default async function SchoolZonePage() {
           {/* Title + subtitle — two-tone matches the `${brandName}`
               treatment in the nav. Only colors the LAST word so a future
               `display_name` of "Mom Knows Best" / "Summer Fun" stays sensible. */}
-          <h1 className="text-5xl md:text-7xl font-black text-white leading-[1.05] mb-4 drop-shadow-sm">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-white leading-[1.05] mb-4 drop-shadow-sm">
             <SplitColoredTitle title={heroTitle} />
           </h1>
           <p className="text-base md:text-lg text-white/90 leading-snug max-w-2xl mx-auto mb-10 md:mb-12">
