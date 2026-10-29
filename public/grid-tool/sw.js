@@ -20,7 +20,10 @@
 //            names, so a given URL's bytes never change and a stale read is
 //            impossible.
 
-const VERSION = 'grid-tool-v1'
+// Bump on every release that changes cached assets. The activate handler
+// deletes every other grid-tool-* cache, so an installed copy drops its old
+// files instead of serving them forever.
+const VERSION = 'grid-tool-v3'
 const SHELL   = ['/grid-tool']
 
 self.addEventListener('install', (event) => {

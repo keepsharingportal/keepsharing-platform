@@ -53,6 +53,9 @@ import {
   placeImage, dragToPan, zoomBounds, clamp01, formatSize, columnLabel, rowLabel,
   printedLineWidthMm,
 } from '@/lib/grid-tool/geometry'
+import {
+  overlayLines, goldenSpiralPath, type OverlayKind,
+} from '@/lib/grid-tool/composition'
 
 // Stretcher-bar and paper sizes people actually buy. Stored in inches; the cm
 // view converts, so a metric artist sees 30.5 x 40.6 rather than a different
@@ -77,7 +80,43 @@ const PRESETS: { label: string; w: number; h: number }[] = [
 /** Long edge of the exported PNG. 3000px prints cleanly to ~10in at 300dpi. */
 const EXPORT_LONG_EDGE = 3000
 
-const SETTINGS_KEY = 'ks-grid-tool-settings-v2'
+
+/**
+ * The overlays, with the explanation shown beside each toggle.
+ *
+ * One line on what it is, one on when to reach for it. The golden-ratio
+ * entry is deliberately straight about the history: the maths is sound, the
+ * art-historical claims are mostly retrofitted, and a tool that repeats the
+ * Leonardo story loses the half of its audience that knows better.
+ */
+const OVERLAYS: { key: OverlayKind; label: string; blurb: string }[] = [
+  {
+    key: 'thirds', label: 'Rule of thirds',
+    blurb: 'Splits the picture in three each way. Put your subject on a line, or on one of the four crossings, rather than dead centre. The usual starting point.',
+  },
+  {
+    key: 'phi', label: 'Golden ratio (phi grid)',
+    blurb: 'Like thirds, but divided at 0.382 and 0.618, so the lines sit nearer the middle. Worth trying when thirds feels too spread out. The maths is real; the stories about Renaissance painters using it are mostly invented after the fact — use it because you like the placement, not because it is magic.',
+  },
+  {
+    key: 'spiral', label: 'Golden spiral',
+    blurb: 'A curve that tightens into one corner. Lead the eye along it and put what matters most at the tight end. Flip it to choose which corner that is.',
+  },
+  {
+    key: 'armature', label: 'Dynamic symmetry',
+    blurb: 'The diagonals of your canvas plus the lines at right angles to them. Unlike thirds, these come from your canvas’s own proportions, so a 16 × 20 and a 24 × 36 get different armatures. The painter’s version of this, and the one worth learning if you only learn one.',
+  },
+  {
+    key: 'diagonals', label: 'Corner diagonals',
+    blurb: 'Corner to corner. Quick way to catch a drawing drifting out of proportion, and it marks the true centre where they cross.',
+  },
+  {
+    key: 'center', label: 'Centre lines',
+    blurb: 'Halves the picture each way. Useful for checking symmetry — and for seeing what you are avoiding, since dead centre is usually the dullest place to put a subject.',
+  },
+]
+
+const SETTINGS_KEY = 'ks-grid-tool-settings-v3'
 
 interface Settings {
   unit:        Unit
@@ -91,7 +130,13 @@ interface Settings {
   lineColor:   string
   lineOpacity: number   // 0..1
   showLabels:  boolean
-  showDiagonals: boolean
+  /** Composition overlays, each independent — you might want thirds
+   *  and the armature at once to see how they disagree. */
+  overlays:    Record<OverlayKind, boolean>
+  overlayColor:   string
+  overlayOpacity: number
+  spiralFlipX: boolean
+  spiralFlipY: boolean
   bw:          boolean
   valueIntensity: number // contrast %, 100 = untouched
   brightness:  number    // %, 100 = untouched
@@ -102,7 +147,10 @@ const DEFAULTS: Settings = {
   unit: 'in', canvasW: 16, canvasH: 20,
   cols: 4, rows: 5, squareCells: false,
   lineWidth: 4, lineColor: '#ff0000', lineOpacity: 1,
-  showLabels: true, showDiagonals: false,
+  showLabels: true,
+  overlays: { thirds: false, phi: false, spiral: false, armature: false, diagonals: false, center: false },
+  overlayColor: '#00e5ff', overlayOpacity: 0.9,
+  spiralFlipX: false, spiralFlipY: false,
   bw: false, valueIntensity: 100, brightness: 100, posterize: 0,
 }
 
@@ -145,7 +193,9 @@ function drawScene(
   const lw = Math.max(0.5, o.lineWidth * k)
 
   if (!img) {
-    ctx.fillStyle = '#f1f5f9'
+    // White, not a placeholder grey: with no photo this is a composition
+    // planning sheet you can print and draw on, so it has to be paper.
+    ctx.fillStyle = '#ffffff'
     ctx.fillRect(gutter, gutter, frameW, frameH)
   } else {
     ctx.save()
@@ -215,14 +265,43 @@ function drawScene(
   // Border last and whole, so the frame edge is never half-drawn.
   ctx.strokeRect(gutter + lw / 2, gutter + lw / 2, frameW - lw, frameH - lw)
 
-  if (o.showDiagonals) {
-    // Corner-to-corner guides. Cheap, and they catch a drawing drifting out of
-    // proportion long before the cells do.
-    ctx.globalAlpha = o.lineOpacity * 0.55
-    ctx.beginPath()
-    ctx.moveTo(gutter, gutter);          ctx.lineTo(gutter + frameW, gutter + frameH)
-    ctx.moveTo(gutter + frameW, gutter); ctx.lineTo(gutter, gutter + frameH)
-    ctx.stroke()
+  // ── Composition overlays ──────────────────────────────────────────────
+  // Drawn in their own colour, over the grid rather than under it: they are
+  // a judgement aid, not part of the transfer, and you need to see where
+  // they fall relative to the cells you will actually copy.
+  const anyOverlay = Object.values(o.overlays).some(Boolean)
+  if (anyOverlay) {
+    ctx.save()
+    ctx.globalAlpha = o.overlayOpacity
+    ctx.strokeStyle = o.overlayColor
+    ctx.lineWidth   = Math.max(0.5, o.lineWidth * k * 0.7)
+    ctx.lineCap     = 'round'
+    ctx.lineJoin    = 'round'
+
+    for (const kind of ['thirds', 'phi', 'armature', 'diagonals', 'center'] as const) {
+      if (!o.overlays[kind]) continue
+      ctx.beginPath()
+      for (const l of overlayLines(kind, frameW, frameH)) {
+        ctx.moveTo(gutter + l.x1, gutter + l.y1)
+        ctx.lineTo(gutter + l.x2, gutter + l.y2)
+      }
+      ctx.stroke()
+    }
+
+    if (o.overlays.spiral) {
+      const path = goldenSpiralPath(frameW, frameH, {
+        flipX: o.spiralFlipX, flipY: o.spiralFlipY,
+      })
+      if (path.length > 1) {
+        ctx.beginPath()
+        ctx.moveTo(gutter + path[0].x, gutter + path[0].y)
+        for (let i = 1; i < path.length; i++) {
+          ctx.lineTo(gutter + path[i].x, gutter + path[i].y)
+        }
+        ctx.stroke()
+      }
+    }
+    ctx.restore()
   }
   ctx.restore()
 
@@ -359,6 +438,7 @@ export function GridTool() {
   const acrossMarks = useMemo(() => linePositions(cwDisp, s.cols), [cwDisp, s.cols])
   const downMarks   = useMemo(() => linePositions(chDisp, s.rows), [chDisp, s.rows])
   const nearSquare  = Math.abs(cellW - cellH) < 0.02
+  const anyOverlayOn = Object.values(s.overlays).some(Boolean)
 
   // Preview size: fit the canvas aspect into the available box, leaving room
   // for the label gutter.
@@ -497,7 +577,6 @@ export function GridTool() {
   }, [s, img, zoom, panX, panY, angle, flipH, flipV])
 
   const download = useCallback(async () => {
-    if (!img) return
     setBusy(true)
     // Yield a frame so the button's disabled state paints before the main
     // thread goes away for a few hundred milliseconds.
@@ -518,7 +597,6 @@ export function GridTool() {
   }, [img, renderFull, cwDisp, chDisp, u, s.cols, s.rows])
 
   const print = useCallback(async () => {
-    if (!img) return
     setBusy(true)
     await new Promise(r => setTimeout(r, 16))
     try {
@@ -574,44 +652,53 @@ export function GridTool() {
             dragOver ? 'border-slate-900 bg-slate-100' : 'border-slate-300 bg-slate-100/60'
           }`}
         >
-          {!img ? (
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className="flex w-full flex-col items-center justify-center gap-3 rounded-lg py-16 text-center"
-            >
-              <ImageIcon className="h-10 w-10 text-slate-400" aria-hidden />
-              <span className="text-base font-semibold text-slate-900">Choose a photo</span>
-              <span className="max-w-xs text-sm text-slate-500">
-                Or drag one here. Your photo stays on your device — it is never uploaded.
-              </span>
-            </button>
-          ) : (
-            <div className="flex flex-col items-center">
-              <canvas
-                ref={canvasRef}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={endDrag}
-                onPointerCancel={endDrag}
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-                className="max-w-full cursor-grab touch-none rounded-md shadow-sm active:cursor-grabbing"
-                aria-label="Gridded reference photo. Drag to reposition, pinch or scroll to zoom."
-              />
+          {/* The canvas renders with or without a photo.
+              With none, it is a blank sheet at your canvas’s proportions —
+              set an armature, print it, and plan a painting from imagination.
+              Gating the canvas behind an upload made that look impossible. */}
+          <div className="flex flex-col items-center">
+            <canvas
+              ref={canvasRef}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+              className={`max-w-full touch-none rounded-md shadow-sm ${
+                img ? 'cursor-grab active:cursor-grabbing' : ''
+              }`}
+              aria-label={img
+                ? 'Gridded reference photo. Drag to reposition, pinch or scroll to zoom.'
+                : 'Blank canvas with your grid and composition guides.'}
+            />
+            {img ? (
               <p className="mt-3 text-center text-xs text-slate-500">
                 Drag to reposition · pinch or scroll to zoom
               </p>
-            </div>
-          )}
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="mt-4 flex flex-col items-center gap-1.5 rounded-lg px-4 py-3 text-center hover:bg-slate-100"
+              >
+                <span className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                  <ImageIcon className="h-4 w-4" aria-hidden /> Add a photo to grid
+                </span>
+                <span className="max-w-sm text-xs text-slate-500">
+                  Or drag one here. Your photo stays on your device — it is never uploaded.
+                  Without one, this is a blank sheet you can plan a composition on.
+                </span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ── The measurements ────────────────────────────────────────────
             The actual product. Everything above is how you decide what these
             numbers should be; this is what you carry to the canvas. */}
-        {img && (
-          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-start justify-between gap-3">
               <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900">
                 <Ruler className="h-4 w-4" aria-hidden />
@@ -676,8 +763,7 @@ export function GridTool() {
                 <Printer className="h-4 w-4" aria-hidden /> Print
               </button>
             </div>
-          </div>
-        )}
+        </div>
       </section>
 
       {/* ── Controls ────────────────────────────────────────────────────── */}
@@ -776,7 +862,45 @@ export function GridTool() {
           </p>
 
           <Toggle label="Row and column labels" checked={s.showLabels} onChange={v => set('showLabels', v)} />
-          <Toggle label="Diagonal guides" checked={s.showDiagonals} onChange={v => set('showDiagonals', v)} />
+
+          {/* Line appearance belongs with the grid it draws, not in a
+              panel of its own — it is one decision ("how should this grid
+              look"), not two. Diagonals moved the other way, to
+              Composition, where they are a judgement aid rather than part
+              of the transfer. */}
+          <div className="mt-5 border-t border-slate-200 pt-4">
+            <Slider
+              label="Thickness" value={s.lineWidth} min={1} max={16} step={0.5}
+              onChange={v => set('lineWidth', v)}
+              suffix={` · ≈${printedMm.toFixed(1)}mm printed 10in wide`}
+            />
+            <Field label="Colour" className="mt-4">
+              <div className="flex items-center gap-2">
+                <input
+                  type="color" value={s.lineColor}
+                  onChange={e => set('lineColor', e.target.value)}
+                  className="h-9 w-14 cursor-pointer rounded border border-slate-300 bg-white"
+                />
+                <div className="flex flex-wrap gap-1">
+                  {['#ff0000', '#000000', '#ffffff', '#00e5ff', '#39ff14', '#ff00ff'].map(c => (
+                    <button
+                      key={c} type="button" onClick={() => set('lineColor', c)}
+                      style={{ background: c }}
+                      className="h-6 w-6 rounded border border-slate-300" title={c}
+                    ><span className="sr-only">{c}</span></button>
+                  ))}
+                </div>
+              </div>
+            </Field>
+            <Slider
+              label="Opacity" value={Math.round(s.lineOpacity * 100)} min={10} max={100} step={5}
+              onChange={v => set('lineOpacity', v / 100)} suffix="%"
+            />
+            <p className="mt-2 text-xs text-slate-500">
+              Lines need to read from across the room. Thickness scales with the download, so what
+              you see here is what prints.
+            </p>
+          </div>
         </Section>
 
         <Section id="framing" title="Framing" open={openSection} onToggle={setOpenSection}>
@@ -917,38 +1041,80 @@ export function GridTool() {
           </p>
         </Section>
 
-        <Section id="lines" title="Lines" open={openSection} onToggle={setOpenSection}>
-          <Slider
-            label="Thickness" value={s.lineWidth} min={1} max={16} step={0.5}
-            onChange={v => set('lineWidth', v)}
-            suffix={` · ≈${printedMm.toFixed(1)}mm printed 10in wide`}
-          />
-          <Field label="Colour" className="mt-4">
-            <div className="flex items-center gap-2">
-              <input
-                type="color" value={s.lineColor}
-                onChange={e => set('lineColor', e.target.value)}
-                className="h-9 w-14 cursor-pointer rounded border border-slate-300 bg-white"
-              />
-              <div className="flex flex-wrap gap-1">
-                {['#ff0000', '#000000', '#ffffff', '#00e5ff', '#39ff14', '#ff00ff'].map(c => (
-                  <button
-                    key={c} type="button" onClick={() => set('lineColor', c)}
-                    style={{ background: c }}
-                    className="h-6 w-6 rounded border border-slate-300" title={c}
-                  ><span className="sr-only">{c}</span></button>
-                ))}
-              </div>
-            </div>
-          </Field>
-          <Slider
-            label="Opacity" value={Math.round(s.lineOpacity * 100)} min={10} max={100} step={5}
-            onChange={v => set('lineOpacity', v / 100)} suffix="%"
-          />
-          <p className="mt-2 text-xs text-slate-500">
-            Lines need to read from across the room. Thickness scales with the download, so what
-            you see here is what prints.
+        {/* ── Composition ─────────────────────────────────────────────
+            Separate from Grid on purpose. The grid is for TRANSFER — the
+            composition is already settled and you are copying it. These are
+            for deciding whether it is any good in the first place, which is
+            why they also work with no photo loaded at all. */}
+        <Section id="composition" title="Composition" open={openSection} onToggle={setOpenSection}>
+          <p className="mb-3 text-xs text-slate-500">
+            Guides for judging where things sit. They are drawn over the picture but never
+            exported as part of the grid you copy from.
           </p>
+
+          {OVERLAYS.map(o => (
+            <div key={o.key} className="border-t border-slate-100 py-3 first:border-t-0 first:pt-0">
+              <Toggle
+                label={o.label}
+                checked={s.overlays[o.key]}
+                onChange={v => set('overlays', { ...s.overlays, [o.key]: v })}
+              />
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{o.blurb}</p>
+
+              {/* The spiral is the only one with a handedness worth choosing:
+                  its tightest curl is the focal point, so which corner it
+                  lands in decides the composition. */}
+              {o.key === 'spiral' && s.overlays.spiral && (
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button" onClick={() => set('spiralFlipX', !s.spiralFlipX)}
+                    className="flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50"
+                  >Flip left / right</button>
+                  <button
+                    type="button" onClick={() => set('spiralFlipY', !s.spiralFlipY)}
+                    className="flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50"
+                  >Flip up / down</button>
+                </div>
+              )}
+            </div>
+          ))}
+
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            <Field label="Guide colour">
+              <div className="flex items-center gap-2">
+                <input
+                  type="color" value={s.overlayColor}
+                  onChange={e => set('overlayColor', e.target.value)}
+                  className="h-9 w-14 cursor-pointer rounded border border-slate-300 bg-white"
+                />
+                <div className="flex flex-wrap gap-1">
+                  {['#00e5ff', '#ffffff', '#000000', '#39ff14', '#ff00ff'].map(c => (
+                    <button
+                      key={c} type="button" onClick={() => set('overlayColor', c)}
+                      style={{ background: c }}
+                      className="h-6 w-6 rounded border border-slate-300" title={c}
+                    ><span className="sr-only">{c}</span></button>
+                  ))}
+                </div>
+              </div>
+            </Field>
+            <Slider
+              label="Guide opacity" value={Math.round(s.overlayOpacity * 100)}
+              min={10} max={100} step={5}
+              onChange={v => set('overlayOpacity', v / 100)} suffix="%"
+            />
+            <p className="mt-2 text-xs text-slate-500">
+              A different colour from the grid keeps the two readable at once.
+            </p>
+          </div>
+
+          {anyOverlayOn && (
+            <button
+              type="button"
+              onClick={() => set('overlays', { thirds: false, phi: false, spiral: false, armature: false, diagonals: false, center: false })}
+              className="mt-4 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
+            >Turn all guides off</button>
+          )}
         </Section>
 
         <Section id="photo" title="Photo" open={openSection} onToggle={setOpenSection}>
