@@ -56,6 +56,9 @@ import {
 import {
   overlayLines, goldenSpiralPath, type OverlayKind,
 } from '@/lib/grid-tool/composition'
+import {
+  motifPaths, flipPaths, motifHasOrientation, type MotifKind,
+} from '@/lib/grid-tool/motifs'
 
 // Stretcher-bar and paper sizes people actually buy. Stored in inches; the cm
 // view converts, so a metric artist sees 30.5 x 40.6 rather than a different
@@ -89,6 +92,33 @@ const EXPORT_LONG_EDGE = 3000
  * art-historical claims are mostly retrofitted, and a tool that repeats the
  * Leonardo story loses the half of its audience that knows better.
  */
+/**
+ * Compositional motifs — the shape the picture flows along.
+ *
+ * The names are the ones painters already use. Edgar Payne’s
+ * “Composition of Outdoor Painting” is the standard reference for
+ * landscape composition and lists these as motifs, so the label does the
+ * explaining before the blurb has to.
+ */
+const MOTIFS: { key: MotifKind; label: string; blurb: string }[] = [
+  { key: 'ell', label: 'L',
+    blurb: 'A strong upright meeting a horizontal — a tree or building on one side, grounded by a shore, path or field along the bottom. Calm and very common in landscape.' },
+  { key: 's-curve', label: 'S-curve',
+    blurb: 'A road, river or shoreline winding back into the distance. Carries the eye deep into the picture and feels natural and unhurried.' },
+  { key: 'c-curve', label: 'C-curve',
+    blurb: 'Wraps around the subject and holds it in the hollow. Good when you want the eye to settle rather than travel on.' },
+  { key: 'triangle', label: 'Triangle',
+    blurb: 'Three points of interest, or one pyramid mass. The most stable arrangement there is, which is why classical painting leans on it.' },
+  { key: 'cruciform', label: 'Cross',
+    blurb: 'A vertical meeting a horizontal, crossing off centre. Quiet and formal; works for landscape, still life and figures alike.' },
+  { key: 'radial', label: 'Radiating',
+    blurb: 'Lines spreading from one point — light through cloud, branches, a junction of roads. Everything points back at the subject.' },
+  { key: 'circle', label: 'Circle',
+    blurb: 'A closed loop the eye travels round without leaving. Keeps a busy picture contained.' },
+  { key: 'diagonal', label: 'Diagonal',
+    blurb: 'One decisive slash across the picture. The most energetic arrangement, and the easiest to get wrong — it needs something to stop the eye sliding out of the corner.' },
+]
+
 const OVERLAYS: { key: OverlayKind; label: string; blurb: string }[] = [
   {
     key: 'thirds', label: 'Rule of thirds',
@@ -116,7 +146,7 @@ const OVERLAYS: { key: OverlayKind; label: string; blurb: string }[] = [
   },
 ]
 
-const SETTINGS_KEY = 'ks-grid-tool-settings-v3'
+const SETTINGS_KEY = 'ks-grid-tool-settings-v4'
 
 interface Settings {
   unit:        Unit
@@ -133,6 +163,20 @@ interface Settings {
   /** Composition overlays, each independent — you might want thirds
    *  and the armature at once to see how they disagree. */
   overlays:    Record<OverlayKind, boolean>
+  /** The compositional motif laid over the picture, if any. */
+  motif:       MotifKind | null
+  motifFlipX:  boolean
+  motifFlipY:  boolean
+  /**
+   * Are the transfer grid lines drawn?
+   *
+   * Off to begin with, deliberately. The grid is for COPYING a settled
+   * composition; while you are still deciding one it sits on top of the
+   * very thing you are trying to judge. It switches itself on the moment
+   * you touch a grid control, so changing the column count never looks
+   * like it did nothing.
+   */
+  showGrid:    boolean
   overlayColor:   string
   overlayOpacity: number
   spiralFlipX: boolean
@@ -149,6 +193,8 @@ const DEFAULTS: Settings = {
   lineWidth: 4, lineColor: '#ff0000', lineOpacity: 1,
   showLabels: true,
   overlays: { thirds: false, phi: false, spiral: false, armature: false, diagonals: false, center: false },
+  motif: null, motifFlipX: false, motifFlipY: false,
+  showGrid: false,
   overlayColor: '#00e5ff', overlayOpacity: 0.9,
   spiralFlipX: false, spiralFlipY: false,
   bw: false, valueIntensity: 100, brightness: 100, posterize: 0,
@@ -241,6 +287,7 @@ function drawScene(
   const cw = frameW / cols
   const ch = frameH / rows
 
+  if (o.showGrid) {
   ctx.save()
   ctx.globalAlpha = o.lineOpacity
   ctx.strokeStyle = o.lineColor
@@ -269,7 +316,7 @@ function drawScene(
   // Drawn in their own colour, over the grid rather than under it: they are
   // a judgement aid, not part of the transfer, and you need to see where
   // they fall relative to the cells you will actually copy.
-  const anyOverlay = Object.values(o.overlays).some(Boolean)
+  const anyOverlay = Object.values(o.overlays).some(Boolean) || !!o.motif
   if (anyOverlay) {
     ctx.save()
     ctx.globalAlpha = o.overlayOpacity
@@ -286,6 +333,23 @@ function drawScene(
         ctx.lineTo(gutter + l.x2, gutter + l.y2)
       }
       ctx.stroke()
+    }
+
+    // The motif is drawn thicker and softer than the geometric guides: it
+    // is a path to arrange masses along, not a line to measure against,
+    // and it should not be mistaken for the transfer grid.
+    if (o.motif) {
+      ctx.save()
+      ctx.globalAlpha = o.overlayOpacity * 0.65
+      ctx.lineWidth   = Math.max(2, o.lineWidth * k * 2.4)
+      for (const path of flipPaths(motifPaths(o.motif, frameW, frameH), frameW, frameH, o.motifFlipX, o.motifFlipY)) {
+        if (path.length < 2) continue
+        ctx.beginPath()
+        ctx.moveTo(gutter + path[0].x, gutter + path[0].y)
+        for (let i = 1; i < path.length; i++) ctx.lineTo(gutter + path[i].x, gutter + path[i].y)
+        ctx.stroke()
+      }
+      ctx.restore()
     }
 
     if (o.overlays.spiral) {
@@ -305,10 +369,12 @@ function drawScene(
   }
   ctx.restore()
 
+  } // end showGrid
+
   // ── Labels ────────────────────────────────────────────────────────────────
   // In the gutter rather than over the picture, so they never sit on top of
   // the thing being copied.
-  if (o.showLabels && gutter > 0) {
+  if (o.showGrid && o.showLabels && gutter > 0) {
     const fontPx = Math.min(gutter * 0.62, Math.min(cw, ch) * 0.6)
     ctx.save()
     ctx.fillStyle    = '#334155'
@@ -379,6 +445,7 @@ export function GridTool() {
   const [copied, setCopied] = useState(false)
   const [printSrc, setPrintSrc] = useState<string>('')
   const [openSection, setOpenSection] = useState<string | null>('canvas')
+  const [showMoreGuides, setShowMoreGuides] = useState(false)
 
   const wrapRef   = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -395,6 +462,10 @@ export function GridTool() {
   const set = useCallback(<K extends keyof Settings>(k: K, v: Settings[K]) => {
     setS(prev => {
       const next = { ...prev, [k]: v }
+      // Touching a grid control means you want to see the grid. Without
+      // this, dragging the column stepper with lines hidden does nothing
+      // visible and reads as broken.
+      if (k === 'cols' || k === 'rows' || k === 'squareCells') next.showGrid = true
       // Keeping cells square is a convenience, so it re-derives the rows
       // whenever anything it depends on moves. Turning it off leaves the rows
       // where they are rather than snapping back.
@@ -439,6 +510,7 @@ export function GridTool() {
   const downMarks   = useMemo(() => linePositions(chDisp, s.rows), [chDisp, s.rows])
   const nearSquare  = Math.abs(cellW - cellH) < 0.02
   const anyOverlayOn = Object.values(s.overlays).some(Boolean)
+  const activeMotif  = MOTIFS.find(mo => mo.key === s.motif) ?? null
 
   // Preview size: fit the canvas aspect into the available box, leaving room
   // for the label gutter.
@@ -841,7 +913,285 @@ export function GridTool() {
           </div>
         </Section>
 
+        {/* ── Composition ─────────────────────────────────────────────
+            Separate from Grid on purpose. The grid is for TRANSFER — the
+            composition is already settled and you are copying it. These are
+            for deciding whether it is any good in the first place, which is
+            why they also work with no photo loaded at all. */}
+        {/* ── Composition ─────────────────────────────────────────────
+            Comes before Grid because this is where the picture is decided;
+            the grid only helps you copy it afterwards. Framing lives in
+            here too — zoom, crop and the guides are one decision, not two.
+            It all works with no photo, as a blank planning sheet. */}
+        <Section id="composition" title="Composition" open={openSection} onToggle={setOpenSection}>
+          <p className="mb-4 text-xs text-slate-500">
+            Decide the picture first. Nothing here is part of the grid you copy from.
+          </p>
+
+          <Toggle
+            label="Rule of thirds"
+            checked={s.overlays.thirds}
+            onChange={v => set('overlays', { ...s.overlays, thirds: v })}
+          />
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
+            Splits the picture in three each way. Put your subject on a line or a crossing
+            rather than dead centre.
+          </p>
+
+          {/* ── Motifs ──────────────────────────────────────────────── */}
+          <div className="mt-5 border-t border-slate-200 pt-4">
+            <span className="mb-1 block text-xs font-medium text-slate-500">Shape</span>
+            <p className="mb-2.5 text-xs leading-relaxed text-slate-500">
+              The path the eye should travel. Turn one on and move the photo until its masses
+              sit along it.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button" onClick={() => set('motif', null)}
+                className={`rounded-md border px-2.5 py-1.5 text-xs font-medium ${
+                  s.motif === null ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                }`}
+              >None</button>
+              {MOTIFS.map(mo => (
+                <button
+                  key={mo.key} type="button"
+                  onClick={() => set('motif', s.motif === mo.key ? null : mo.key)}
+                  className={`rounded-md border px-2.5 py-1.5 text-xs font-medium ${
+                    s.motif === mo.key ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >{mo.label}</button>
+              ))}
+            </div>
+
+            {activeMotif && (
+              <div className="mt-3 rounded-lg bg-slate-100 px-3 py-2.5">
+                <p className="text-xs leading-relaxed text-slate-600">{activeMotif.blurb}</p>
+                {motifHasOrientation(activeMotif.key) && (
+                  <div className="mt-2.5 flex gap-2">
+                    <button
+                      type="button" onClick={() => set('motifFlipX', !s.motifFlipX)}
+                      className="flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50"
+                    >Flip left / right</button>
+                    <button
+                      type="button" onClick={() => set('motifFlipY', !s.motifFlipY)}
+                      className="flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50"
+                    >Flip up / down</button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── Framing, folded in ──────────────────────────────────── */}
+          <div className="mt-5 border-t border-slate-200 pt-4">
+            {/* Zoom runs from "the whole photo fits" to 4x, not from "fills
+                the frame". A tall photo on a wide canvas is cropped to ribbons
+                at fill, and you cannot choose what to leave out without first
+                seeing what there is. */}
+            <div>
+              <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                <span className="text-xs font-medium text-slate-500">Zoom</span>
+                <span className="text-xs tabular-nums text-slate-500">
+                  {Math.round(zoom * 100)}%{Math.abs(zoom - zb.min) < 0.005 && zb.min < 0.999 ? " · whole photo" : ""}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={Math.round(zb.min * 100)} max={400} step={1}
+                value={Math.round(zoom * 100)}
+                onChange={e => setZoom(parseFloat(e.target.value) / 100)}
+                className="h-6 w-full cursor-pointer accent-slate-900"
+                aria-label="Zoom"
+              />
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button" onClick={() => { setZoom(zb.min); setPanX(0.5); setPanY(0.5) }}
+                  disabled={zb.min >= 0.999}
+                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-900 hover:bg-slate-50 disabled:opacity-40"
+                >Fit whole photo</button>
+                <button
+                  type="button" onClick={() => { setZoom(1); setPanX(0.5); setPanY(0.5) }}
+                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-900 hover:bg-slate-50"
+                >Fill canvas</button>
+              </div>
+              {zoom < 0.999 && (
+                <p className="mt-2 rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-600">
+                  Zoomed out past the canvas shape, so the photo does not reach the edges. The
+                  blank margin prints white.
+                </p>
+              )}
+            </div>
+  
+            {/* ── Rotate ──────────────────────────────────────────────────
+                Quarter turns and a fine tilt are different jobs: one is "this
+                photo is the wrong way round", the other is "the horizon is
+                off". Separate controls, because a slider that has to do both
+                can do neither precisely. */}
+            <div className="mt-4">
+              <span className="mb-1.5 block text-xs font-medium text-slate-500">Rotate</span>
+              <div className="flex gap-2">
+                <button
+                  type="button" onClick={() => setQuarter(q => (q + 3) % 4)}
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-900 hover:bg-slate-50"
+                >
+                  <RotateCcw className="h-4 w-4" aria-hidden /> 90° left
+                </button>
+                <button
+                  type="button" onClick={() => setQuarter(q => (q + 1) % 4)}
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-900 hover:bg-slate-50"
+                >
+                  <RotateCw className="h-4 w-4" aria-hidden /> 90° right
+                </button>
+              </div>
+            </div>
+  
+            <div className="mt-4">
+              <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                <span className="text-xs font-medium text-slate-500">Straighten</span>
+                <span className="text-xs tabular-nums text-slate-500">
+                  {tilt > 0 ? '+' : ''}{tilt}°
+                </span>
+              </div>
+              <input
+                type="range" min={-45} max={45} step={0.5} value={tilt}
+                onChange={e => setTilt(parseFloat(e.target.value))}
+                className="h-6 w-full cursor-pointer accent-slate-900"
+                aria-label="Straighten"
+              />
+              {tilt !== 0 && (
+                <button
+                  type="button" onClick={() => setTilt(0)}
+                  className="mt-1 text-xs font-medium text-slate-600 underline hover:text-slate-900"
+                >
+                  Level it
+                </button>
+              )}
+            </div>
+  
+            {/* ── Flip ────────────────────────────────────────────────────
+                Mirroring a reference is an old studio trick: the composition
+                arrives fresh and the errors you had stopped seeing jump out.
+                Worth having next to the crop controls rather than buried with
+                the photo effects. */}
+            <div className="mt-4">
+              <span className="mb-1.5 block text-xs font-medium text-slate-500">Flip</span>
+              <div className="flex gap-2">
+                <button
+                  type="button" onClick={() => setFlipH(v => !v)}
+                  aria-pressed={flipH}
+                  className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border text-sm font-medium ${
+                    flipH ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <FlipHorizontal className="h-4 w-4" aria-hidden /> Mirror
+                </button>
+                <button
+                  type="button" onClick={() => setFlipV(v => !v)}
+                  aria-pressed={flipV}
+                  className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border text-sm font-medium ${
+                    flipV ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <FlipVertical className="h-4 w-4" aria-hidden /> Upside down
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">
+                Mirroring the reference is a quick way to check a composition — the errors you have
+                stopped noticing tend to jump straight out.
+              </p>
+            </div>
+  
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button" onClick={resetFraming}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
+              >
+                <Maximize2 className="h-4 w-4" aria-hidden /> Reset framing
+              </button>
+              <button
+                type="button" onClick={() => { setS(DEFAULTS); resetFraming() }}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden /> Reset all
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              The photo is cropped to your canvas shape, never squashed, and it stays covered at
+              any angle — a tilt zooms in rather than opening a gap in the corner.
+            </p>
+          </div>
+
+          {/* ── The rest, out of the way ────────────────────────────── */}
+          <div className="mt-5 border-t border-slate-200 pt-4">
+            <button
+              type="button" onClick={() => setShowMoreGuides(v => !v)}
+              aria-expanded={showMoreGuides}
+              className="flex w-full items-center justify-between text-left text-xs font-semibold text-slate-700 hover:text-slate-900"
+            >
+              More guides
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showMoreGuides ? 'rotate-180' : ''}`} aria-hidden />
+            </button>
+            {showMoreGuides && (
+              <div className="mt-2">
+                {OVERLAYS.filter(o => o.key !== 'thirds').map(o => (
+                  <div key={o.key} className="border-t border-slate-100 py-2.5 first:border-t-0">
+                    <Toggle
+                      label={o.label}
+                      checked={s.overlays[o.key]}
+                      onChange={v => set('overlays', { ...s.overlays, [o.key]: v })}
+                    />
+                    <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{o.blurb}</p>
+                    {o.key === 'spiral' && s.overlays.spiral && (
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          type="button" onClick={() => set('spiralFlipX', !s.spiralFlipX)}
+                          className="flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50"
+                        >Flip left / right</button>
+                        <button
+                          type="button" onClick={() => set('spiralFlipY', !s.spiralFlipY)}
+                          className="flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50"
+                        >Flip up / down</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-5 border-t border-slate-200 pt-4">
+            <Field label="Guide colour">
+              <div className="flex items-center gap-2">
+                <input
+                  type="color" value={s.overlayColor}
+                  onChange={e => set('overlayColor', e.target.value)}
+                  className="h-9 w-14 cursor-pointer rounded border border-slate-300 bg-white"
+                />
+                <div className="flex flex-wrap gap-1">
+                  {['#00e5ff', '#ffffff', '#000000', '#39ff14', '#ff00ff'].map(c => (
+                    <button
+                      key={c} type="button" onClick={() => set('overlayColor', c)}
+                      style={{ background: c }}
+                      className="h-6 w-6 rounded border border-slate-300" title={c}
+                    ><span className="sr-only">{c}</span></button>
+                  ))}
+                </div>
+              </div>
+            </Field>
+            <Slider
+              label="Guide opacity" value={Math.round(s.overlayOpacity * 100)}
+              min={10} max={100} step={5}
+              onChange={v => set('overlayOpacity', v / 100)} suffix="%"
+            />
+          </div>
+        </Section>
+
         <Section id="grid" title="Grid" open={openSection} onToggle={setOpenSection}>
+          <Toggle label="Show grid lines" checked={s.showGrid} onChange={v => set('showGrid', v)} />
+          <p className="mt-1.5 mb-3 text-xs leading-relaxed text-slate-500">
+            Hidden while you compose, because a grid over the picture gets in the way of
+            judging it. Adjusting anything below switches it on.
+          </p>
           <Stepper
             label="Columns across" value={s.cols} min={1} max={24}
             onChange={v => set('cols', v)}
@@ -901,220 +1251,6 @@ export function GridTool() {
               you see here is what prints.
             </p>
           </div>
-        </Section>
-
-        <Section id="framing" title="Framing" open={openSection} onToggle={setOpenSection}>
-          {/* Zoom runs from "the whole photo fits" to 4x, not from "fills
-              the frame". A tall photo on a wide canvas is cropped to ribbons
-              at fill, and you cannot choose what to leave out without first
-              seeing what there is. */}
-          <div>
-            <div className="mb-1.5 flex items-baseline justify-between gap-2">
-              <span className="text-xs font-medium text-slate-500">Zoom</span>
-              <span className="text-xs tabular-nums text-slate-500">
-                {Math.round(zoom * 100)}%{Math.abs(zoom - zb.min) < 0.005 && zb.min < 0.999 ? " · whole photo" : ""}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={Math.round(zb.min * 100)} max={400} step={1}
-              value={Math.round(zoom * 100)}
-              onChange={e => setZoom(parseFloat(e.target.value) / 100)}
-              className="h-6 w-full cursor-pointer accent-slate-900"
-              aria-label="Zoom"
-            />
-            <div className="mt-2 flex gap-2">
-              <button
-                type="button" onClick={() => { setZoom(zb.min); setPanX(0.5); setPanY(0.5) }}
-                disabled={zb.min >= 0.999}
-                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-900 hover:bg-slate-50 disabled:opacity-40"
-              >Fit whole photo</button>
-              <button
-                type="button" onClick={() => { setZoom(1); setPanX(0.5); setPanY(0.5) }}
-                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-900 hover:bg-slate-50"
-              >Fill canvas</button>
-            </div>
-            {zoom < 0.999 && (
-              <p className="mt-2 rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-600">
-                Zoomed out past the canvas shape, so the photo does not reach the edges. The
-                blank margin prints white.
-              </p>
-            )}
-          </div>
-
-          {/* ── Rotate ──────────────────────────────────────────────────
-              Quarter turns and a fine tilt are different jobs: one is "this
-              photo is the wrong way round", the other is "the horizon is
-              off". Separate controls, because a slider that has to do both
-              can do neither precisely. */}
-          <div className="mt-4">
-            <span className="mb-1.5 block text-xs font-medium text-slate-500">Rotate</span>
-            <div className="flex gap-2">
-              <button
-                type="button" onClick={() => setQuarter(q => (q + 3) % 4)}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-900 hover:bg-slate-50"
-              >
-                <RotateCcw className="h-4 w-4" aria-hidden /> 90° left
-              </button>
-              <button
-                type="button" onClick={() => setQuarter(q => (q + 1) % 4)}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-900 hover:bg-slate-50"
-              >
-                <RotateCw className="h-4 w-4" aria-hidden /> 90° right
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <div className="mb-1.5 flex items-baseline justify-between gap-2">
-              <span className="text-xs font-medium text-slate-500">Straighten</span>
-              <span className="text-xs tabular-nums text-slate-500">
-                {tilt > 0 ? '+' : ''}{tilt}°
-              </span>
-            </div>
-            <input
-              type="range" min={-45} max={45} step={0.5} value={tilt}
-              onChange={e => setTilt(parseFloat(e.target.value))}
-              className="h-6 w-full cursor-pointer accent-slate-900"
-              aria-label="Straighten"
-            />
-            {tilt !== 0 && (
-              <button
-                type="button" onClick={() => setTilt(0)}
-                className="mt-1 text-xs font-medium text-slate-600 underline hover:text-slate-900"
-              >
-                Level it
-              </button>
-            )}
-          </div>
-
-          {/* ── Flip ────────────────────────────────────────────────────
-              Mirroring a reference is an old studio trick: the composition
-              arrives fresh and the errors you had stopped seeing jump out.
-              Worth having next to the crop controls rather than buried with
-              the photo effects. */}
-          <div className="mt-4">
-            <span className="mb-1.5 block text-xs font-medium text-slate-500">Flip</span>
-            <div className="flex gap-2">
-              <button
-                type="button" onClick={() => setFlipH(v => !v)}
-                aria-pressed={flipH}
-                className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border text-sm font-medium ${
-                  flipH ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <FlipHorizontal className="h-4 w-4" aria-hidden /> Mirror
-              </button>
-              <button
-                type="button" onClick={() => setFlipV(v => !v)}
-                aria-pressed={flipV}
-                className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border text-sm font-medium ${
-                  flipV ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <FlipVertical className="h-4 w-4" aria-hidden /> Upside down
-              </button>
-            </div>
-            <p className="mt-2 text-xs text-slate-500">
-              Mirroring the reference is a quick way to check a composition — the errors you have
-              stopped noticing tend to jump straight out.
-            </p>
-          </div>
-
-          <div className="mt-4 flex gap-2">
-            <button
-              type="button" onClick={resetFraming}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
-            >
-              <Maximize2 className="h-4 w-4" aria-hidden /> Reset framing
-            </button>
-            <button
-              type="button" onClick={() => { setS(DEFAULTS); resetFraming() }}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
-            >
-              <RotateCcw className="h-4 w-4" aria-hidden /> Reset all
-            </button>
-          </div>
-          <p className="mt-2 text-xs text-slate-500">
-            The photo is cropped to your canvas shape, never squashed, and it stays covered at
-            any angle — a tilt zooms in rather than opening a gap in the corner.
-          </p>
-        </Section>
-
-        {/* ── Composition ─────────────────────────────────────────────
-            Separate from Grid on purpose. The grid is for TRANSFER — the
-            composition is already settled and you are copying it. These are
-            for deciding whether it is any good in the first place, which is
-            why they also work with no photo loaded at all. */}
-        <Section id="composition" title="Composition" open={openSection} onToggle={setOpenSection}>
-          <p className="mb-3 text-xs text-slate-500">
-            Guides for judging where things sit. They are drawn over the picture but never
-            exported as part of the grid you copy from.
-          </p>
-
-          {OVERLAYS.map(o => (
-            <div key={o.key} className="border-t border-slate-100 py-3 first:border-t-0 first:pt-0">
-              <Toggle
-                label={o.label}
-                checked={s.overlays[o.key]}
-                onChange={v => set('overlays', { ...s.overlays, [o.key]: v })}
-              />
-              <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{o.blurb}</p>
-
-              {/* The spiral is the only one with a handedness worth choosing:
-                  its tightest curl is the focal point, so which corner it
-                  lands in decides the composition. */}
-              {o.key === 'spiral' && s.overlays.spiral && (
-                <div className="mt-2 flex gap-2">
-                  <button
-                    type="button" onClick={() => set('spiralFlipX', !s.spiralFlipX)}
-                    className="flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50"
-                  >Flip left / right</button>
-                  <button
-                    type="button" onClick={() => set('spiralFlipY', !s.spiralFlipY)}
-                    className="flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50"
-                  >Flip up / down</button>
-                </div>
-              )}
-            </div>
-          ))}
-
-          <div className="mt-4 border-t border-slate-200 pt-4">
-            <Field label="Guide colour">
-              <div className="flex items-center gap-2">
-                <input
-                  type="color" value={s.overlayColor}
-                  onChange={e => set('overlayColor', e.target.value)}
-                  className="h-9 w-14 cursor-pointer rounded border border-slate-300 bg-white"
-                />
-                <div className="flex flex-wrap gap-1">
-                  {['#00e5ff', '#ffffff', '#000000', '#39ff14', '#ff00ff'].map(c => (
-                    <button
-                      key={c} type="button" onClick={() => set('overlayColor', c)}
-                      style={{ background: c }}
-                      className="h-6 w-6 rounded border border-slate-300" title={c}
-                    ><span className="sr-only">{c}</span></button>
-                  ))}
-                </div>
-              </div>
-            </Field>
-            <Slider
-              label="Guide opacity" value={Math.round(s.overlayOpacity * 100)}
-              min={10} max={100} step={5}
-              onChange={v => set('overlayOpacity', v / 100)} suffix="%"
-            />
-            <p className="mt-2 text-xs text-slate-500">
-              A different colour from the grid keeps the two readable at once.
-            </p>
-          </div>
-
-          {anyOverlayOn && (
-            <button
-              type="button"
-              onClick={() => set('overlays', { thirds: false, phi: false, spiral: false, armature: false, diagonals: false, center: false })}
-              className="mt-4 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
-            >Turn all guides off</button>
-          )}
         </Section>
 
         <Section id="photo" title="Photo" open={openSection} onToggle={setOpenSection}>
