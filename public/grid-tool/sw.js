@@ -23,7 +23,7 @@
 // Bump on every release that changes cached assets. The activate handler
 // deletes every other grid-tool-* cache, so an installed copy drops its old
 // files instead of serving them forever.
-const VERSION = 'grid-tool-v4'
+const VERSION = 'grid-tool-v5'
 const SHELL   = ['/grid-tool']
 
 self.addEventListener('install', (event) => {

@@ -59,6 +59,7 @@ import {
 import {
   motifPaths, flipPaths, motifHasOrientation, motifFlipAxes, type MotifKind,
 } from '@/lib/grid-tool/motifs'
+import { blankView } from '@/lib/grid-tool/view-state'
 
 // Stretcher-bar and paper sizes people actually buy. Stored in inches; the cm
 // view converts, so a metric artist sees 30.5 x 40.6 rather than a different
@@ -482,12 +483,15 @@ export function GridTool() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(SETTINGS_KEY)
-      if (raw) setS({ ...DEFAULTS, ...JSON.parse(raw) as Partial<Settings> })
+      // blankView drops the overlays, the motif and showGrid, so the tool
+      // always opens with nothing drawn over the picture. Canvas size,
+      // colours and line weight come back as you left them.
+      if (raw) setS({ ...DEFAULTS, ...blankView(JSON.parse(raw) as Partial<Settings>) })
     } catch { /* private mode, blocked storage — defaults are fine */ }
   }, [])
 
   useEffect(() => {
-    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)) } catch { /* ignore */ }
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(blankView(s))) } catch { /* ignore */ }
   }, [s])
 
   // Track available width so the preview fills a phone and doesn't overflow a
