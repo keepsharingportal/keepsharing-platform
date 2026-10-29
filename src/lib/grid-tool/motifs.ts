@@ -144,7 +144,32 @@ export function flipPaths(
   })))
 }
 
-/** Does this motif read differently when mirrored? Symmetric ones do not. */
+/**
+ * Which mirror axes actually change this motif.
+ *
+ * Not every motif cares about every axis, and a button that visibly does
+ * nothing is worse than no button. The triangle sits apex-up on the centre
+ * line, so mirroring it left-to-right is a no-op; the C-curve is symmetric
+ * about the horizontal centre, so up-down is. The diagonal has only two
+ * states, and either flip reaches the other one, so it is offered once.
+ *
+ * The off-centre motifs — the cross and the radiating lines — DO care about
+ * both, which the earlier version of this got wrong: it called them
+ * symmetric and hid their controls, leaving no way to move the focal point
+ * to the other side of the canvas.
+ */
+export function motifFlipAxes(kind: MotifKind): { x: boolean; y: boolean } {
+  switch (kind) {
+    case 'circle':    return { x: false, y: false }  // centred ellipse
+    case 'triangle':  return { x: false, y: true  }  // apex on the centre line
+    case 'c-curve':   return { x: true,  y: false }  // symmetric top to bottom
+    case 'diagonal':  return { x: true,  y: false }  // two states, one control
+    default:          return { x: true,  y: true  }
+  }
+}
+
+/** Does this motif read differently when mirrored at all? */
 export function motifHasOrientation(kind: MotifKind): boolean {
-  return kind !== 'circle' && kind !== 'cruciform' && kind !== 'radial'
+  const a = motifFlipAxes(kind)
+  return a.x || a.y
 }

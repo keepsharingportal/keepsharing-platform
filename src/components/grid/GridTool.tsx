@@ -57,7 +57,7 @@ import {
   overlayLines, goldenSpiralPath, type OverlayKind,
 } from '@/lib/grid-tool/composition'
 import {
-  motifPaths, flipPaths, motifHasOrientation, type MotifKind,
+  motifPaths, flipPaths, motifHasOrientation, motifFlipAxes, type MotifKind,
 } from '@/lib/grid-tool/motifs'
 
 // Stretcher-bar and paper sizes people actually buy. Stored in inches; the cm
@@ -288,34 +288,38 @@ function drawScene(
   const ch = frameH / rows
 
   if (o.showGrid) {
-  ctx.save()
-  ctx.globalAlpha = o.lineOpacity
-  ctx.strokeStyle = o.lineColor
-  ctx.lineWidth   = lw
-  ctx.lineCap     = 'butt'
+    ctx.save()
+    ctx.globalAlpha = o.lineOpacity
+    ctx.strokeStyle = o.lineColor
+    ctx.lineWidth   = lw
+    ctx.lineCap     = 'butt'
 
-  ctx.beginPath()
-  // Half-pixel offset keeps an odd-width line crisp instead of smeared across
-  // two pixel columns.
-  for (let c = 1; c < cols; c++) {
-    const x = Math.round(gutter + c * cw) + (lw % 2 ? 0.5 : 0)
-    ctx.moveTo(x, gutter)
-    ctx.lineTo(x, gutter + frameH)
-  }
-  for (let r = 1; r < rows; r++) {
-    const y = Math.round(gutter + r * ch) + (lw % 2 ? 0.5 : 0)
-    ctx.moveTo(gutter, y)
-    ctx.lineTo(gutter + frameW, y)
-  }
-  ctx.stroke()
+    ctx.beginPath()
+    // Half-pixel offset keeps an odd-width line crisp instead of smeared across
+    // two pixel columns.
+    for (let c = 1; c < cols; c++) {
+      const x = Math.round(gutter + c * cw) + (lw % 2 ? 0.5 : 0)
+      ctx.moveTo(x, gutter)
+      ctx.lineTo(x, gutter + frameH)
+    }
+    for (let r = 1; r < rows; r++) {
+      const y = Math.round(gutter + r * ch) + (lw % 2 ? 0.5 : 0)
+      ctx.moveTo(gutter, y)
+      ctx.lineTo(gutter + frameW, y)
+    }
+    ctx.stroke()
 
-  // Border last and whole, so the frame edge is never half-drawn.
-  ctx.strokeRect(gutter + lw / 2, gutter + lw / 2, frameW - lw, frameH - lw)
+    // Border last and whole, so the frame edge is never half-drawn.
+    ctx.strokeRect(gutter + lw / 2, gutter + lw / 2, frameW - lw, frameH - lw)
+    ctx.restore()
+  }
 
   // ── Composition overlays ──────────────────────────────────────────────
-  // Drawn in their own colour, over the grid rather than under it: they are
-  // a judgement aid, not part of the transfer, and you need to see where
-  // they fall relative to the cells you will actually copy.
+  // Independent of the grid, deliberately. You settle the composition FIRST
+  // and the grid only arrives afterwards to copy it, so these have to be
+  // visible with the transfer lines still switched off. They are drawn in
+  // their own colour and OVER the grid when both are on, because once the
+  // grid is up you need to see where the guides fall against the cells.
   const anyOverlay = Object.values(o.overlays).some(Boolean) || !!o.motif
   if (anyOverlay) {
     ctx.save()
@@ -367,9 +371,6 @@ function drawScene(
     }
     ctx.restore()
   }
-  ctx.restore()
-
-  } // end showGrid
 
   // ── Labels ────────────────────────────────────────────────────────────────
   // In the gutter rather than over the picture, so they never sit on top of
@@ -509,7 +510,6 @@ export function GridTool() {
   const acrossMarks = useMemo(() => linePositions(cwDisp, s.cols), [cwDisp, s.cols])
   const downMarks   = useMemo(() => linePositions(chDisp, s.rows), [chDisp, s.rows])
   const nearSquare  = Math.abs(cellW - cellH) < 0.02
-  const anyOverlayOn = Object.values(s.overlays).some(Boolean)
   const activeMotif  = MOTIFS.find(mo => mo.key === s.motif) ?? null
 
   // Preview size: fit the canvas aspect into the available box, leaving room
@@ -925,7 +925,8 @@ export function GridTool() {
             It all works with no photo, as a blank planning sheet. */}
         <Section id="composition" title="Composition" open={openSection} onToggle={setOpenSection}>
           <p className="mb-4 text-xs text-slate-500">
-            Decide the picture first. Nothing here is part of the grid you copy from.
+            Decide the picture first. These guides are separate from the grid &mdash; they show
+            straight away, and the grid stays off until you turn it on below.
           </p>
 
           <Toggle
@@ -967,16 +968,35 @@ export function GridTool() {
               <div className="mt-3 rounded-lg bg-slate-100 px-3 py-2.5">
                 <p className="text-xs leading-relaxed text-slate-600">{activeMotif.blurb}</p>
                 {motifHasOrientation(activeMotif.key) && (
-                  <div className="mt-2.5 flex gap-2">
-                    <button
-                      type="button" onClick={() => set('motifFlipX', !s.motifFlipX)}
-                      className="flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50"
-                    >Flip left / right</button>
-                    <button
-                      type="button" onClick={() => set('motifFlipY', !s.motifFlipY)}
-                      className="flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50"
-                    >Flip up / down</button>
-                  </div>
+                  <>
+                    <p className="mt-2.5 text-xs text-slate-500">
+                      Want it on the other side? Flip it.
+                    </p>
+                    <div className="mt-1.5 flex gap-2">
+                      {motifFlipAxes(activeMotif.key).x && (
+                        <button
+                          type="button" onClick={() => set('motifFlipX', !s.motifFlipX)}
+                          aria-pressed={s.motifFlipX}
+                          className={`flex-1 rounded-md border px-2 py-1.5 text-xs font-medium ${
+                            s.motifFlipX
+                              ? 'border-slate-900 bg-slate-900 text-white'
+                              : 'border-slate-300 bg-white text-slate-900 hover:bg-slate-50'
+                          }`}
+                        >Flip left / right</button>
+                      )}
+                      {motifFlipAxes(activeMotif.key).y && (
+                        <button
+                          type="button" onClick={() => set('motifFlipY', !s.motifFlipY)}
+                          aria-pressed={s.motifFlipY}
+                          className={`flex-1 rounded-md border px-2 py-1.5 text-xs font-medium ${
+                            s.motifFlipY
+                              ? 'border-slate-900 bg-slate-900 text-white'
+                              : 'border-slate-300 bg-white text-slate-900 hover:bg-slate-50'
+                          }`}
+                        >Flip up / down</button>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             )}

@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  motifPaths, flipPaths, motifHasOrientation, type MotifKind,
+  motifPaths, flipPaths, motifHasOrientation, motifFlipAxes,
+  type MotifKind, type MotifPath,
 } from '@/lib/grid-tool/motifs'
 
 const W = 1600, H = 1000
@@ -151,14 +152,41 @@ test('flipping nothing returns the same paths', () => {
   assert.strictEqual(flipPaths(base, W, H, false, false), base)
 })
 
-test('symmetric motifs are not offered a flip control', () => {
-  // Offering one that visibly does nothing is worse than not offering it.
+test('only the truly symmetric circle is denied a flip control', () => {
+  // Offering one that visibly does nothing is worse than not offering it —
+  // but hiding one that WOULD do something strands the shape on one side of
+  // the canvas, which is the bug this replaced.
   assert.equal(motifHasOrientation('circle'), false)
-  assert.equal(motifHasOrientation('cruciform'), false)
-  assert.equal(motifHasOrientation('radial'), false)
-  assert.equal(motifHasOrientation('ell'), true)
-  assert.equal(motifHasOrientation('s-curve'), true)
-  assert.equal(motifHasOrientation('diagonal'), true)
+  for (const k of ALL.filter(k => k !== 'circle')) {
+    assert.equal(motifHasOrientation(k), true, `${k} should be flippable`)
+  }
+})
+
+test('a flip axis is only offered when it moves the motif', () => {
+  // Every advertised axis must visibly change the paths, and every axis that
+  // WOULD change them must be advertised. This is the property that caught
+  // the cross and the radiating lines being wrongly called symmetric.
+  // Compare SHAPE, not traversal order. Mirroring a path also reverses the
+  // direction it is sampled in, so an index-wise comparison reports a change
+  // for a curve that looks identical. A closed path also repeats its first
+  // point at the end, so unique points are compared, not a multiset — which
+  // is what the first version of
+  // this test did, and it wrongly accused the C-curve.
+  const shape = (ps: MotifPath[]) => ps.map(p =>
+    [...new Set(p.map(q => `${q.x.toFixed(4)},${q.y.toFixed(4)}`))].sort().join(' ')).join('|')
+  const moved = (a: MotifPath[], b: MotifPath[]) => shape(a) !== shape(b)
+
+  for (const k of ALL) {
+    const base = motifPaths(k, W, H)
+    const axes = motifFlipAxes(k)
+    assert.equal(moved(base, flipPaths(base, W, H, true, false)), axes.x,
+      `${k}: x axis offered=${axes.x} but moves=${!axes.x}`)
+    // The diagonal is the one deliberate exception: both flips reach the
+    // same second state, so only one control is offered for it.
+    if (k === 'diagonal') continue
+    assert.equal(moved(base, flipPaths(base, W, H, false, true)), axes.y,
+      `${k}: y axis offered=${axes.y} but moves=${!axes.y}`)
+  }
 })
 
 test('motifs work on a portrait frame too', () => {
